@@ -22,7 +22,7 @@ README.md              tệp này
 ## Biến nó thành của bạn
 
 1. Tên trang là **Mìn Thích Làm Vlog**. Muốn đổi, hãy tìm tên đó trong tất cả các tệp và thay bằng tên mới.
-2. Mở `site/about.html`, thay **Tên của bạn** (tiếng Việt và cả bản `data-en` tiếng Anh) và email `ban@example.com` bằng thông tin thật.
+2. Trang Giới thiệu (`site/about.html`) đã có tên Mìn Thích Làm Vlog và email minthichlamvlog@gmail.com. Muốn đổi, sửa trong tệp đó, nhớ sửa cả bản tiếng Việt lẫn bản `data-en` tiếng Anh.
 3. Bốn bài viết mẫu (Oaxaca, Kyoto, Lisbon, Hà Giang) và các ảnh minh họa chỉ là chỗ giữ chỗ, đều có nhãn **Mẫu**. Khi có bài thật, hãy xóa tệp của chúng trong `site/posts/`, xóa các khối tương ứng trong `site/index.html`, và xóa các tệp `scene-*.svg` không còn dùng.
 4. Màu sắc và font nằm ở đầu tệp `site/css/style.css`, trong khối `:root`. Muốn đổi màu nhấn, sửa `--peach`, `--coral`, `--pink`, `--violet`.
 5. Các con số ở đầu trang chủ (số chuyến đi, quốc gia, ngày trên đường, vlog) nằm trong `<dl class="stats">` của `site/index.html`. Hãy cập nhật khi có bài mới.
