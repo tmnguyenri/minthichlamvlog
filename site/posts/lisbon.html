@@ -3,86 +3,121 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Lisbon – Mìn Thích Làm Vlog</title>
-  <meta name="description" content="Bài mẫu. Giữ dòng này ngắn gọn. Câu chuyện đầy đủ nằm trong bài viết.">
+  <title data-en="Lisbon – Mìn Thích Làm Vlog">Lisbon – Mìn Thích Làm Vlog</title>
+  <meta name="description" content="Bài mẫu. Giữ dòng này ngắn gọn. Câu chuyện đầy đủ nằm trong bài viết." data-en-content="Sample post. Keep this line short. The full story lives in the post.">
   <meta property="og:title" content="Lisbon – Mìn Thích Làm Vlog">
   <meta property="og:description" content="Bài mẫu. Giữ dòng này ngắn gọn. Câu chuyện đầy đủ nằm trong bài viết.">
   <meta property="og:type" content="article">
-  <meta name="theme-color" content="#edf2f2" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0e1d27" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#0b0b0f">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&family=Plus+Jakarta+Sans:wght@400..700&display=swap">
   <link rel="stylesheet" href="../css/style.css">
+  <script src="../js/lang.js"></script>
 </head>
 <body>
-  <a class="skip" href="#main">Chuyển đến bài viết</a>
+  <a class="skip" href="#main" data-en="Skip to content">Chuyển đến nội dung</a>
 
-  <header class="wrap bar">
-    <a class="bar__home" href="../index.html">Mìn Thích Làm Vlog</a>
-    <nav aria-label="Menu chính">
-      <a href="../index.html">Điểm dừng</a>
-      <a href="../about.html">Giới thiệu</a>
-    </nav>
+  <header class="site-header">
+    <div class="wrap site-header__inner">
+      <a class="brand" href="../index.html">
+        <img class="brand__mark" src="../favicon.svg" alt="" width="40" height="40">
+        <span class="brand__name">Mìn Thích Làm Vlog</span><span class="brand__dot" aria-hidden="true"></span>
+      </a>
+      <nav class="nav" aria-label="Menu chính" data-en-aria-label="Main menu">
+        <a href="../index.html#nhat-ky" class="is-active" data-en="Journal">Nhật ký</a>
+        <a href="../index.html#ban-do" data-en="Atlas">Bản đồ</a>
+        <a href="../about.html" data-en="About">Giới thiệu</a>
+      </nav>
+      <a class="btn btn--primary btn--sm header-cta" href="../about.html#lien-he" data-en="Contact">Liên hệ</a>
+      <div class="lang-switch" role="group" aria-label="Ngôn ngữ" data-en-aria-label="Language">
+        <button type="button" data-set-lang="vi" aria-pressed="true" lang="vi" aria-label="Tiếng Việt">VI</button>
+        <button type="button" data-set-lang="en" aria-pressed="false" lang="en" aria-label="English">EN</button>
+      </div>
+    </div>
   </header>
 
   <main id="main">
     <article>
-      <header class="post-head post-head--c">
-        <div class="wrap">
-          <p class="crumb"><a href="../index.html">Tất cả điểm dừng</a></p>
-          <h1>Lisbon</h1>
-          <p class="post-head__dek">Giữ dòng này ngắn gọn. Câu chuyện đầy đủ nằm trong bài viết.</p>
+      <header class="post-hero">
+        <img class="post-hero__img" src="../images/scene-lisbon-wide.svg" alt="" width="1600" height="800">
+        <div class="wrap post-hero__content">
+          <a class="crumb arrow--back" href="../index.html#nhat-ky"><span data-en="All posts">Tất cả bài viết</span></a>
+          <h1><span data-en="Hills, tiles and golden afternoons">Dốc, ngói và ánh chiều vàng</span></h1>
+          <p class="post-dek" data-en="Keep this line short. The full story lives in the post.">Giữ dòng này ngắn gọn. Câu chuyện đầy đủ nằm trong bài viết.</p>
+          <ul class="tags"><li><span data-en="steep streets">phố dốc</span></li><li><span data-en="coffee">cà phê</span></li><li><span data-en="sunsets">hoàng hôn</span></li></ul>
           <dl class="facts">
-            <div><dt>Thời gian</dt><dd><time datetime="2026-02">Tháng 2/2026</time></dd></div>
-            <div><dt>Địa điểm</dt><dd>Bồ Đào Nha</dd></div>
-            <div><dt>Thời lượng</dt><dd>6 ngày</dd></div>
+            <div><dt><span data-en="When">Thời gian</span></dt><dd><time datetime="2026-02" data-en="February 2026">Tháng 2/2026</time></dd></div>
+            <div><dt><span data-en="Where">Địa điểm</span></dt><dd><span data-en="Portugal">Bồ Đào Nha</span></dd></div>
+            <div><dt><span data-en="Length">Thời lượng</span></dt><dd><span data-en="6 days">6 ngày</span></dd></div>
           </dl>
         </div>
       </header>
 
-      <div class="wrap">
+      <div class="wrap post-body">
         <div class="prose">
-          <p class="sample-note">Đây là bài viết mẫu. Hãy thay chữ và khung ảnh bên dưới bằng nội dung của bạn, hoặc xóa tệp này cùng mục tương ứng ở trang chủ.</p>
+        <p class="sample-note" data-en="This is a sample post. Replace the text and frames below with your own, or delete this file and its card on the home page.">Đây là bài viết mẫu. Hãy thay chữ và các khung bên dưới bằng nội dung của bạn, hoặc xóa tệp này cùng thẻ tương ứng ở trang chủ.</p>
 
-          <p>Một phần mở đầu hay chỉ cần một khung cảnh: một con phố, một bữa ăn, một chuyến tàu bị trễ. Bắt đầu từ đó và để phần còn lại của bài theo sau.</p>
+        <p data-en="A good opening needs only one scene: a street, a meal, a delayed train. Start there and let the rest of the post follow.">Một phần mở đầu hay chỉ cần một khung cảnh: một con phố, một bữa ăn, một chuyến tàu bị trễ. Bắt đầu từ đó và để phần còn lại của bài theo sau.</p>
+
+          <div class="video video--empty">
+            <div><span class="play" aria-hidden="true"></span><p data-en="The vlog for this trip goes here. See the README for how to embed it from YouTube.">Video vlog của chuyến đi này sẽ nằm ở đây. Xem README để biết cách nhúng từ YouTube.</p></div>
+          </div>
+          <!--
+            VIDEO: đăng video lên YouTube, rồi thay toàn bộ <div class="video video--empty"> bên dưới bằng:
+            <div class="video"><iframe src="https://www.youtube-nocookie.com/embed/VIDEO_ID" title="Mô tả video" loading="lazy" allowfullscreen></iframe></div>
+            VIDEO_ID là phần đứng sau v= trong liên kết YouTube.
+          -->
 
           <figure class="photo">
             <!--
-              ẢNH: lưu ảnh vào thư mục images, rồi thay toàn bộ
-              <div class="photo__frame"> bên dưới bằng:
+              ẢNH: lưu ảnh vào thư mục images, rồi thay toàn bộ <div class="photo__frame"> bên dưới bằng:
               <img src="../images/anh-cua-ban.jpg" alt="Mô tả nội dung bức ảnh" width="1500" height="1000" loading="lazy">
             -->
-            <div class="photo__frame"><p>Thay khung này bằng một tấm ảnh.<br>Xem README để biết cách làm.</p></div>
-            <figcaption>Ghi chú ảnh được chụp ở đâu, vào lúc nào.</figcaption>
+            <div class="photo__frame"><p data-en="Replace this frame with a photo. See the README for how.">Thay khung này bằng một tấm ảnh. Xem README để biết cách làm.</p></div>
+            <figcaption data-en="Note where and when the photo was taken.">Ghi chú ảnh được chụp ở đâu, vào lúc nào.</figcaption>
           </figure>
 
-          <h2>Các ngày trôi qua thế nào</h2>
-          <p>Kể các ngày theo thứ tự xảy ra, hoặc gom lại theo những gì bạn đã làm. Đoạn ngắn đọc rất dễ chịu trên điện thoại.</p>
+          <h2 data-en="How the days went">Các ngày trôi qua thế nào</h2>
+          <p data-en="Tell the days in the order they happened, or group them by what you did. Short paragraphs read well on a phone.">Kể các ngày theo thứ tự xảy ra, hoặc gom lại theo những gì bạn đã làm. Đoạn ngắn đọc rất dễ chịu trên điện thoại.</p>
 
           <blockquote>
-            <p>Chọn một câu trong bài của bạn và đặt vào đây làm trích dẫn.</p>
+            <p data-en="Pick one line from your post and set it here as a pull quote.">Chọn một câu trong bài của bạn và đặt vào đây làm trích dẫn.</p>
           </blockquote>
 
-          <h2>Điều mình muốn nói với một người bạn</h2>
-          <p>Ghi chú thực tế: ở đâu, di chuyển thế nào, tốn bao nhiêu, và lần sau bạn sẽ bỏ qua điều gì.</p>
+          <h2 data-en="What I&#x27;d tell a friend">Điều mình muốn nói với một người bạn</h2>
+          <p data-en="Practical notes: where to stay, how to get around, what it cost, and what you&#x27;d skip next time.">Ghi chú thực tế: ở đâu, di chuyển thế nào, tốn bao nhiêu, và lần sau bạn sẽ bỏ qua điều gì.</p>
         </div>
 
-        <nav class="hops" aria-label="Các điểm dừng khác">
+        <nav class="hops" aria-label="Các chuyến đi khác" data-en-aria-label="Other trips">
+          <a class="hop hop--earlier" href="ha-giang.html">
+            <span class="hop__dir" data-en="Previous trip">Chuyến đi trước</span>
+            <span class="hop__name" data-en="Hà Giang">Hà Giang</span>
+          </a>
           <a class="hop hop--later" href="kyoto.html">
-            <span class="hop__dir">Điểm dừng sau</span>
-            <span class="hop__name">Kyoto</span>
+            <span class="hop__dir" data-en="Next trip">Chuyến đi sau</span>
+            <span class="hop__name" data-en="Kyoto">Kyoto</span>
           </a>
         </nav>
       </div>
     </article>
   </main>
-
-  <footer class="foot">
+  <footer class="site-footer">
     <div class="wrap">
-      <p>&copy; 2026 Tên của bạn</p>
-      <p><a href="../index.html">Về tất cả điểm dừng</a></p>
+      <div class="site-footer__top">
+        <p class="footer-title"><span data-en="So many places left.">Còn nhiều nơi chưa tới.</span> <em class="grad" data-en="See you on the next leg.">Hẹn bạn ở chặng sau.</em></p>
+        <ul class="footer-nav">
+          <li><a href="../index.html#nhat-ky" data-en="Journal">Nhật ký</a></li>
+          <li><a href="../index.html#ban-do" data-en="Atlas">Bản đồ</a></li>
+          <li><a href="../about.html" data-en="About">Giới thiệu</a></li>
+          <li><a href="../about.html#lien-he" data-en="Contact">Liên hệ</a></li>
+        </ul>
+      </div>
+      <div class="site-footer__bottom">
+        <p data-en="© 2026 Mìn Thích Làm Vlog — photos, films and stories from the road.">© 2026 Mìn Thích Làm Vlog — ảnh, phim và chuyện kể từ những chuyến đi.</p>
+        <p data-en="Made for slow travel and long memories.">Làm ra để đi chậm và nhớ lâu.</p>
+      </div>
     </div>
   </footer>
 </body>

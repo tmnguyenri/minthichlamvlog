@@ -3,52 +3,83 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Giới thiệu – Mìn Thích Làm Vlog</title>
-  <meta name="description" content="Ai viết Mìn Thích Làm Vlog và trang hoạt động như thế nào.">
+  <title data-en="About – Mìn Thích Làm Vlog">Giới thiệu – Mìn Thích Làm Vlog</title>
+  <meta name="description" content="Ai đứng sau Mìn Thích Làm Vlog và trang hoạt động như thế nào." data-en-content="Who is behind Mìn Thích Làm Vlog and how the site works.">
   <meta property="og:title" content="Giới thiệu – Mìn Thích Làm Vlog">
-  <meta property="og:description" content="Ai viết Mìn Thích Làm Vlog và trang hoạt động như thế nào.">
+  <meta property="og:description" content="Ai đứng sau Mìn Thích Làm Vlog và trang hoạt động như thế nào.">
   <meta property="og:type" content="website">
-  <meta name="theme-color" content="#edf2f2" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0e1d27" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#0b0b0f">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&family=Plus+Jakarta+Sans:wght@400..700&display=swap">
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/lang.js"></script>
 </head>
 <body>
-  <a class="skip" href="#main">Chuyển đến nội dung</a>
+  <a class="skip" href="#main" data-en="Skip to content">Chuyển đến nội dung</a>
 
-  <header class="wrap bar">
-    <a class="bar__home" href="index.html">Mìn Thích Làm Vlog</a>
-    <nav aria-label="Menu chính">
-      <a href="index.html">Điểm dừng</a>
-      <a href="about.html" aria-current="page">Giới thiệu</a>
-    </nav>
+  <header class="site-header">
+    <div class="wrap site-header__inner">
+      <a class="brand" href="index.html">
+        <img class="brand__mark" src="favicon.svg" alt="" width="40" height="40">
+        <span class="brand__name">Mìn Thích Làm Vlog</span><span class="brand__dot" aria-hidden="true"></span>
+      </a>
+      <nav class="nav" aria-label="Menu chính" data-en-aria-label="Main menu">
+        <a href="index.html#nhat-ky" data-en="Journal">Nhật ký</a>
+        <a href="index.html#ban-do" data-en="Atlas">Bản đồ</a>
+        <a href="about.html" aria-current="page" data-en="About">Giới thiệu</a>
+      </nav>
+      <a class="btn btn--primary btn--sm header-cta" href="about.html#lien-he" data-en="Contact">Liên hệ</a>
+      <div class="lang-switch" role="group" aria-label="Ngôn ngữ" data-en-aria-label="Language">
+        <button type="button" data-set-lang="vi" aria-pressed="true" lang="vi" aria-label="Tiếng Việt">VI</button>
+        <button type="button" data-set-lang="en" aria-pressed="false" lang="en" aria-label="English">EN</button>
+      </div>
+    </div>
   </header>
 
-  <main id="main" class="wrap">
-    <div class="page-head">
-      <h1 class="page-title">Giới thiệu</h1>
-    </div>
+  <main id="main">
+    <section class="page-hero">
+      <div class="wrap">
+        <p class="eyebrow" data-en="About">Giới thiệu</p>
+        <h1 class="page-title"><span data-en="The person behind">Người đứng sau</span> <em class="grad" data-en="the camera">chiếc máy quay</em></h1>
+      </div>
+    </section>
 
-    <div class="prose">
-      <p class="sample-note">Đây là trang mẫu để bạn bắt đầu. Hãy thay phần chữ bên dưới bằng nội dung của riêng bạn.</p>
+    <div class="wrap about">
+      <div class="prose">
+        <p class="sample-note" data-en="This is a sample page. Replace the text below with your own.">Đây là trang mẫu. Hãy thay phần chữ bên dưới bằng nội dung của riêng bạn.</p>
 
-      <p>Xin chào, mình là Tên của bạn. Mình lập trang này để giữ các chuyến đi ở một chỗ, viết lại khi vẫn còn nhớ rõ từng chi tiết.</p>
+        <p data-en="Hi, I&#x27;m Your Name. I made this site to keep my trips in one place, to write them down while the details are still fresh, and to film what words can&#x27;t tell.">Xin chào, mình là Tên của bạn. Mình lập trang này để giữ các chuyến đi ở một chỗ, viết lại khi vẫn còn nhớ rõ từng chi tiết, và quay lại những gì chữ không kể hết.</p>
 
-      <h2>Trang hoạt động thế nào</h2>
-      <p>Mỗi chuyến đi là một điểm dừng trên hành trình. Điểm dừng mới nhất nằm trên cùng ở trang chủ, các chuyến cũ hơn nằm bên dưới. Bấm vào một điểm dừng để đọc bài đầy đủ, rồi dùng các liên kết ở cuối bài để chuyển sang chuyến đi trước hoặc sau nó.</p>
+        <h2 data-en="How this site works">Trang này hoạt động thế nào</h2>
+        <p data-en="Every trip is one post. The newest sits at the top of the home page, older trips below it. Open a post to read it in full, then use the links at the end to move to the previous or next trip.">Mỗi chuyến đi là một bài viết. Bài mới nhất nằm trên cùng ở trang chủ, các chuyến cũ hơn nằm bên dưới. Bấm vào một bài để đọc đầy đủ, rồi dùng liên kết ở cuối bài để sang chuyến trước hoặc chuyến sau.</p>
 
-      <h2>Liên hệ</h2>
-      <p>Gửi thư cho mình tại <a href="mailto:ban@example.com">ban@example.com</a>.</p>
+        <div class="contact" id="lien-he">
+          <h2 data-en="Contact">Liên hệ</h2>
+          <p><span data-en="Write to me at">Gửi thư cho mình tại</span> <a href="mailto:ban@example.com">ban@example.com</a>.</p>
+        </div>
+      </div>
+      <div class="about__art" aria-hidden="true">
+        <figure class="tile"><div class="photo__frame"><p data-en="Replace this frame with your photo.">Thay khung này bằng ảnh của bạn.</p></div></figure>
+      </div>
     </div>
   </main>
-
-  <footer class="foot">
+  <footer class="site-footer">
     <div class="wrap">
-      <p>&copy; 2026 Tên của bạn</p>
-      <p><a href="index.html">Về tất cả điểm dừng</a></p>
+      <div class="site-footer__top">
+        <p class="footer-title"><span data-en="So many places left.">Còn nhiều nơi chưa tới.</span> <em class="grad" data-en="See you on the next leg.">Hẹn bạn ở chặng sau.</em></p>
+        <ul class="footer-nav">
+          <li><a href="index.html#nhat-ky" data-en="Journal">Nhật ký</a></li>
+          <li><a href="index.html#ban-do" data-en="Atlas">Bản đồ</a></li>
+          <li><a href="about.html" data-en="About">Giới thiệu</a></li>
+          <li><a href="about.html#lien-he" data-en="Contact">Liên hệ</a></li>
+        </ul>
+      </div>
+      <div class="site-footer__bottom">
+        <p data-en="© 2026 Mìn Thích Làm Vlog — photos, films and stories from the road.">© 2026 Mìn Thích Làm Vlog — ảnh, phim và chuyện kể từ những chuyến đi.</p>
+        <p data-en="Made for slow travel and long memories.">Làm ra để đi chậm và nhớ lâu.</p>
+      </div>
     </div>
   </footer>
 </body>
