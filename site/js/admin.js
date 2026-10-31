@@ -4,7 +4,7 @@
   var M = window.MTLV, h = M.h, tx = M.tx, t = M.t;
   var panel = document.getElementById('admin-root');
   var note = document.getElementById('admin-msg');
-  var tabs = { posts: document.getElementById('tab-posts'), users: document.getElementById('tab-users') };
+  var tabs = { posts: document.getElementById('tab-posts'), media: document.getElementById('tab-media'), users: document.getElementById('tab-users') };
   var tabBtns = document.querySelectorAll('[data-tab]');
 
   function slugify(s) {
@@ -91,13 +91,18 @@
   form.elements.title.addEventListener('input', function () { if (!slugTouched) form.elements.slug.value = slugify(form.elements.title.value); });
   form.elements.slug.addEventListener('input', function () { slugTouched = true; });
 
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var f = form.elements, btn = form.querySelector('button[type=submit]');
-    var body = {};
+  function collect() {
+    var f = form.elements, body = {};
     ['title', 'slug', 'excerpt', 'body', 'country', 'trip_date', 'days', 'cover', 'video', 'status', 'title_en', 'excerpt_en', 'body_en']
       .forEach(function (k) { body[k] = f[k].value; });
     if (!body.slug) body.slug = slugify(body.title);
+    return body;
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = form.elements, btn = form.querySelector('button[type=submit]');
+    var body = collect();
     btn.disabled = true;
     M.api(editingId ? 'PUT' : 'POST', editingId ? '/api/posts/' + editingId : '/api/posts', body).then(function (res) {
       btn.disabled = false;
@@ -126,11 +131,9 @@
   }
 
   function renderPostPhotos(postId, images) {
-    pp.hint.hidden = !!postId;
-    pp.body.hidden = !postId;
     clear(pp.list);
     images = images || [];
-    pp.empty.hidden = !postId || images.length > 0;
+    pp.empty.hidden = images.length > 0;
     images.forEach(function (img) {
       var md = '![' + (img.caption || '') + '](/api/images/' + img.id + ')';
       var insert = tx('button', 'Chèn vào nội dung', 'Insert into content', { type: 'button', class: 'btn btn--ghost btn--xs' });
@@ -153,11 +156,36 @@
     });
   }
 
+  // Ảnh được tải ngay trong lúc viết bài. Nếu bài chưa được lưu lần nào, tự lưu thành nháp trước để có mã bài.
+  function ensurePost() {
+    if (editingId) return Promise.resolve(editingId);
+    var body = collect();
+    if (!body.title.trim()) {
+      say(t('Nhập tiêu đề bài trước khi thêm ảnh.', 'Enter a title before adding photos.'), 'error');
+      return Promise.resolve(null);
+    }
+    body.status = 'draft';
+    return M.api('POST', '/api/posts', body).then(function (res) {
+      if (!res.ok) { say(M.msgOf(res), 'error'); return null; }
+      editingId = res.json.id;
+      form.elements.status.value = 'draft';
+      say(t('Đã tự lưu bản nháp để gắn ảnh.', 'Draft saved automatically so the photos can be attached.'), 'success');
+      loadPosts();
+      return editingId;
+    });
+  }
+
   pp.file.addEventListener('change', function () {
     var files = Array.prototype.slice.call(pp.file.files || []);
     pp.file.value = '';
-    if (!editingId || !files.length) return;
-    var postId = editingId, i = 0, failed = 0;
+    if (!files.length) return;
+    ensurePost().then(function (postId) {
+      if (postId) uploadFiles(postId, files);
+    });
+  });
+
+  function uploadFiles(postId, files) {
+    var i = 0, failed = 0;
     function next() {
       if (i >= files.length) {
         ppStatus(failed
@@ -177,7 +205,7 @@
       }).then(function (r) { if (!r.ok) failed++; }).catch(function () { failed++; }).then(next);
     }
     next();
-  });
+  }
 
   // ------------------------------------------------------------ Thành viên
   // Tạo liên kết đặt lại mật khẩu cho một thành viên rồi hiện ra để chủ trang sao chép gửi họ.
@@ -241,11 +269,48 @@
     });
   }
 
+  // ------------------------------------------------------------ Tất cả ảnh
+  function loadMedia() {
+    var list = document.getElementById('media-list');
+    return M.api('GET', '/api/images').then(function (res) {
+      if (!res.ok) { say(M.msgOf(res), 'error'); return; }
+      var images = res.json.images || [];
+      clear(list);
+      document.getElementById('media-count').textContent = images.length ? images.length + t(' ảnh', ' photos') : '';
+      document.getElementById('media-empty').hidden = images.length > 0;
+      images.forEach(function (img) {
+        var where = img.post_id
+          ? h('span', { class: 'media-card__post', text: img.post_title || ('Bài #' + img.post_id) })
+          : tx('span', 'Chưa gắn bài', 'Not attached to a post', { class: 'media-card__post media-card__post--none' });
+        var md = '![' + (img.caption || '') + '](/api/images/' + img.id + ')';
+        var copy = tx('button', 'Sao chép liên kết', 'Copy link', { type: 'button', class: 'btn btn--ghost btn--xs' });
+        copy.addEventListener('click', function () {
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(md).then(function () { say(t('Đã sao chép: ', 'Copied: ') + md, 'success'); }, function () { say(md, 'info'); });
+          else say(md, 'info');
+        });
+        var del = confirmButton('Xóa', 'Delete', 'Bấm lần nữa', 'Click again', function () {
+          M.api('DELETE', '/api/images/' + img.id).then(function (r) {
+            if (r.ok) { say(t('Đã xóa ảnh.', 'Photo deleted.'), 'success'); loadMedia(); } else say(M.msgOf(r), 'error');
+          });
+        });
+        list.appendChild(h('li', { class: 'media-card' },
+          h('img', { src: '/api/images/' + img.id, alt: img.caption || '', width: 240, height: 180, loading: 'lazy' }),
+          h('div', { class: 'media-card__body' },
+            h('p', { class: 'media-card__caption', text: img.caption || t('(không có chú thích)', '(no caption)') }),
+            where,
+            h('p', { class: 'media-card__meta', text: Math.round(img.size / 1024) + ' KB' }),
+            h('div', { class: 'media-card__actions' }, copy, del))));
+      });
+      M.refresh();
+    });
+  }
+
   // ------------------------------------------------------------ Tab và khởi động
   function openTab(name) {
     Object.keys(tabs).forEach(function (k) { tabs[k].hidden = k !== name; });
     tabBtns.forEach(function (b) { b.setAttribute('aria-selected', String(b.getAttribute('data-tab') === name)); });
     say('');
+    if (name === 'media') loadMedia();
   }
   tabBtns.forEach(function (b) { b.addEventListener('click', function () { openTab(b.getAttribute('data-tab')); }); });
 

@@ -53,7 +53,7 @@
         <div class="tabs" role="tablist">
           <button type="button" role="tab" class="tab" data-tab="posts" aria-selected="true"><span data-en="Posts">Bài viết</span></button>
           <button type="button" role="tab" class="tab" data-tab="users" aria-selected="false"><span data-en="Members">Thành viên</span><span id="pending-count" class="count" hidden></span></button>
-          <a class="tab" href="thu-vien.html" data-en="Photo library">Thư viện ảnh</a>
+          <button type="button" role="tab" class="tab" data-tab="media" aria-selected="false"><span data-en="Photos">Ảnh</span></button>
         </div>
 
         <section id="tab-posts">
@@ -121,8 +121,8 @@
         </div>
         <section class="post-photos" aria-labelledby="pp-title">
           <h3 id="pp-title" class="post-photos__title" data-en="Photos for this post">Ảnh của bài</h3>
-          <p id="pp-hint" class="hint" data-en="Save the post first, then add photos. Each time the page loads, it shows one of them at random.">Lưu bài trước, sau đó thêm ảnh. Mỗi lần mở trang, bài sẽ hiện ngẫu nhiên một trong các ảnh này.</p>
-          <div id="pp-body" hidden>
+          <p id="pp-hint" class="hint" data-en="Add photos while you write. If the post is not saved yet, it is saved as a draft first. Each time the page loads, one of these photos is shown at random.">Thêm ảnh ngay khi viết. Nếu bài chưa lưu, bài sẽ được lưu thành nháp trước. Mỗi lần mở trang, một trong các ảnh này được hiện ngẫu nhiên.</p>
+          <div id="pp-body">
             <div class="field">
               <label for="pp-file" data-en="Add photos">Thêm ảnh</label>
               <input id="pp-file" type="file" accept="image/jpeg,image/png,image/webp" multiple>
@@ -158,6 +158,16 @@
           </div>
             </form>
           </div>
+        </section>
+
+        <section id="tab-media" hidden>
+          <div class="admin__head">
+            <h2 data-en="All photos">Tất cả ảnh</h2>
+            <span id="media-count" class="muted"></span>
+          </div>
+          <p class="muted" data-en="Every photo uploaded to the site. Deleting one removes it from the post that uses it.">Toàn bộ ảnh đã tải lên. Xóa một ảnh sẽ gỡ nó khỏi bài đang dùng.</p>
+          <ul id="media-list" class="media-grid"></ul>
+          <p id="media-empty" class="muted" data-en="No photos yet." hidden>Chưa có ảnh nào.</p>
         </section>
 
         <section id="tab-users" hidden>
