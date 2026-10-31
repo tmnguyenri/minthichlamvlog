@@ -357,3 +357,14 @@ details.help .field { margin-top: 1rem; }
 .post-photos__item { display: grid; gap: .45rem; padding: .4rem; border: 1px solid var(--line); border-radius: .75rem; background: #fff; }
 .post-photos__item img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: .5rem; }
 .post-photos__actions { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+/* ---------- Tất cả ảnh (khu quản lý) ---------- */
+.media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .9rem; margin: 0 0 1.5rem; padding: 0; list-style: none; }
+.media-card { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--line); border-radius: .85rem; background: #fff; }
+.media-card img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: var(--paper); }
+.media-card__body { display: grid; gap: .3rem; padding: .75rem .85rem .85rem; }
+.media-card__caption { margin: 0; font-weight: 600; line-height: 1.35; word-break: break-word; }
+.media-card__post { font-size: .88rem; color: var(--lagoon); }
+.media-card__post--none { color: var(--muted); }
+.media-card__meta { margin: 0; color: var(--muted); font-size: .8rem; }
+.media-card__actions { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .35rem; }

@@ -4,7 +4,7 @@
   var M = window.MTLV, h = M.h, tx = M.tx, t = M.t;
   var panel = document.getElementById('admin-root');
   var note = document.getElementById('admin-msg');
-  var tabs = { posts: document.getElementById('tab-posts'), users: document.getElementById('tab-users') };
+  var tabs = { posts: document.getElementById('tab-posts'), media: document.getElementById('tab-media'), users: document.getElementById('tab-users') };
   var tabBtns = document.querySelectorAll('[data-tab]');
 
   function slugify(s) {
@@ -269,11 +269,48 @@
     });
   }
 
+  // ------------------------------------------------------------ Tất cả ảnh
+  function loadMedia() {
+    var list = document.getElementById('media-list');
+    return M.api('GET', '/api/images').then(function (res) {
+      if (!res.ok) { say(M.msgOf(res), 'error'); return; }
+      var images = res.json.images || [];
+      clear(list);
+      document.getElementById('media-count').textContent = images.length ? images.length + t(' ảnh', ' photos') : '';
+      document.getElementById('media-empty').hidden = images.length > 0;
+      images.forEach(function (img) {
+        var where = img.post_id
+          ? h('span', { class: 'media-card__post', text: img.post_title || ('Bài #' + img.post_id) })
+          : tx('span', 'Chưa gắn bài', 'Not attached to a post', { class: 'media-card__post media-card__post--none' });
+        var md = '![' + (img.caption || '') + '](/api/images/' + img.id + ')';
+        var copy = tx('button', 'Sao chép liên kết', 'Copy link', { type: 'button', class: 'btn btn--ghost btn--xs' });
+        copy.addEventListener('click', function () {
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(md).then(function () { say(t('Đã sao chép: ', 'Copied: ') + md, 'success'); }, function () { say(md, 'info'); });
+          else say(md, 'info');
+        });
+        var del = confirmButton('Xóa', 'Delete', 'Bấm lần nữa', 'Click again', function () {
+          M.api('DELETE', '/api/images/' + img.id).then(function (r) {
+            if (r.ok) { say(t('Đã xóa ảnh.', 'Photo deleted.'), 'success'); loadMedia(); } else say(M.msgOf(r), 'error');
+          });
+        });
+        list.appendChild(h('li', { class: 'media-card' },
+          h('img', { src: '/api/images/' + img.id, alt: img.caption || '', width: 240, height: 180, loading: 'lazy' }),
+          h('div', { class: 'media-card__body' },
+            h('p', { class: 'media-card__caption', text: img.caption || t('(không có chú thích)', '(no caption)') }),
+            where,
+            h('p', { class: 'media-card__meta', text: Math.round(img.size / 1024) + ' KB' }),
+            h('div', { class: 'media-card__actions' }, copy, del))));
+      });
+      M.refresh();
+    });
+  }
+
   // ------------------------------------------------------------ Tab và khởi động
   function openTab(name) {
     Object.keys(tabs).forEach(function (k) { tabs[k].hidden = k !== name; });
     tabBtns.forEach(function (b) { b.setAttribute('aria-selected', String(b.getAttribute('data-tab') === name)); });
     say('');
+    if (name === 'media') loadMedia();
   }
   tabBtns.forEach(function (b) { b.addEventListener('click', function () { openTab(b.getAttribute('data-tab')); }); });
 

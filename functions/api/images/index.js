@@ -19,7 +19,9 @@ export async function onRequestGet({ env, data }) {
   const denied = requireAdmin(data);
   if (denied) return denied;
   const { results } = await env.DB.prepare(
-    'SELECT id, mime, size, caption, created_at FROM images ORDER BY id DESC LIMIT 200',
+    `SELECT i.id, i.mime, i.size, i.caption, i.created_at, i.post_id, p.title AS post_title
+       FROM images i LEFT JOIN posts p ON p.id = i.post_id
+      ORDER BY i.id DESC LIMIT 500`,
   ).all();
   return json({ images: results });
 }

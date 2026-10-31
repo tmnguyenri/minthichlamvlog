@@ -53,6 +53,7 @@
         <div class="tabs" role="tablist">
           <button type="button" role="tab" class="tab" data-tab="posts" aria-selected="true"><span data-en="Posts">Bài viết</span></button>
           <button type="button" role="tab" class="tab" data-tab="users" aria-selected="false"><span data-en="Members">Thành viên</span><span id="pending-count" class="count" hidden></span></button>
+          <button type="button" role="tab" class="tab" data-tab="media" aria-selected="false"><span data-en="Photos">Ảnh</span></button>
         </div>
 
         <section id="tab-posts">
@@ -157,6 +158,16 @@
           </div>
             </form>
           </div>
+        </section>
+
+        <section id="tab-media" hidden>
+          <div class="admin__head">
+            <h2 data-en="All photos">Tất cả ảnh</h2>
+            <span id="media-count" class="muted"></span>
+          </div>
+          <p class="muted" data-en="Every photo uploaded to the site. Deleting one removes it from the post that uses it.">Toàn bộ ảnh đã tải lên. Xóa một ảnh sẽ gỡ nó khỏi bài đang dùng.</p>
+          <ul id="media-list" class="media-grid"></ul>
+          <p id="media-empty" class="muted" data-en="No photos yet." hidden>Chưa có ảnh nào.</p>
         </section>
 
         <section id="tab-users" hidden>
