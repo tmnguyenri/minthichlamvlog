@@ -121,6 +121,32 @@ ok(!page.includes('id="comment-form"'), 'khách không thấy ô bình luận');
 r = await anon.req('GET', '/bai/khong-co'); ok(r.status === 404, 'bài không tồn tại -> 404');
 r = await anon.req('GET', '/bai/' + encodeURIComponent('../etc')); ok(r.status === 404, 'slug lạ -> 404');
 
+console.log('5b. Bản tiếng Anh viết tay khi sửa bài');
+{
+  const mkForm = (p) => ({ title: p.title, slug: p.slug, excerpt: p.excerpt, body: p.body, country: p.country, trip_date: p.trip_date, days: p.days, cover: p.cover, video: p.video, status: p.status });
+  r = await admin.req('POST', '/api/posts', { title: 'Chè lề đường', slug: 'che-le-duong-thu', excerpt: 'Tóm tắt', body: 'Đoạn một.', status: 'draft' });
+  ok(r.status === 201, 'tạo bài nháp thử bản tiếng Anh');
+  const id = r.json.id, url = `/api/posts/${id}`;
+  const get = async () => (await admin.req('GET', url)).json.post;
+  // Gửi kèm bản tiếng Anh tự viết -> được lưu đúng như đã gửi, kể cả khi tiếng Việt cũng đổi.
+  let cur = await get();
+  r = await admin.req('PUT', url, { ...mkForm(cur), body: 'Đoạn một.\n\nĐoạn hai.', title_en: 'Sidewalk chè', excerpt_en: 'Summary', body_en: 'Paragraph one.\n\nParagraph two.' });
+  cur = await get();
+  ok(r.status === 200 && cur.title_en === 'Sidewalk chè' && cur.excerpt_en === 'Summary' && cur.body_en === 'Paragraph one.\n\nParagraph two.', 'bản tiếng Anh gửi kèm được giữ nguyên', JSON.stringify([cur.title_en, cur.excerpt_en, cur.body_en]));
+  // Lưu từ biểu mẫu (không có ô tiếng Anh), tiếng Việt không đổi -> giữ bản tiếng Anh cũ.
+  r = await admin.req('PUT', url, mkForm(cur));
+  cur = await get();
+  ok(r.status === 200 && cur.title_en === 'Sidewalk chè' && cur.body_en === 'Paragraph one.\n\nParagraph two.', 'lưu từ biểu mẫu không làm mất bản tiếng Anh viết tay');
+  // Tiếng Việt đổi mà không gửi tiếng Anh -> bỏ bản cũ của phần đã đổi (phần không đổi vẫn giữ).
+  r = await admin.req('PUT', url, { ...mkForm(cur), body: 'Đoạn một đã sửa.' });
+  cur = await get();
+  ok(r.status === 200 && cur.title_en === 'Sidewalk chè' && cur.excerpt_en === 'Summary' && cur.body_en === '', 'đổi tiếng Việt thì bản tiếng Anh của phần đó bị bỏ', JSON.stringify(cur.body_en));
+  // Người không phải chủ trang không gửi được.
+  r = await member.req('PUT', url, { ...mkForm(cur), title_en: 'Hacked' });
+  ok(r.status === 403, 'thành viên thường không sửa được bài');
+  r = await admin.req('DELETE', url); ok(r.status === 200 || r.status === 204, 'dọn bài thử');
+}
+
 console.log('6. Bình luận');
 r = await anon.req('POST', '/api/comments', { post_id: postId, body: 'xin chào' }); ok(r.status === 401, 'khách không bình luận được');
 r = await member.req('POST', '/api/comments', { post_id: postId, body: '' }); ok(r.status === 400, 'bình luận rỗng');

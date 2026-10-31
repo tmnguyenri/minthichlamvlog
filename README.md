@@ -151,7 +151,7 @@ Chủ trang đăng nhập tại `/dang-nhap` rồi vào `/quan-ly` để viết 
 
 ```
 node dev/server.mjs 8788                  # trang + API + cơ sở dữ liệu trong bộ nhớ, mở http://127.0.0.1:8788
-node --no-warnings dev/test-api.mjs       # 190 kiểm tra cho API
+node --no-warnings dev/test-api.mjs       # 196 kiểm tra cho API
 node --no-warnings dev/test-ui.mjs        # kiểm tra giao diện bằng trình duyệt (cần Playwright)
 ```
 

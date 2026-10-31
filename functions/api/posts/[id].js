@@ -34,9 +34,10 @@ export async function onRequestPut({ request, params, env, data, waitUntil }) {
     'SELECT slug, status, published_at, title, excerpt, body, title_en, excerpt_en, body_en FROM posts WHERE id = ?',
   ).bind(id).first();
   if (!old) return notFound();
-  // Bản tiếng Anh do máy dịch: giữ nguyên khi nội dung tiếng Việt không đổi, dịch lại khi tiếng Việt đổi.
+  // Bản tiếng Anh: nếu chủ trang gửi kèm (viết tay) thì giữ đúng như đã gửi.
+  // Nếu không gửi (biểu mẫu soạn bài không có ô này) thì giữ bản cũ khi tiếng Việt không đổi, dịch máy lại khi tiếng Việt đổi.
   for (const [vi, en] of [['title', 'title_en'], ['excerpt', 'excerpt_en'], ['body', 'body_en']]) {
-    p[en] = p[vi] === old[vi] ? old[en] : '';
+    if (!p[en]) p[en] = p[vi] === old[vi] ? old[en] : '';
   }
   await fillEnglish(env, p);
   const t = now();
