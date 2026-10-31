@@ -15,7 +15,7 @@ Quy Nhơn là thành phố ven biển miền Trung, nhỏ hơn và yên tĩnh h�
 - **Eo Gió:** mỏm đá nhô ra biển, nên ngắm hoàng hôn từ đây.
 - **Kỳ Co:** vịnh nước trong, phù hợp để ngắm san hô và đi thuyền.
 - **Ghềnh Ráng (Tiên Sa):** bãi biển có ghềnh đá và sóng đẹp, gần trung tâm thành phố.
-- **Tháp Đôi (Tháp Đôi):** cụm tháp Chăm cổ, thuộc khu vực Quy Nhơn.
+- **Tháp Đôi:** cụm tháp Chăm cổ, thuộc khu vực Quy Nhơn.
 
 ## Ăn gì
 
