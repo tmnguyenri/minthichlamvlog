@@ -47,6 +47,35 @@
         p.excerpt ? en(h('p', { class: 'card__text', text: p.excerpt }), p.excerpt_en) : null));
   }
 
+  // Dòng thời gian: xếp theo tháng đến địa danh (trip_date), mới nhất trên cùng, nhóm theo năm.
+  function yearOf(p) {
+    var m = /^(\d{4})-/.exec(p.trip_date || '');
+    if (m) return m[1];
+    return p.published_at ? String(new Date(p.published_at * 1000).getFullYear()) : '';
+  }
+
+  function arrivalLabel(p) {
+    var m = /^(\d{4})-(\d{2})$/.exec(p.trip_date || '');
+    if (!m) return null;
+    var mm = Number(m[2]);
+    return en(h('time', { class: 'tl-item__date', datetime: p.trip_date, text: 'Tháng ' + mm + '/' + m[1] }), MONTHS_EN[mm - 1] + ' ' + m[1]);
+  }
+
+  function timeline(posts) {
+    var out = [], lastYear = null, list = null;
+    posts.forEach(function (p) {
+      var y = yearOf(p);
+      if (y !== lastYear) {
+        out.push(h('h3', { class: 'timeline__year', text: y || '—' }));
+        list = h('ol', { class: 'timeline__list' });
+        out.push(list);
+        lastYear = y;
+      }
+      list.appendChild(h('li', { class: 'tl-item' }, arrivalLabel(p), card(p)));
+    });
+    return out;
+  }
+
   function atlas(posts) {
     var groups = {};
     posts.forEach(function (p) {
@@ -75,7 +104,10 @@
       if (!posts.length) return;
 
       var cards = document.querySelector('#nhat-ky .cards');
-      if (cards) replaceChildren(cards, posts.slice(0, 12).map(card));
+      if (cards) {
+        cards.classList.add('is-timeline');
+        replaceChildren(cards, timeline(posts.slice(0, 12)));
+      }
 
       var places = document.querySelector('#ban-do .atlas');
       var items = atlas(posts);
