@@ -34,12 +34,15 @@
       else if (k.slice(0, 2) === 'on' && typeof v === 'function') el.addEventListener(k.slice(2), v);
       else el.setAttribute(k, v === true ? '' : v);
     });
-    for (var i = 2; i < arguments.length; i++) {
-      var c = arguments[i];
-      if (c === null || c === undefined || c === false) continue;
-      el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
-    }
+    for (var i = 2; i < arguments.length; i++) addChild(el, arguments[i]);
     return el;
+  }
+
+  // Con có thể là chuỗi, phần tử, null/false (bỏ qua) hoặc một mảng các thứ đó (ví dụ kết quả của .map).
+  function addChild(el, c) {
+    if (c === null || c === undefined || c === false) return;
+    if (Array.isArray(c)) { c.forEach(function (x) { addChild(el, x); }); return; }
+    el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
   }
 
   // Phần tử chữ có sẵn hai ngôn ngữ.
