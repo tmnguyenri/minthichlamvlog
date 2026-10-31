@@ -220,8 +220,8 @@ console.log('9b. SEO: robots, sitemap, RSS, thẻ chia sẻ, IndexNow');
   r = await anon.req('GET', '/');
   ok(r.text.includes(`<link rel="canonical" href="${BASE}/">`) && r.text.includes('og:image') && r.text.includes('application/ld+json'), 'trang chủ có canonical, ảnh chia sẻ và JSON-LD');
   ok(r.text.includes('<meta name="google-site-verification" content="iODMJ7sGMcb6ShDM5dvcf4d9a3qHVRjzl-rpul9xyoo">'), 'trang chủ giữ thẻ xác minh Google Search Console (đừng xóa, Google kiểm tra định kỳ)');
-  r = await anon.req('GET', '/google4baa21f8f1dd1cd7.html');
-  ok(r.status === 200 && r.text.trim() === 'google-site-verification: google4baa21f8f1dd1cd7.html', 'tệp xác minh Google Search Console trả đúng nội dung (đừng xóa)');
+  const gv = await anon.req('GET', '/google4baa21f8f1dd1cd7.html');
+  ok(gv.status === 200 && gv.text.trim() === 'google-site-verification: google4baa21f8f1dd1cd7.html', 'tệp xác minh Google Search Console trả đúng nội dung (đừng xóa)');
   let home = null; try { home = JSON.parse(/<script type="application\/ld\+json">(.*?)<\/script>/s.exec(r.text)[1]); } catch { /* lỗi */ }
   ok(home && home['@graph']?.some((n) => n['@type'] === 'Person' && n.sameAs?.length === 2), 'JSON-LD trang chủ có Person kèm YouTube và Instagram');
   for (const f of ['dang-nhap', 'dang-ky', 'quan-ly']) {
