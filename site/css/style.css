@@ -327,6 +327,11 @@ a:hover > .arrow::after, a.arrow:hover::after, .card:hover .arrow::after, .featu
 .contact { margin-top: 2.4em; padding: 1.4rem 1.6rem; border: 1px solid var(--line-2); border-radius: 1.4rem; background: var(--surface); }
 .contact h2 { margin-top: 0; }
 .contact p:last-child { margin-bottom: 0; }
+.contact .follow { margin-bottom: .9em; font-family: var(--sans); font-size: .95rem; color: var(--muted); }
+.socials { display: flex; flex-wrap: wrap; gap: .75rem; margin: 0; padding: 0; list-style: none; }
+.prose .socials a { text-decoration: none; font-family: var(--sans); font-size: 1rem; }
+.prose .socials .btn--primary { color: #1c0f08; }
+.prose .socials .btn--ghost { color: var(--text); }
 @media (min-width: 60rem) { .about { grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr); gap: 5rem; align-items: start; } .about__art { justify-self: end; } }
 
 .notfound { padding-block: clamp(4rem, 10vw, 8rem); }
