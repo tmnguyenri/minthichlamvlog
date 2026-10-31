@@ -109,7 +109,7 @@ Trong dự án Pages, mở **Custom domains**, chọn **Set up a domain** và nh
 
 Chủ trang đăng nhập tại `/dang-nhap` rồi vào `/quan-ly` để viết bài (chữ + video YouTube, có bản tiếng Anh tùy chọn) và duyệt thành viên. Người khác đăng ký tại `/dang-ky`; tài khoản mới ở trạng thái **chờ duyệt** cho đến khi chủ trang bấm Duyệt. Thành viên đã duyệt bình luận được dưới mỗi bài. Chỉ chủ trang đăng bài.
 
-**Cách hoạt động.** Dữ liệu nằm trong D1 (SQLite của Cloudflare, miễn phí) tên `minthichlamvlog-db`, nối vào các hàm trong `functions/` bằng tên `DB` (khai báo ở `wrangler.jsonc`). Mật khẩu được băm bằng PBKDF2-SHA256, không bao giờ lưu mật khẩu thật. Phiên đăng nhập là một cookie HttpOnly 30 ngày, trong cơ sở dữ liệu chỉ lưu bản băm của nó. Các yêu cầu ghi dữ liệu đều kiểm tra tiêu đề `Origin`, có giới hạn số lần thử, và nội dung do người dùng nhập luôn được thoát ký tự trước khi hiển thị.
+**Cách hoạt động.** Dữ liệu nằm trong D1 (SQLite của Cloudflare, miễn phí) tên `minthichlamvlog-db`, nối vào các hàm trong `functions/` bằng tên `DB` (khai báo ở `wrangler.jsonc`). Mật khẩu được băm bằng PBKDF2-SHA256 với 100.000 vòng (mức tối đa Cloudflare cho phép; đã đo trên gói miễn phí và chạy ổn), không bao giờ lưu mật khẩu thật. Nếu sau này thấy lỗi "Worker exceeded resource limits" khi đăng ký hay đăng nhập, đặt biến `PBKDF2_ITERATIONS` (10000 đến 100000) trong **Settings → Variables** của dự án Pages để giảm số vòng. Phiên đăng nhập là một cookie HttpOnly 30 ngày, trong cơ sở dữ liệu chỉ lưu bản băm của nó. Các yêu cầu ghi dữ liệu đều kiểm tra tiêu đề `Origin`, có giới hạn số lần thử, và nội dung do người dùng nhập luôn được thoát ký tự trước khi hiển thị.
 
 **Tạo lại cơ sở dữ liệu (nếu cần).**
 
