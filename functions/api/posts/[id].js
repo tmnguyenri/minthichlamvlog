@@ -1,6 +1,9 @@
 import { requireAdmin, now } from '../../_lib/auth.js';
 import { badRequest, fail, json, readJson } from '../../_lib/http.js';
 import { cleanPost } from '../../_lib/validate.js';
+import { notifyIndexNow } from '../../_lib/indexnow.js';
+
+const postPath = (slug) => `/bai/${encodeURIComponent(slug)}`;
 
 const notFound = () => fail(404, 'not_found', 'Không tìm thấy bài viết.', 'Post not found.');
 const idOf = (params) => (/^\d{1,12}$/.test(params.id) ? Number(params.id) : null);
@@ -13,7 +16,7 @@ export async function onRequestGet({ params, env, data }) {
   return post ? json({ post }) : notFound();
 }
 
-export async function onRequestPut({ request, params, env, data }) {
+export async function onRequestPut({ request, params, env, data, waitUntil }) {
   const denied = requireAdmin(data);
   if (denied) return denied;
   const id = idOf(params);
@@ -22,7 +25,7 @@ export async function onRequestPut({ request, params, env, data }) {
   if (!body) return badRequest();
   const { value: p, error } = cleanPost(body);
   if (error) return fail(400, error.code, error.vi, error.en);
-  const old = await env.DB.prepare('SELECT status, published_at FROM posts WHERE id = ?').bind(id).first();
+  const old = await env.DB.prepare('SELECT slug, status, published_at FROM posts WHERE id = ?').bind(id).first();
   if (!old) return notFound();
   const t = now();
   const publishedAt = p.status === 'published' ? (old.published_at || t) : old.published_at;
@@ -32,17 +35,24 @@ export async function onRequestPut({ request, params, env, data }) {
               cover=?, video=?, status=?, updated_at=?, published_at=? WHERE id=?`,
     ).bind(p.slug, p.title, p.title_en, p.excerpt, p.excerpt_en, p.body, p.body_en, p.country, p.trip_date, p.days,
       p.cover, p.video, p.status, t, publishedAt, id).run();
+    // Báo cho Bing, Yandex... khi bài đang công khai được đăng hoặc sửa, hoặc vừa bị gỡ / đổi đường dẫn
+    const paths = [];
+    if (p.status === 'published') paths.push(postPath(p.slug));
+    if (old.status === 'published' && (p.status !== 'published' || old.slug !== p.slug)) paths.push(postPath(old.slug));
+    if (paths.length) notifyIndexNow({ env, waitUntil }, [...paths, '/']);
     return json({ ok: true, id, slug: p.slug });
   } catch {
     return fail(409, 'slug_taken', 'Đường dẫn này đã có bài khác dùng.', 'Another post already uses this slug.');
   }
 }
 
-export async function onRequestDelete({ params, env, data }) {
+export async function onRequestDelete({ params, env, data, waitUntil }) {
   const denied = requireAdmin(data);
   if (denied) return denied;
   const id = idOf(params);
   if (!id) return notFound();
+  const old = await env.DB.prepare('SELECT slug, status FROM posts WHERE id = ?').bind(id).first();
   const res = await env.DB.prepare('DELETE FROM posts WHERE id = ?').bind(id).run();
+  if (res.meta.changes && old?.status === 'published') notifyIndexNow({ env, waitUntil }, [postPath(old.slug), '/']);
   return res.meta.changes ? json({ ok: true }) : notFound();
 }

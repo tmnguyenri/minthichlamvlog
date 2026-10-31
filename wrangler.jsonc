@@ -3,6 +3,10 @@
   "name": "minthichlamvlog",
   "compatibility_date": "2026-10-30",
   "pages_build_output_dir": "./site",
+  // Khóa IndexNow (công khai, có tệp site/<khóa>.txt tương ứng): báo cho Bing, Yandex, Naver... khi có bài mới.
+  "vars": {
+    "INDEXNOW_KEY": "3ae21506ba356dda8200a6c0e9acc343"
+  },
   "d1_databases": [
     {
       "binding": "DB",

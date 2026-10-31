@@ -3,13 +3,14 @@ import { esc } from '../_lib/http.js';
 import { page } from '../_lib/layout.js';
 import { renderMarkdown, renderPlain } from '../_lib/md.js';
 import { SLUG_RE } from '../_lib/validate.js';
+import { SITE_NAME, describe, isoDate, shareImage, siteUrl } from '../_lib/site.js';
 
 const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const en = (value) => (value ? ` data-en="${esc(value)}"` : '');
 
 function notFound() {
   return page({
-    title: 'Không tìm thấy bài viết – Mìn Thích Làm Vlog', titleEn: 'Post not found – Mìn Thích Làm Vlog', status: 404,
+    title: 'Không tìm thấy bài viết – Mìn Thích Làm Vlog', titleEn: 'Post not found – Mìn Thích Làm Vlog', status: 404, seo: { robots: 'noindex' },
     main: `    <section class="notfound wrap">
       <h1 class="page-title" data-en="This post could not be found">Không tìm thấy bài viết này</h1>
       <div class="prose"><p><a href="/#nhat-ky" data-en="Back to all posts">Quay lại tất cả bài viết</a></p></div>
@@ -87,8 +88,31 @@ export async function onRequestGet({ params, env, data }) {
       </div>
     </article>`;
 
+  // Thẻ chia sẻ, địa chỉ chuẩn và dữ liệu có cấu trúc để công cụ tìm kiếm hiểu đây là một bài viết
+  const base = siteUrl(env);
+  const path = `/bai/${encodeURIComponent(post.slug)}`;
+  const image = shareImage(base, post.cover);
+  const published = isoDate(post.published_at || post.created_at);
+  const modified = isoDate(post.updated_at);
+  const author = { '@type': 'Person', name: 'Mìn', url: `${base}/about` };
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: describe(post) || undefined,
+    image: [image],
+    datePublished: published || undefined,
+    dateModified: modified || undefined,
+    inLanguage: post.body_en ? ['vi', 'en'] : 'vi',
+    url: base + path,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': base + path },
+    author,
+    publisher: { '@type': 'Person', name: SITE_NAME, url: base + '/' },
+    contentLocation: post.country ? { '@type': 'Place', name: post.country } : undefined,
+  };
   return page({
     title: `${post.title} – Mìn Thích Làm Vlog`, titleEn: post.title_en ? `${post.title_en} – Mìn Thích Làm Vlog` : '',
-    desc: post.excerpt, descEn: post.excerpt_en, ogType: 'article', main, scripts: ['/js/ui.js', '/js/comments.js'],
+    desc: describe(post), descEn: post.excerpt_en, ogType: 'article', main, scripts: ['/js/ui.js', '/js/comments.js'],
+    seo: { base, path, image, published, modified, jsonLd, robots: post.status === 'published' ? '' : 'noindex' },
   });
 }

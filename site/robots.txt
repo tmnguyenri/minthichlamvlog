@@ -1,0 +1,7 @@
+# Cho phép mọi công cụ tìm kiếm. Chỉ chặn các đường dẫn đăng nhập và quản lý của máy chủ.
+User-agent: *
+Allow: /
+Disallow: /api/auth/
+Disallow: /api/admin/
+
+Sitemap: https://minthichlamvlog.pages.dev/sitemap.xml

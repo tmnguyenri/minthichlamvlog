@@ -124,11 +124,26 @@ Chủ trang đăng nhập tại `/dang-nhap` rồi vào `/quan-ly` để viết 
 
 ```
 node dev/server.mjs 8788                  # trang + API + cơ sở dữ liệu trong bộ nhớ, mở http://127.0.0.1:8788
-node --no-warnings dev/test-api.mjs       # 104 kiểm tra cho API
+node --no-warnings dev/test-api.mjs       # 146 kiểm tra cho API
 node --no-warnings dev/test-ui.mjs        # kiểm tra giao diện bằng trình duyệt (cần Playwright)
 ```
 
 **Chưa có (làm sau):** tải ảnh lên (cần bật R2 trong Cloudflare, có thẻ thanh toán dù vẫn trong hạn mức miễn phí), và xác nhận email (cần gói Workers trả phí để gửi thư tới người lạ). Hiện ảnh bìa và ảnh trong bài được chèn bằng đường dẫn `/images/...` hoặc liên kết https.
+
+## Công cụ tìm kiếm và chia sẻ
+
+Trang đã có sẵn những thứ công cụ tìm kiếm và mạng xã hội cần:
+
+- `site/robots.txt` cho phép mọi bot, kèm địa chỉ sơ đồ trang.
+- `/sitemap.xml` (hàm `functions/sitemap.xml.js`) liệt kê trang chủ, Giới thiệu, Quyền riêng tư và mọi bài đã đăng. Bài nháp, bài mẫu và trang tài khoản không có trong đó.
+- `/rss.xml` là nguồn cấp 30 bài mới nhất, dùng cho trình đọc tin và công cụ tự động đăng lên mạng xã hội.
+- Mỗi trang có địa chỉ chuẩn (`canonical`), thẻ Open Graph và Twitter Card để chia sẻ link ra đẹp, cùng dữ liệu có cấu trúc schema.org (WebSite, Person, ProfilePage, BlogPosting). Ảnh xem trước mặc định là `site/images/og-cover.jpg` (1200×630); bài nào có ảnh bìa JPG hoặc PNG thì dùng ảnh bìa đó.
+- Bài mẫu (`site/posts/*.html`) và các trang đăng nhập, đăng ký, quản lý mang thẻ `noindex` nên không lên Google. Bài thật đăng trong `/quan-ly` thì được lập chỉ mục.
+- **IndexNow:** khi bạn đăng, sửa hoặc xóa một bài công khai, máy chủ tự báo cho Bing, Yandex, Naver, Seznam, Yep. Khóa nằm ở `INDEXNOW_KEY` trong `wrangler.jsonc` và ở tệp `site/<khóa>.txt`; hai nơi phải khớp nhau. Google không dùng IndexNow, hãy gửi sơ đồ trang trong Google Search Console.
+
+**Xác minh quyền sở hữu** (Google Search Console, Bing Webmaster Tools): dán thẻ `<meta name="google-site-verification" ...>` hoặc `<meta name="msvalidate.01" ...>` vào `<head>` của `site/index.html`, hoặc đặt tệp xác minh họ đưa (ví dụ `googleXXXX.html`, `BingSiteAuth.xml`) vào thư mục `site/`.
+
+**Đổi sang tên miền riêng:** đặt biến `SITE_URL` trong `wrangler.jsonc` (cho sitemap, RSS, bài viết), rồi thay chuỗi `https://minthichlamvlog.pages.dev` trong `site/index.html`, `site/about.html`, `site/rieng-tu.html` và `site/robots.txt`, và đổi `host` tương ứng khi khai báo IndexNow.
 
 ## Font chữ
 

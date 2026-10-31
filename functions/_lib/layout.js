@@ -1,9 +1,35 @@
 // Khung trang dùng cho các trang do máy chủ dựng (bài viết, 404). Giống hệt các trang tĩnh.
 import { esc, html } from './http.js';
+import { SITE_NAME, jsonLd as ldJson } from './site.js';
 
 const attr = (vi, en) => (en ? ` data-en="${esc(en)}"` : '');
 
-export function page({ title, titleEn = '', desc = '', descEn = '', ogType = 'website', main, scripts = [], status = 200 }) {
+// seo (không bắt buộc): { base, path, image, robots, jsonLd, published, modified }
+//   base    địa chỉ gốc của trang, ví dụ https://minthichlamvlog.pages.dev
+//   path    đường dẫn chuẩn của trang này, ví dụ /bai/kyoto
+//   image   địa chỉ đầy đủ của ảnh khi chia sẻ
+//   robots  ví dụ 'noindex' cho bản nháp và trang không tìm thấy
+//   jsonLd  đối tượng dữ liệu có cấu trúc (schema.org)
+export function page({ title, titleEn = '', desc = '', descEn = '', ogType = 'website', main, scripts = [], status = 200, seo = null }) {
+  const tags = [];
+  if (seo?.robots) tags.push(`<meta name="robots" content="${esc(seo.robots)}">`);
+  if (seo?.base && seo.path) {
+    const url = seo.base + seo.path;
+    tags.push(`<link rel="canonical" href="${esc(url)}">`, `<meta property="og:url" content="${esc(url)}">`);
+  }
+  if (seo?.base) {
+    tags.push(
+      `<meta property="og:site_name" content="${esc(SITE_NAME)}">`,
+      '<meta property="og:locale" content="vi_VN">',
+      '<meta property="og:locale:alternate" content="en_US">',
+    );
+    if (seo.image) tags.push(`<meta property="og:image" content="${esc(seo.image)}">`, '<meta name="twitter:card" content="summary_large_image">');
+    if (seo.published) tags.push(`<meta property="article:published_time" content="${esc(seo.published)}">`);
+    if (seo.modified) tags.push(`<meta property="article:modified_time" content="${esc(seo.modified)}">`);
+    tags.push(`<link rel="alternate" type="application/rss+xml" title="${esc(SITE_NAME)}" href="${esc(seo.base)}/rss.xml">`);
+  }
+  if (seo?.jsonLd) tags.push(`<script type="application/ld+json">${ldJson(seo.jsonLd)}</script>`);
+  const seoHead = tags.length ? '\n  ' + tags.join('\n  ') : '';
   const metaDesc = desc ? `
   <meta name="description" content="${esc(desc)}"${descEn ? ` data-en-content="${esc(descEn)}"` : ''}>
   <meta property="og:description" content="${esc(desc)}">` : '';
@@ -15,8 +41,9 @@ export function page({ title, titleEn = '', desc = '', descEn = '', ogType = 'we
   <title${attr(title, titleEn)}>${esc(title)}</title>${metaDesc}
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:type" content="${ogType}">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#ffffff">${seoHead}
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">

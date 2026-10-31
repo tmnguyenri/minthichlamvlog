@@ -170,6 +170,92 @@ r = await admin.req('DELETE', `/api/posts/${postId}`); ok(r.status === 200, 'xó
 r = await anon.req('GET', `/bai/${slug}`); ok(r.status === 404, 'bài đã xóa -> 404');
 ok(db.raw.prepare('SELECT COUNT(*) c FROM comments WHERE post_id = ?').get(postId).c === 0, 'bình luận bị xóa theo bài');
 
+console.log('9b. SEO: robots, sitemap, RSS, thẻ chia sẻ, IndexNow');
+{
+  const BASE = 'https://minthichlamvlog.pages.dev';
+  r = await anon.req('GET', '/robots.txt');
+  ok(r.status === 200 && /^User-agent: \*/m.test(r.text) && r.text.includes(`Sitemap: ${BASE}/sitemap.xml`), 'robots.txt có sitemap');
+  ok(!/^Disallow:\s*\/\s*$/m.test(r.text), 'robots.txt không chặn cả trang');
+
+  // một bài có ảnh bìa jpg, một bài chỉ có ảnh SVG, một bài nháp
+  const mk = (title, extra) => admin.req('POST', '/api/posts', { title, status: 'published', country: 'Nhật Bản', trip_date: '2026-05', days: 4, body: 'Nội dung **bài** SEO.', ...extra });
+  r = await mk('Kyoto & "lá đỏ" <đẹp>', { excerpt: 'Tóm tắt & thử <b>', cover: '/images/min.jpg', slug: 'seo-kyoto' }); ok(r.status === 201, 'tạo bài SEO 1', r.status);
+  r = await mk('Bài ảnh SVG', { cover: '/images/scene-kyoto-wide.svg', slug: 'seo-svg' }); ok(r.status === 201, 'tạo bài SEO 2', r.status);
+  r = await mk('Bài nháp SEO', { status: 'draft', slug: 'seo-nhap' }); ok(r.status === 201, 'tạo bài nháp SEO', r.status);
+
+  r = await anon.req('GET', '/sitemap.xml');
+  ok(r.status === 200 && /application\/xml/.test(r.headers.get('content-type')) && r.text.startsWith('<?xml'), 'sitemap.xml là XML');
+  ok(r.text.includes(`<loc>${BASE}/</loc>`) && r.text.includes(`<loc>${BASE}/about</loc>`), 'sitemap có trang chủ và giới thiệu');
+  ok(r.text.includes(`<loc>${BASE}/bai/seo-kyoto</loc>`) && r.text.includes(`<loc>${BASE}/bai/seo-svg</loc>`), 'sitemap có bài đã đăng');
+  ok(!r.text.includes('seo-nhap'), 'sitemap không lộ bài nháp');
+  ok(!/\/posts\//.test(r.text) && !r.text.includes('dang-nhap') && !r.text.includes('quan-ly'), 'sitemap không có bài mẫu và trang tài khoản');
+  ok(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/.test(r.text), 'sitemap có ngày cập nhật');
+
+  r = await anon.req('GET', '/rss.xml');
+  ok(r.status === 200 && /rss\+xml/.test(r.headers.get('content-type')) && r.text.includes('<rss version="2.0"'), 'rss.xml là RSS');
+  ok(r.text.includes(`<link>${BASE}/bai/seo-kyoto</link>`) && !r.text.includes('seo-nhap'), 'RSS có bài đã đăng, không có nháp');
+  ok(!/<title>[^<]*[<"][^<]*<\/title>/.test(r.text.replace(/&quot;/g, '')) && r.text.includes('Kyoto &amp; &quot;lá đỏ&quot; &lt;đẹp&gt;'), 'RSS escape ký tự đặc biệt trong tiêu đề');
+  ok(!r.text.includes('<b>'), 'RSS không chứa HTML thô từ tóm tắt');
+  ok(/<pubDate>[A-Z][a-z]{2}, \d{2} [A-Z][a-z]{2} \d{4}/.test(r.text), 'RSS có ngày đăng đúng định dạng');
+
+  // thẻ trong trang bài viết
+  r = await anon.req('GET', '/bai/seo-kyoto'); const pg = r.text;
+  ok(pg.includes(`<link rel="canonical" href="${BASE}/bai/seo-kyoto">`), 'bài có địa chỉ chuẩn');
+  ok(pg.includes(`<meta property="og:image" content="${BASE}/images/min.jpg">`) && pg.includes('name="twitter:card" content="summary_large_image"'), 'ảnh bìa jpg dùng làm ảnh chia sẻ');
+  ok(pg.includes('property="og:type" content="article"') && pg.includes('property="article:published_time"'), 'bài có og:type article và ngày đăng');
+  ok(!/name="robots"/.test(pg), 'bài đã đăng được phép lập chỉ mục');
+  const ldm = /<script type="application\/ld\+json">(.*?)<\/script>/s.exec(pg);
+  let ld = null; try { ld = JSON.parse(ldm[1]); } catch { /* lỗi */ }
+  ok(ld && ld['@type'] === 'BlogPosting' && ld.headline === 'Kyoto & "lá đỏ" <đẹp>' && ld.url === `${BASE}/bai/seo-kyoto` && ld.author?.name === 'Mìn', 'dữ liệu có cấu trúc BlogPosting hợp lệ');
+  ok(ldm && !/<\/script/i.test(ldm[1]) && !ldm[1].includes('<'), 'JSON-LD không thể thoát khỏi thẻ script');
+  ok(/rel="alternate" type="application\/rss\+xml"/.test(pg), 'trang có liên kết RSS');
+  r = await anon.req('GET', '/bai/seo-svg');
+  ok(r.text.includes(`<meta property="og:image" content="${BASE}/images/og-cover.jpg">`), 'ảnh bìa SVG thì dùng ảnh chia sẻ mặc định');
+  r = await admin.req('GET', '/bai/seo-nhap');
+  ok(r.status === 200 && /<meta name="robots" content="noindex">/.test(r.text), 'bản nháp (quản trị xem) có noindex');
+  r = await anon.req('GET', '/bai/khong-co-bai-nay');
+  ok(r.status === 404 && /<meta name="robots" content="noindex">/.test(r.text), 'trang không tìm thấy có noindex');
+
+  // trang tĩnh
+  r = await anon.req('GET', '/');
+  ok(r.text.includes(`<link rel="canonical" href="${BASE}/">`) && r.text.includes('og:image') && r.text.includes('application/ld+json'), 'trang chủ có canonical, ảnh chia sẻ và JSON-LD');
+  let home = null; try { home = JSON.parse(/<script type="application\/ld\+json">(.*?)<\/script>/s.exec(r.text)[1]); } catch { /* lỗi */ }
+  ok(home && home['@graph']?.some((n) => n['@type'] === 'Person' && n.sameAs?.length === 2), 'JSON-LD trang chủ có Person kèm YouTube và Instagram');
+  for (const f of ['dang-nhap', 'dang-ky', 'quan-ly']) {
+    r = await anon.req('GET', `/${f}`); ok(/name="robots" content="noindex/.test(r.text), `/${f} có noindex`);
+  }
+  for (const f of ['oaxaca', 'kyoto', 'lisbon', 'ha-giang']) {
+    r = await anon.req('GET', `/posts/${f}`); ok(/name="robots" content="noindex/.test(r.text), `bài mẫu ${f} có noindex`);
+  }
+  const og = fs.statSync(path.join(root, 'site/images/og-cover.jpg')).size;
+  ok(og > 5000 && og < 600000, 'ảnh chia sẻ có kích thước hợp lý', og);
+
+  // IndexNow: tệp khóa khớp biến cấu hình, và gói tin gửi đi đúng
+  const wr = fs.readFileSync(path.join(root, 'wrangler.jsonc'), 'utf8');
+  const key = /"INDEXNOW_KEY":\s*"([a-f0-9]{32})"/.exec(wr)?.[1];
+  ok(!!key, 'wrangler.jsonc có khóa IndexNow');
+  r = await anon.req('GET', `/${key}.txt`); ok(r.status === 200 && r.text.trim() === key, 'tệp khóa IndexNow trả đúng nội dung');
+  const { notifyIndexNow } = await import('../functions/_lib/indexnow.js');
+  const realFetch = globalThis.fetch; const sent = []; let waited = 0;
+  globalThis.fetch = async (u, o) => { sent.push({ u, o }); return new Response('', { status: 200 }); };
+  try {
+    notifyIndexNow({ env: {}, waitUntil: () => { waited++; } }, ['/bai/a']);
+    ok(sent.length === 0, 'không có khóa thì không gửi gì');
+    notifyIndexNow({ env: { INDEXNOW_KEY: 'sai' }, waitUntil: () => { waited++; } }, ['/bai/a']);
+    ok(sent.length === 0, 'khóa sai định dạng thì không gửi');
+    notifyIndexNow({ env: { INDEXNOW_KEY: key }, waitUntil: () => { waited++; } }, ['/bai/a', '/']);
+    ok(sent.length === 1 && sent[0].u === 'https://api.indexnow.org/indexnow' && waited === 1, 'có khóa thì gửi một yêu cầu và giao cho waitUntil');
+    const body = JSON.parse(sent[0]?.o?.body || '{}');
+    ok(body.host === 'minthichlamvlog.pages.dev' && body.key === key && body.keyLocation === `${BASE}/${key}.txt` && body.urlList?.join() === `${BASE}/bai/a,${BASE}/`, 'gói tin IndexNow đúng host, khóa, vị trí khóa và danh sách địa chỉ', JSON.stringify(body));
+  } finally { globalThis.fetch = realFetch; }
+
+  // dọn để không ảnh hưởng các mục sau
+  for (const sl of ['seo-kyoto', 'seo-svg', 'seo-nhap']) {
+    const row = db.raw.prepare('SELECT id FROM posts WHERE slug = ?').get(sl);
+    if (row) await admin.req('DELETE', `/api/posts/${row.id}`);
+  }
+}
+
 console.log('10. Hàm tiện ích');
 ok(slugify('Đà Lạt mộng mơ!') === 'da-lat-mong-mo', 'slugify tiếng Việt');
 ok(youtubeId('dQw4w9WgXcQ') === 'dQw4w9WgXcQ' && youtubeId('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=5') === 'dQw4w9WgXcQ' && youtubeId('https://youtube.com/shorts/dQw4w9WgXcQ') === 'dQw4w9WgXcQ' && youtubeId('') === '' && youtubeId('nope') === null && youtubeId('https://evil.com/watch?v=dQw4w9WgXcQ') === null, 'youtubeId');
