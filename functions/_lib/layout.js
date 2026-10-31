@@ -15,11 +15,11 @@ export function page({ title, titleEn = '', desc = '', descEn = '', ogType = 'we
   <title${attr(title, titleEn)}>${esc(title)}</title>${metaDesc}
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:type" content="${ogType}">
-  <meta name="theme-color" content="#0b0b0f">
+  <meta name="theme-color" content="#ffffff">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&family=Plus+Jakarta+Sans:wght@400..700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="/css/style.css">
   <script src="/js/lang.js"></script>
   <script src="/js/session.js" defer></script>
@@ -31,7 +31,7 @@ export function page({ title, titleEn = '', desc = '', descEn = '', ogType = 'we
     <div class="wrap site-header__inner">
       <a class="brand" href="/">
         <img class="brand__mark" src="/favicon.svg" alt="" width="40" height="40">
-        <span class="brand__name">Mìn Thích Làm Vlog</span><span class="brand__dot" aria-hidden="true"></span>
+        <span class="brand__name">Mìn Thích Làm Vlog</span>
       </a>
       <nav class="nav" aria-label="Menu chính" data-en-aria-label="Main menu">
         <a href="/#nhat-ky" data-en="Journal">Nhật ký</a>
@@ -39,7 +39,6 @@ export function page({ title, titleEn = '', desc = '', descEn = '', ogType = 'we
         <a href="/about.html" data-en="About">Giới thiệu</a>
         <a class="nav-account" href="/dang-nhap" data-en="Log in">Đăng nhập</a>
       </nav>
-      <a class="btn btn--primary btn--sm header-cta" href="/about.html#lien-he" data-en="Contact">Liên hệ</a>
       <div class="lang-switch" role="group" aria-label="Ngôn ngữ" data-en-aria-label="Language">
         <button type="button" data-set-lang="vi" aria-pressed="true" lang="vi" aria-label="Tiếng Việt">VI</button>
         <button type="button" data-set-lang="en" aria-pressed="false" lang="en" aria-label="English">EN</button>
@@ -51,21 +50,15 @@ export function page({ title, titleEn = '', desc = '', descEn = '', ogType = 'we
 ${main}
   </main>
   <footer class="site-footer">
-    <div class="wrap">
-      <div class="site-footer__top">
-        <p class="footer-title"><span data-en="So many places left.">Còn nhiều nơi chưa tới.</span> <em class="grad" data-en="See you on the next leg.">Hẹn bạn ở chặng sau.</em></p>
-        <ul class="footer-nav">
-          <li><a href="/#nhat-ky" data-en="Journal">Nhật ký</a></li>
-          <li><a href="/#ban-do" data-en="Atlas">Bản đồ</a></li>
-          <li><a href="/about.html" data-en="About">Giới thiệu</a></li>
-          <li><a href="/about.html#lien-he" data-en="Contact">Liên hệ</a></li>
-          <li><a href="/rieng-tu" data-en="Privacy">Quyền riêng tư</a></li>
-        </ul>
-      </div>
-      <div class="site-footer__bottom">
-        <p data-en="© 2026 Mìn Thích Làm Vlog — photos, films and stories from the road.">© 2026 Mìn Thích Làm Vlog — ảnh, phim và chuyện kể từ những chuyến đi.</p>
-        <p data-en="Made for slow travel and long memories.">Làm ra để đi chậm và nhớ lâu.</p>
-      </div>
+    <div class="wrap site-footer__inner">
+      <p data-en="© 2026 Mìn Thích Làm Vlog">© 2026 Mìn Thích Làm Vlog</p>
+      <ul class="footer-nav">
+        <li><a href="/#nhat-ky" data-en="Journal">Nhật ký</a></li>
+        <li><a href="/#ban-do" data-en="Atlas">Bản đồ</a></li>
+        <li><a href="/about.html" data-en="About">Giới thiệu</a></li>
+        <li><a href="/about.html#lien-he" data-en="Contact">Liên hệ</a></li>
+        <li><a href="/rieng-tu" data-en="Privacy">Quyền riêng tư</a></li>
+      </ul>
     </div>
   </footer>
 ${scripts.map((s) => `  <script src="${esc(s)}" defer></script>`).join('\n')}

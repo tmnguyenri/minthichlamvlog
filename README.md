@@ -30,8 +30,8 @@ README.md              tệp này
 1. Tên trang là **Mìn Thích Làm Vlog**. Muốn đổi, hãy tìm tên đó trong tất cả các tệp và thay bằng tên mới.
 2. Trang Giới thiệu (`site/about.html`) đã có phần giới thiệu của Mìn, ảnh chân dung và email minthichlamvlog@gmail.com. Muốn đổi chữ, sửa trong tệp đó, nhớ sửa cả bản tiếng Việt lẫn bản `data-en` tiếng Anh. Muốn đổi ảnh, thay tệp `site/images/min.jpg` (ảnh dọc tỉ lệ 4:5, khoảng 800×1000 px, dưới 400 KB).
 3. Bốn bài viết mẫu (Oaxaca, Kyoto, Lisbon, Hà Giang) và các ảnh minh họa chỉ là chỗ giữ chỗ, đều có nhãn **Mẫu**. Khi có bài thật, hãy xóa tệp của chúng trong `site/posts/`, xóa các khối tương ứng trong `site/index.html`, và xóa các tệp `scene-*.svg` không còn dùng.
-4. Màu sắc và font nằm ở đầu tệp `site/css/style.css`, trong khối `:root`. Muốn đổi màu nhấn, sửa `--peach`, `--coral`, `--pink`, `--violet`.
-5. Các con số ở đầu trang chủ (số chuyến đi, quốc gia, ngày trên đường, vlog) nằm trong `<dl class="stats">` của `site/index.html`. Hãy cập nhật khi có bài mới.
+4. Màu sắc và font nằm ở đầu tệp `site/css/style.css`, trong khối `:root`. Giao diện sáng chỉ dùng một font (Be Vietnam Pro) và vài màu: `--sun` (vàng nắng, dùng cho nút và nét nhấn), `--lagoon` (xanh ngọc, dùng cho liên kết), `--ink` (chữ), `--paper` (nền mint nhạt). Muốn đổi màu nhấn, sửa `--sun` và `--sun-deep`.
+5. Trang chủ tự lấy bài thật từ cơ sở dữ liệu. Khi đã có bài đăng trong khu quản lý (`/quan-ly`), các thẻ mẫu và danh sách quốc gia tự được thay bằng bài thật, không phải sửa tay.
 
 ## Hai ngôn ngữ hoạt động thế nào
 
@@ -43,17 +43,19 @@ Trang luôn được viết sẵn bằng tiếng Việt trong HTML, và đó cũ
 
 - Giữa hai thẻ là **tiếng Việt**, `data-en="..."` là **tiếng Anh**. Khi sửa chữ, hãy sửa cả hai.
 - Dòng nào không có `data-en` sẽ giữ nguyên tiếng Việt khi người xem chọn EN. Bài viết chỉ có tiếng Việt vẫn chạy bình thường.
-- `data-en` chỉ chứa chữ thuần, và phần tử đó không được chứa thẻ con. Muốn chữ nghiêng đổ màu, tách riêng thành `<em class="grad" data-en="...">...</em>` như trong tiêu đề trang chủ.
+- `data-en` chỉ chứa chữ thuần, và phần tử đó không được chứa thẻ con.
 - Còn bốn thuộc tính tương tự cho phần không phải chữ hiển thị: `data-en-alt` (mô tả ảnh), `data-en-aria-label`, `data-en-title` và `data-en-content` (thẻ `<meta>`).
 - Lựa chọn của người xem được nhớ trong trình duyệt. Có thể gửi liên kết ép ngôn ngữ, ví dụ `https://minthichlamvlog.pages.dev/?lang=en`.
 - Nếu người xem tắt JavaScript, trang vẫn đọc được bằng tiếng Việt và nút chuyển ngôn ngữ tự ẩn đi.
 
 ## Thêm một bài viết mới
 
+Cách nhanh nhất: đăng nhập tài khoản quản trị và đăng bài ở `/quan-ly`. Phần dưới đây là cách làm thủ công bằng tệp HTML, dùng khi cần một trang bài hoàn toàn tự chọn.
+
 1. Sao chép `post-template.html` vào `site/posts/` và đổi tên, ví dụ `bangkok.html`.
 2. Mở tệp và thay mọi chỗ ghi Tên địa điểm, Quốc gia, Tháng 1/2026, X ngày. Sửa cả tiếng Việt lẫn `data-en`.
 3. Đổi ảnh bìa ở đầu bài (thẻ `<img class="post-hero__img" ...>`) sang ảnh của bạn.
-4. Mở `site/index.html`, sao chép một khối `<article class="card">` rồi dán lên **đầu** danh sách `.cards`. Sửa nội dung và liên kết của nó trỏ tới tệp bài mới. Muốn bài mới là bài nổi bật to nhất, sửa khối `<article class="feature">`, và chuyển nội dung nổi bật cũ thành một thẻ `card`.
+4. Mở `site/index.html`, sao chép một khối `<article class="card">` rồi dán lên **đầu** danh sách `.cards`. Sửa nội dung và liên kết của nó trỏ tới tệp bài mới.
 5. Mục **Bản đồ** của trang chủ: thêm một khối `<a class="country">` cho nước mới, hoặc đổi "1 bài viết" thành "2 bài viết" nếu nước đó đã có. Cờ là tệp 36×24 trong `site/images/flags/` (ví dụ `th.svg`).
 6. Ở cuối bài mới, sửa các liên kết "Chuyến đi trước" và "Chuyến đi sau". Xóa một liên kết nếu không có bài kề bên. Làm tương tự với bài kề bên để liên kết sang bài mới hiện ra ở đó.
 7. Xóa nhãn **Mẫu** (thẻ `<span class="badge">`) và khung ghi chú `sample-note` khi bài đã là bài thật.
@@ -129,4 +131,4 @@ node --no-warnings dev/test-ui.mjs        # kiểm tra giao diện bằng trình
 
 ## Font chữ
 
-Tiêu đề và bài viết dùng Newsreader, phần còn lại dùng Plus Jakarta Sans. Cả hai tải từ Google Fonts và đều hỗ trợ đầy đủ tiếng Việt. Nếu trình duyệt của người xem không tải được Google Fonts, trang sẽ dùng font hệ thống và vẫn đọc được. Muốn tự lưu font, hãy tải hai họ font từ fonts.google.com, đặt vào `site/fonts/`, và thay các thẻ `<link>` Google Fonts bằng các quy tắc `@font-face`. Cả hai font đều miễn phí theo giấy phép SIL Open Font License.
+Toàn bộ trang dùng một họ font là Be Vietnam Pro (do người Việt thiết kế cho tiếng Việt), tải từ Google Fonts. Nếu trình duyệt của người xem không tải được Google Fonts, trang sẽ dùng font hệ thống và vẫn đọc được. Muốn tự lưu font, hãy tải họ font từ fonts.google.com, đặt vào `site/fonts/`, và thay các thẻ `<link>` Google Fonts bằng quy tắc `@font-face` (nhớ giữ `style-src` và `font-src` trong `site/_headers` khớp). Font miễn phí theo giấy phép SIL Open Font License.

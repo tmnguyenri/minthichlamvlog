@@ -1,5 +1,5 @@
-/* Trang chủ: khi đã có bài viết thật (đăng trong khu quản lý), thay các bài mẫu bằng bài thật,
-   và cập nhật các con số, bản đồ theo bài đã đăng. Chưa có bài nào thì giữ nguyên bài mẫu. */
+/* Trang chủ: khi đã có bài viết thật (đăng trong khu quản lý), thay các bài mẫu bằng bài thật
+   và cập nhật danh sách quốc gia. Chưa có bài nào thì giữ nguyên bài mẫu. */
 (function () {
   'use strict';
   var M = window.MTLV, h = M.h;
@@ -38,24 +38,13 @@
 
   function titleLink(p) { return en(h('a', { class: 'stretch', href: link(p), text: p.title }), p.title_en); }
 
-  function feature(p) {
-    return h('article', { class: 'feature' },
-      h('img', { class: 'feature__img', src: p.cover || '/images/cover-default.svg', alt: '', width: 1600, height: 800 }),
-      h('div', { class: 'feature__body' }, meta(p, true),
-        h('h3', { class: 'card-title' }, titleLink(p)),
-        p.excerpt ? en(h('p', { class: 'feature__text', text: p.excerpt }), p.excerpt_en) : null));
-  }
-
   function card(p) {
-    var f = flagOf(p.country);
     return h('article', { class: 'card' },
       h('div', { class: 'card__media' },
-        h('img', { src: p.cover || '/images/cover-default.svg', alt: '', width: 800, height: 1000, loading: 'lazy' }),
-        p.country ? h('span', { class: 'pill' }, f ? flagImg(f[0]) : null, countryEl(p.country)) : null),
-      h('div', { class: 'card__body' }, meta(p, false),
+        h('img', { src: p.cover || '/images/cover-default.svg', alt: '', width: 1600, height: 800, loading: 'lazy' })),
+      h('div', { class: 'card__body' }, meta(p, true),
         h('h3', { class: 'card-title' }, titleLink(p)),
-        p.excerpt ? en(h('p', { class: 'card__text', text: p.excerpt }), p.excerpt_en) : null,
-        h('span', { class: 'card__more arrow' }, en(h('span', { text: 'Đọc bài viết' }), 'Read the post'))));
+        p.excerpt ? en(h('p', { class: 'card__text', text: p.excerpt }), p.excerpt_en) : null));
   }
 
   function atlas(posts) {
@@ -82,29 +71,13 @@
       var posts = (d && d.posts) || [];
       if (!posts.length) return;
 
-      var section = document.getElementById('nhat-ky');
-      var oldFeature = section && section.querySelector('.feature');
-      var oldCards = section && section.querySelector('.cards');
-      if (oldFeature) oldFeature.replaceWith(feature(posts[0]));
-      if (oldCards) {
-        var rest = posts.slice(1, 7);
-        if (rest.length) replaceChildren(oldCards, rest.map(card)); else oldCards.remove();
-      }
+      var cards = document.querySelector('#nhat-ky .cards');
+      if (cards) replaceChildren(cards, posts.slice(0, 12).map(card));
 
       var places = document.querySelector('#ban-do .atlas');
       var items = atlas(posts);
       if (places && items.length) replaceChildren(places, items);
 
-      var dd = document.querySelectorAll('.stats dd');
-      if (dd.length === 4) {
-        var countries = {};
-        var days = 0, vlogs = 0;
-        posts.forEach(function (p) { if (p.country) countries[p.country.toLowerCase()] = 1; days += p.days || 0; if (p.video) vlogs++; });
-        dd[0].textContent = String(posts.length);
-        dd[1].textContent = String(Object.keys(countries).length);
-        dd[2].textContent = String(days);
-        dd[3].textContent = String(vlogs);
-      }
       M.refresh();
     })
     .catch(function () { /* giữ nguyên bài mẫu */ });
