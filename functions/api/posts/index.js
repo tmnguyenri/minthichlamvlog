@@ -11,7 +11,8 @@ export async function onRequestGet({ request, env, data }) {
   if (all && requireAdmin(data)) return requireAdmin(data);
   // image_id: một ảnh ngẫu nhiên trong các ảnh đã tải lên cho bài (NULL nếu chưa có).
   const cols = `id, slug, title, title_en, excerpt, excerpt_en, country, trip_date, days, cover, video, status, published_at, updated_at,
-    (SELECT i.id FROM images i WHERE i.post_id = posts.id ORDER BY RANDOM() LIMIT 1) AS image_id`;
+    (SELECT i.id FROM images i WHERE i.post_id = posts.id ORDER BY RANDOM() LIMIT 1) AS image_id,
+    (SELECT json_group_array(x.id) FROM (SELECT id FROM images WHERE post_id = posts.id ORDER BY id LIMIT 10) x) AS image_ids`;
   const sql = all
     ? `SELECT ${cols} FROM posts ORDER BY updated_at DESC LIMIT ?`
     : `SELECT ${cols} FROM posts WHERE status = 'published' ORDER BY COALESCE(trip_date, '') DESC, published_at DESC LIMIT ?`;
