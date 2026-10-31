@@ -64,5 +64,15 @@
     return (p && p.cover) || '';
   }
 
+  // Đường dẫn gọn /nhat-ky và /ban-do: cuộn tới đúng mục trên trang chủ sau khi trang tải xong.
+  var SECTIONS = { '/nhat-ky': 'nhat-ky', '/ban-do': 'ban-do' };
+  var target = SECTIONS[window.location.pathname.replace(/\/+$/, '')];
+  if (target) {
+    window.addEventListener('load', function () {
+      var el = document.getElementById(target);
+      if (el) el.scrollIntoView({ block: 'start' });
+    });
+  }
+
   window.MTLV = { lang: lang, t: t, api: api, msgOf: msgOf, h: h, tx: tx, show: show, refresh: refresh, postImage: postImage };
 })();
