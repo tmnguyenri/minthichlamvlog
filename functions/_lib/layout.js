@@ -42,7 +42,7 @@ export function page({ title, titleEn = '', desc = '', descEn = '', ogType = 'we
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:type" content="${ogType}">
   <meta name="theme-color" content="#ffffff">${seoHead}
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,7 +57,7 @@ export function page({ title, titleEn = '', desc = '', descEn = '', ogType = 'we
   <header class="site-header">
     <div class="wrap site-header__inner">
       <a class="brand" href="/">
-        <img class="brand__mark" src="/favicon.svg" alt="" width="40" height="40">
+        <img class="brand__mark" src="/images/logo-96.png" alt="" width="44" height="44">
         <span class="brand__name">Mìn Thích Làm Vlog</span>
       </a>
       <nav class="nav" aria-label="Menu chính" data-en-aria-label="Main menu">

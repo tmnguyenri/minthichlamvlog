@@ -16,7 +16,9 @@ site/                  <- mọi thứ trong thư mục này sẽ được đưa 
   js/lang.js           nút chuyển tiếng Việt / tiếng Anh
   js/ui.js, session.js, auth.js, admin.js, comments.js, posts.js, slider.js   đăng nhập, khu quản lý, bình luận, bài viết và dải ảnh chạy ở trang chủ
   dang-nhap.html, dang-ky.html, quan-ly.html, rieng-tu.html        các trang tài khoản
-  favicon.svg          biểu tượng trên thẻ trình duyệt
+  images/logo-96.png, logo-240.png   logo tròn ở góc trên bên trái mọi trang (cắt từ ảnh đại diện kênh)
+  favicon-48.png, favicon-32.png, favicon.ico   biểu tượng trên thẻ trình duyệt
+  apple-touch-icon.png biểu tượng khi lưu trang ra màn hình chính điện thoại
 functions/             mã chạy trên máy chủ Cloudflare (API, trang bài viết /bai/<tên>)
 db/schema.sql          cấu trúc cơ sở dữ liệu
 dev/                   chạy thử trên máy và bộ kiểm tra tự động

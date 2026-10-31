@@ -78,8 +78,14 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.15; letter-spacing: -.0
 .site-header { position: relative; z-index: 50; background: #fff; border-bottom: 1px solid var(--line); }
 .site-header__inner { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding-block: .75rem; }
 .brand { display: inline-flex; align-items: center; gap: .65rem; margin-right: auto; text-decoration: none; }
-.brand__mark { width: 2.25rem; height: 2.25rem; border-radius: .6rem; }
+.brand__mark { flex: none; width: 2.75rem; height: 2.75rem; border-radius: 50%; box-shadow: 0 0 0 1px var(--line); }
 .brand__name { font-size: 1.15rem; font-weight: 800; letter-spacing: -.02em; line-height: 1; white-space: nowrap; }
+/* Điện thoại hẹp (≤ 376px): thu nhỏ một chút để nút VI / EN còn nằm cùng hàng với tên trang. */
+@media (max-width: 23.5rem) {
+  .brand { gap: .5rem; }
+  .brand__mark { width: 2.5rem; height: 2.5rem; }
+  .brand__name { font-size: 1rem; }
+}
 .nav { display: flex; flex-wrap: wrap; gap: .1rem .25rem; order: 3; width: 100%; }
 .nav a, .nav-logout {
   padding: .4rem .55rem; border: 0; background: none; border-radius: .5rem; cursor: pointer;
