@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-en="Become a member – Mìn Thích Làm Vlog">Đăng ký thành viên – Mìn Thích Làm Vlog</title>
+  <meta name="description" content="Đăng ký làm thành viên để bình luận và kết nối cùng Mìn Thích Làm Vlog." data-en-content="Sign up as a member to comment and connect with Mìn Thích Làm Vlog.">
+  <meta property="og:title" content="Đăng ký thành viên – Mìn Thích Làm Vlog">
+  <meta property="og:description" content="Đăng ký làm thành viên để bình luận và kết nối cùng Mìn Thích Làm Vlog.">
+  <meta property="og:type" content="website">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0b0b0f">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&family=Plus+Jakarta+Sans:wght@400..700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/lang.js"></script>
+  <script src="js/session.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main" data-en="Skip to content">Chuyển đến nội dung</a>
+
+  <header class="site-header">
+    <div class="wrap site-header__inner">
+      <a class="brand" href="index.html">
+        <img class="brand__mark" src="favicon.svg" alt="" width="40" height="40">
+        <span class="brand__name">Mìn Thích Làm Vlog</span><span class="brand__dot" aria-hidden="true"></span>
+      </a>
+      <nav class="nav" aria-label="Menu chính" data-en-aria-label="Main menu">
+        <a href="index.html#nhat-ky" data-en="Journal">Nhật ký</a>
+        <a href="index.html#ban-do" data-en="Atlas">Bản đồ</a>
+        <a href="about.html" data-en="About">Giới thiệu</a>
+        <a class="nav-account" href="dang-nhap.html" data-en="Log in">Đăng nhập</a>
+      </nav>
+      <a class="btn btn--primary btn--sm header-cta" href="about.html#lien-he" data-en="Contact">Liên hệ</a>
+      <div class="lang-switch" role="group" aria-label="Ngôn ngữ" data-en-aria-label="Language">
+        <button type="button" data-set-lang="vi" aria-pressed="true" lang="vi" aria-label="Tiếng Việt">VI</button>
+        <button type="button" data-set-lang="en" aria-pressed="false" lang="en" aria-label="English">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-hero">
+      <div class="wrap">
+        <p class="eyebrow" data-en="Members">Thành viên</p>
+        <h1 class="page-title"><span data-en="Join">Cùng</span> <em class="grad" data-en="the journey">đồng hành</em></h1>
+      </div>
+    </section>
+    <div class="wrap auth">
+      <form class="form" id="register-form" novalidate>
+        <div class="field">
+          <label for="name" data-en="Display name">Tên hiển thị</label>
+          <input id="name" name="name" type="text" autocomplete="nickname" required minlength="2" maxlength="40">
+          <p class="hint" data-en="This name appears next to your comments.">Tên này hiện cạnh bình luận của bạn.</p>
+        </div>
+        <div class="field">
+          <label for="email" data-en="Email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="username" required maxlength="254">
+        </div>
+        <div class="field">
+          <label for="password" data-en="Password">Mật khẩu</label>
+          <input id="password" name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="128">
+          <p class="hint" data-en="At least 10 characters.">Ít nhất 10 ký tự.</p>
+        </div>
+        <div class="field">
+          <label for="password2" data-en="Repeat the password">Nhập lại mật khẩu</label>
+          <input id="password2" name="password2" type="password" autocomplete="new-password" required maxlength="128">
+        </div>
+        <details class="invite-box">
+          <summary data-en="I have an invite code">Mình có mã mời</summary>
+          <div class="field">
+            <label for="invite" data-en="Invite code">Mã mời</label>
+            <input id="invite" name="invite" type="text" autocomplete="off" maxlength="100" spellcheck="false">
+          </div>
+        </details>
+        <p class="hint" data-en="By signing up you agree that I store your email and display name to run your account. Your sign-up will be reviewed by hand.">Khi đăng ký, bạn đồng ý để mình lưu email và tên hiển thị để quản lý tài khoản. Đăng ký của bạn sẽ được duyệt thủ công.</p>
+        <p class="hint"><a href="rieng-tu.html" data-en="Read the privacy notice">Đọc phần quyền riêng tư</a></p>
+        <p id="form-msg" class="notice" role="alert" hidden></p>
+        <button class="btn btn--primary" type="submit" data-en="Sign up">Đăng ký</button>
+        <p class="form-alt"><span data-en="Already a member?">Đã có tài khoản?</span> <a href="dang-nhap.html" data-en="Log in">Đăng nhập</a></p>
+      </form>
+      <div class="form" id="register-done" hidden>
+        <h2 data-en="Thanks, I got your sign-up!">Mình đã nhận được đăng ký của bạn!</h2>
+        <p data-en="I will review it soon. Once approved, log in with the email you just used.">Mình sẽ xem và duyệt sớm. Khi được duyệt, bạn đăng nhập bằng email vừa đăng ký.</p>
+        <p><a class="btn btn--ghost" href="index.html" data-en="Back to the home page">Về trang chủ</a></p>
+      </div>
+      <noscript><p class="notice notice--error" data-en="JavaScript is needed to sign up.">Cần bật JavaScript để đăng ký.</p></noscript>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="site-footer__top">
+        <p class="footer-title"><span data-en="So many places left.">Còn nhiều nơi chưa tới.</span> <em class="grad" data-en="See you on the next leg.">Hẹn bạn ở chặng sau.</em></p>
+        <ul class="footer-nav">
+          <li><a href="index.html#nhat-ky" data-en="Journal">Nhật ký</a></li>
+          <li><a href="index.html#ban-do" data-en="Atlas">Bản đồ</a></li>
+          <li><a href="about.html" data-en="About">Giới thiệu</a></li>
+          <li><a href="about.html#lien-he" data-en="Contact">Liên hệ</a></li>
+          <li><a href="rieng-tu.html" data-en="Privacy">Quyền riêng tư</a></li>
+        </ul>
+      </div>
+      <div class="site-footer__bottom">
+        <p data-en="© 2026 Mìn Thích Làm Vlog — photos, films and stories from the road.">© 2026 Mìn Thích Làm Vlog — ảnh, phim và chuyện kể từ những chuyến đi.</p>
+        <p data-en="Made for slow travel and long memories.">Làm ra để đi chậm và nhớ lâu.</p>
+      </div>
+    </div>
+  </footer>
+  <script src="js/ui.js" defer></script>
+  <script src="js/auth.js" defer></script>
+</body>
+</html>

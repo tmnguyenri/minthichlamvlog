@@ -1,6 +1,6 @@
 # Mìn Thích Làm Vlog
 
-Trang nhật ký du lịch bằng HTML, CSS và một tệp JavaScript nhỏ. Không cần build, không dùng framework, không phải cài gì.
+Trang nhật ký du lịch bằng HTML, CSS và JavaScript thuần. Không cần build, không dùng framework. Phần đăng nhập, đăng ký, bài viết và bình luận chạy bằng Cloudflare Pages Functions và cơ sở dữ liệu D1 (xem mục "Tài khoản, cơ sở dữ liệu và khu quản lý").
 Giao diện tối. **Mặc định tiếng Việt**, người xem bấm nút **EN** ở góc trên để đọc bản tiếng Anh.
 
 ## Trong thư mục này có gì
@@ -14,7 +14,13 @@ site/                  <- mọi thứ trong thư mục này sẽ được đưa 
   images/              ảnh. scene-*.svg là ảnh minh họa mẫu, flags/ là cờ các nước
   css/style.css        toàn bộ màu sắc, font và bố cục
   js/lang.js           nút chuyển tiếng Việt / tiếng Anh
+  js/ui.js, session.js, auth.js, admin.js, comments.js, posts.js   đăng nhập, khu quản lý, bình luận, bài viết từ cơ sở dữ liệu
+  dang-nhap.html, dang-ky.html, quan-ly.html, rieng-tu.html        các trang tài khoản
   favicon.svg          biểu tượng trên thẻ trình duyệt
+functions/             mã chạy trên máy chủ Cloudflare (API, trang bài viết /bai/<tên>)
+db/schema.sql          cấu trúc cơ sở dữ liệu
+dev/                   chạy thử trên máy và bộ kiểm tra tự động
+wrangler.jsonc         nối cơ sở dữ liệu D1 (tên DB) vào dự án Pages
 post-template.html     bài viết trống để sao chép khi viết bài mới (KHÔNG đưa lên mạng)
 README.md              tệp này
 ```
@@ -98,6 +104,28 @@ Dự án tạo bằng kéo thả sẽ không chuyển sang Git được về sau
 ### Thêm tên miền riêng sau này
 
 Trong dự án Pages, mở **Custom domains**, chọn **Set up a domain** và nhập tên miền. Hãy làm bước này trong trang quản lý Pages trước, đừng chỉnh bản ghi DNS trước. Tên miền mua qua Cloudflare Registrar sẽ tự kết nối.
+
+## Tài khoản, cơ sở dữ liệu và khu quản lý
+
+Chủ trang đăng nhập tại `/dang-nhap` rồi vào `/quan-ly` để viết bài (chữ + video YouTube, có bản tiếng Anh tùy chọn) và duyệt thành viên. Người khác đăng ký tại `/dang-ky`; tài khoản mới ở trạng thái **chờ duyệt** cho đến khi chủ trang bấm Duyệt. Thành viên đã duyệt bình luận được dưới mỗi bài. Chỉ chủ trang đăng bài.
+
+**Cách hoạt động.** Dữ liệu nằm trong D1 (SQLite của Cloudflare, miễn phí) tên `minthichlamvlog-db`, nối vào các hàm trong `functions/` bằng tên `DB` (khai báo ở `wrangler.jsonc`). Mật khẩu được băm bằng PBKDF2-SHA256, không bao giờ lưu mật khẩu thật. Phiên đăng nhập là một cookie HttpOnly 30 ngày, trong cơ sở dữ liệu chỉ lưu bản băm của nó. Các yêu cầu ghi dữ liệu đều kiểm tra tiêu đề `Origin`, có giới hạn số lần thử, và nội dung do người dùng nhập luôn được thoát ký tự trước khi hiển thị.
+
+**Tạo lại cơ sở dữ liệu (nếu cần).**
+
+1. Trong Cloudflare: **Storage & databases → D1 → Create Database**, đặt tên, rồi chép `database_id` vào `wrangler.jsonc`.
+2. Mở **Console** của cơ sở dữ liệu, dán nội dung `db/schema.sql` (bỏ các dòng chú thích) và chạy. Chạy lại nhiều lần vẫn an toàn.
+3. Tạo tài khoản chủ trang: sinh một mã ngẫu nhiên dài, lưu **SHA-256 của mã** vào bảng `invites` (`INSERT INTO invites (token_hash, role, created_at) VALUES ('<sha256 hex>', 'admin', strftime('%s','now'));`), rồi mở `/dang-ky`, bấm "Mình có mã mời", dán **mã gốc** và tự chọn mật khẩu. Mã chỉ dùng được một lần.
+
+**Chạy thử trên máy** (cần Node 22 trở lên, không cần cài gói nào):
+
+```
+node dev/server.mjs 8788                  # trang + API + cơ sở dữ liệu trong bộ nhớ, mở http://127.0.0.1:8788
+node --no-warnings dev/test-api.mjs       # 104 kiểm tra cho API
+node --no-warnings dev/test-ui.mjs        # kiểm tra giao diện bằng trình duyệt (cần Playwright)
+```
+
+**Chưa có (làm sau):** tải ảnh lên (cần bật R2 trong Cloudflare, có thẻ thanh toán dù vẫn trong hạn mức miễn phí), và xác nhận email (cần gói Workers trả phí để gửi thư tới người lạ). Hiện ảnh bìa và ảnh trong bài được chèn bằng đường dẫn `/images/...` hoặc liên kết https.
 
 ## Font chữ
 

@@ -1,0 +1,13 @@
+{
+  // Cấu hình Cloudflare Pages: thư mục đưa lên mạng và cơ sở dữ liệu D1 cho các hàm trong functions/.
+  "name": "minthichlamvlog",
+  "compatibility_date": "2026-10-30",
+  "pages_build_output_dir": "./site",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "minthichlamvlog-db",
+      "database_id": "8d475a5f-8335-4e4b-8b13-94dded7fbc0a"
+    }
+  ]
+}

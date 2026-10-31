@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-en="Manage – Mìn Thích Làm Vlog">Quản lý – Mìn Thích Làm Vlog</title>
+  <meta name="description" content="Khu vực dành cho chủ trang." data-en-content="Area for the site owner.">
+  <meta property="og:title" content="Quản lý – Mìn Thích Làm Vlog">
+  <meta property="og:description" content="Khu vực dành cho chủ trang.">
+  <meta property="og:type" content="website">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0b0b0f">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&family=Plus+Jakarta+Sans:wght@400..700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/lang.js"></script>
+  <script src="js/session.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main" data-en="Skip to content">Chuyển đến nội dung</a>
+
+  <header class="site-header">
+    <div class="wrap site-header__inner">
+      <a class="brand" href="index.html">
+        <img class="brand__mark" src="favicon.svg" alt="" width="40" height="40">
+        <span class="brand__name">Mìn Thích Làm Vlog</span><span class="brand__dot" aria-hidden="true"></span>
+      </a>
+      <nav class="nav" aria-label="Menu chính" data-en-aria-label="Main menu">
+        <a href="index.html#nhat-ky" data-en="Journal">Nhật ký</a>
+        <a href="index.html#ban-do" data-en="Atlas">Bản đồ</a>
+        <a href="about.html" data-en="About">Giới thiệu</a>
+        <a class="nav-account" href="dang-nhap.html" data-en="Log in">Đăng nhập</a>
+      </nav>
+      <a class="btn btn--primary btn--sm header-cta" href="about.html#lien-he" data-en="Contact">Liên hệ</a>
+      <div class="lang-switch" role="group" aria-label="Ngôn ngữ" data-en-aria-label="Language">
+        <button type="button" data-set-lang="vi" aria-pressed="true" lang="vi" aria-label="Tiếng Việt">VI</button>
+        <button type="button" data-set-lang="en" aria-pressed="false" lang="en" aria-label="English">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-hero">
+      <div class="wrap">
+        <p class="eyebrow" data-en="Owner area">Khu quản lý</p>
+        <h1 class="page-title"><span data-en="Write and">Viết bài và</span> <em class="grad" data-en="manage the site">quản lý trang</em></h1>
+      </div>
+    </section>
+    <div class="wrap admin">
+      <p id="admin-msg" class="notice" role="status" hidden></p>
+      <noscript><p class="notice notice--error" data-en="JavaScript is needed here.">Cần bật JavaScript để dùng khu quản lý.</p></noscript>
+      <div id="admin-root" hidden>
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" class="tab" data-tab="posts" aria-selected="true"><span data-en="Posts">Bài viết</span></button>
+          <button type="button" role="tab" class="tab" data-tab="users" aria-selected="false"><span data-en="Members">Thành viên</span><span id="pending-count" class="count" hidden></span></button>
+        </div>
+
+        <section id="tab-posts">
+          <div class="admin__head">
+            <h2 data-en="Posts">Bài viết</h2>
+            <button type="button" id="new-post" class="btn btn--primary btn--sm" data-en="New post">Viết bài mới</button>
+          </div>
+          <ul id="post-list" class="rows"></ul>
+
+          <div id="post-editor" class="editor" hidden>
+            <h2 id="editor-title" data-en="New post">Bài viết mới</h2>
+            <form id="post-form" class="form form--wide" novalidate>
+        <div class="field">
+          <label for="f-title" data-en="Title">Tiêu đề</label>
+          <input id="f-title" name="title" type="text" required maxlength="150">
+        </div>
+        <div class="field">
+          <label for="f-slug" data-en="Link name">Đường dẫn</label>
+          <input id="f-slug" name="slug" type="text" maxlength="80" spellcheck="false">
+          <p class="hint" data-en="Created from the title. The post will live at /bai/link-name.">Tự tạo từ tiêu đề. Bài sẽ có địa chỉ /bai/đường-dẫn.</p>
+        </div>
+        <div class="field">
+          <label for="f-excerpt" data-en="Summary">Tóm tắt</label>
+          <textarea id="f-excerpt" name="excerpt" rows="2" maxlength="400"></textarea>
+          <p class="hint" data-en="One or two sentences, shown on the home page card.">Một hai câu, hiện trên thẻ bài ở trang chủ.</p>
+        </div>
+        <div class="field">
+          <label for="f-body" data-en="Content">Nội dung</label>
+          <textarea id="f-body" name="body" rows="14" maxlength="60000"></textarea>
+        </div>
+          <details class="help">
+            <summary data-en="Formatting help">Cách định dạng</summary>
+            <ul>
+              <li><code>## Tiêu đề lớn</code> <span data-en="heading">tiêu đề</span></li>
+              <li><code>**đậm**</code> · <code>*nghiêng*</code></li>
+              <li><code>[chữ hiển thị](https://liên-kết)</code></li>
+              <li><code>![mô tả ảnh](/images/ten-anh.jpg)</code> <span data-en="on its own line, for a photo">trên một dòng riêng, để chèn ảnh</span></li>
+              <li><code>&gt; trích dẫn</code> · <code>- gạch đầu dòng</code></li>
+              <li data-en="Leave a blank line between paragraphs.">Cách một dòng trống giữa các đoạn.</li>
+            </ul>
+          </details>
+          <div class="field-row">
+        <div class="field">
+          <label for="f-country" data-en="Country">Quốc gia</label>
+          <input id="f-country" name="country" type="text" maxlength="60" placeholder="Việt Nam">
+        </div>
+        <div class="field">
+          <label for="f-date" data-en="When">Thời gian</label>
+          <input id="f-date" name="trip_date" type="month" placeholder="2026-10">
+        </div>
+        <div class="field">
+          <label for="f-days" data-en="Days">Số ngày</label>
+          <input id="f-days" name="days" type="number" min="1" max="3650">
+        </div>
+          </div>
+        <div class="field">
+          <label for="f-video" data-en="YouTube video">Video YouTube</label>
+          <input id="f-video" name="video" type="text" maxlength="200" placeholder="https://www.youtube.com/watch?v=…">
+          <p class="hint" data-en="Paste the video link, or leave empty.">Dán liên kết video, để trống nếu không có.</p>
+        </div>
+        <div class="field">
+          <label for="f-cover" data-en="Cover image">Ảnh bìa</label>
+          <input id="f-cover" name="cover" type="text" maxlength="500" placeholder="/images/ten-anh.jpg">
+          <p class="hint" data-en="A path starting with / or an https link. Leave empty for the default image.">Đường dẫn bắt đầu bằng / hoặc liên kết https. Để trống sẽ dùng ảnh mặc định.</p>
+        </div>
+          <details class="help">
+            <summary data-en="English version (optional)">Bản tiếng Anh (không bắt buộc)</summary>
+        <div class="field">
+          <label for="f-title-en" data-en="Title (EN)">Tiêu đề (EN)</label>
+          <input id="f-title-en" name="title_en" type="text" maxlength="150">
+        </div>
+        <div class="field">
+          <label for="f-excerpt-en" data-en="Summary (EN)">Tóm tắt (EN)</label>
+          <textarea id="f-excerpt-en" name="excerpt_en" rows="2" maxlength="400"></textarea>
+        </div>
+        <div class="field">
+          <label for="f-body-en" data-en="Content (EN)">Nội dung (EN)</label>
+          <textarea id="f-body-en" name="body_en" rows="10" maxlength="60000"></textarea>
+        </div>
+          </details>
+        <div class="field">
+          <label for="f-status" data-en="Status">Trạng thái</label>
+          <select id="f-status" name="status"><option value="draft" data-en="Draft (only you can see it)">Nháp (chỉ mình bạn thấy)</option><option value="published" data-en="Published">Đăng công khai</option></select>
+        </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn--primary" data-en="Save">Lưu</button>
+            <button type="button" id="cancel-post" class="btn btn--ghost" data-en="Close">Đóng</button>
+          </div>
+            </form>
+          </div>
+        </section>
+
+        <section id="tab-users" hidden>
+          <div class="admin__head"><h2 data-en="Members">Thành viên</h2></div>
+          <p class="muted" data-en="New sign-ups wait here until you approve them.">Người mới đăng ký sẽ chờ ở đây cho đến khi bạn duyệt.</p>
+          <ul id="user-list" class="rows"></ul>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="site-footer__top">
+        <p class="footer-title"><span data-en="So many places left.">Còn nhiều nơi chưa tới.</span> <em class="grad" data-en="See you on the next leg.">Hẹn bạn ở chặng sau.</em></p>
+        <ul class="footer-nav">
+          <li><a href="index.html#nhat-ky" data-en="Journal">Nhật ký</a></li>
+          <li><a href="index.html#ban-do" data-en="Atlas">Bản đồ</a></li>
+          <li><a href="about.html" data-en="About">Giới thiệu</a></li>
+          <li><a href="about.html#lien-he" data-en="Contact">Liên hệ</a></li>
+          <li><a href="rieng-tu.html" data-en="Privacy">Quyền riêng tư</a></li>
+        </ul>
+      </div>
+      <div class="site-footer__bottom">
+        <p data-en="© 2026 Mìn Thích Làm Vlog — photos, films and stories from the road.">© 2026 Mìn Thích Làm Vlog — ảnh, phim và chuyện kể từ những chuyến đi.</p>
+        <p data-en="Made for slow travel and long memories.">Làm ra để đi chậm và nhớ lâu.</p>
+      </div>
+    </div>
+  </footer>
+  <script src="js/ui.js" defer></script>
+  <script src="js/admin.js" defer></script>
+</body>
+</html>

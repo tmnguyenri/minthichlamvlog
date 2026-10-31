@@ -88,6 +88,9 @@
     }
   }
 
+  // Cho các tệp js khác gọi sau khi thêm nội dung mới vào trang.
+  window.mtlvI18n = { refresh: function () { if (current === 'en') apply('en'); } };
+
   function init() {
     if (current === 'en') apply('en'); else markButtons('vi');
     document.addEventListener('click', function (e) {
