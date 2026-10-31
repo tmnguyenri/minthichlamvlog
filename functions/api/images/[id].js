@@ -1,4 +1,6 @@
-// Xem và xóa một ảnh. Xem công khai để ảnh hiện được trong bài; xóa chỉ dành cho chủ trang.
+// Xem và xóa một ảnh. Xem công khai CHỈ khi ảnh gắn với một bài đã đăng; ảnh của bài còn là nháp
+// hoặc chưa gắn vào bài nào (mới tải lên, đang soạn) chỉ chủ trang xem được, để không lộ ảnh trước khi đăng.
+// Xóa chỉ dành cho chủ trang.
 import { requireAdmin } from '../../_lib/auth.js';
 import { fail } from '../../_lib/http.js';
 
@@ -14,10 +16,15 @@ export function toBytes(value) {
   return null;
 }
 
-export async function onRequestGet({ params, env }) {
+export async function onRequestGet({ params, env, data }) {
   const id = idOf(params);
-  const row = id && await env.DB.prepare('SELECT mime, data FROM images WHERE id = ?').bind(id).first();
+  const row = id && await env.DB.prepare(
+    `SELECT i.mime, i.data, p.status AS post_status FROM images i LEFT JOIN posts p ON p.id = i.post_id WHERE i.id = ?`,
+  ).bind(id).first();
   if (!row) return notFound();
+  const isPublic = row.post_status === 'published';
+  // post_status NULL (chưa gắn vào bài nào) hoặc khác 'published' (còn là nháp): chỉ chủ trang xem được.
+  if (!isPublic && data.user?.role !== 'admin') return notFound();
   const bytes = toBytes(row.data);
   if (!bytes) {
     console.error('images: dữ liệu ảnh không đọc được', id, typeof row.data);
@@ -26,7 +33,9 @@ export async function onRequestGet({ params, env }) {
   return new Response(bytes, {
     headers: {
       'content-type': row.mime,
-      'cache-control': 'public, max-age=86400',
+      // Ảnh của bài chưa đăng chỉ chủ trang xem được nên không được cache công khai (bộ nhớ đệm dùng chung
+      // có thể lỡ phát lại cho người khác). Ảnh của bài đã đăng mới cache công khai.
+      'cache-control': isPublic ? 'public, max-age=86400' : 'private, no-store',
       'x-content-type-options': 'nosniff',
     },
   });

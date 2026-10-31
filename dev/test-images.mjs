@@ -37,7 +37,7 @@ async function call(method, p, { cookie, body, type, origin = url, extra = {} } 
   const res = await fetch(url + p, { method, headers: h, body, redirect: 'manual' });
   const buf = new Uint8Array(await res.arrayBuffer());
   let json = null; try { json = JSON.parse(new TextDecoder().decode(buf)); } catch { /* không phải JSON */ }
-  return { status: res.status, json, buf, text: new TextDecoder().decode(buf), type: res.headers.get('content-type'), nosniff: res.headers.get('x-content-type-options') };
+  return { status: res.status, json, buf, text: new TextDecoder().decode(buf), type: res.headers.get('content-type'), nosniff: res.headers.get('x-content-type-options'), cacheControl: res.headers.get('cache-control') };
 }
 
 const adminCookie = await session('chu@example.com', 'admin');
@@ -71,12 +71,33 @@ r = await call('POST', '/api/images', { cookie: adminCookie, body: big, type: 'i
 ok(r.status === 413 && r.json.error === 'too_large', 'ảnh trên 400 KB bị từ chối', r.status);
 
 console.log('3. Xem và danh sách');
+// jpegId chưa gắn vào bài nào (thư viện, post_id NULL): khách KHÔNG xem được, để không lộ ảnh trước khi dùng.
 r = await call('GET', `/api/images/${jpegId}`);
-ok(r.status === 200 && r.type === 'image/jpeg', 'xem ảnh công khai, đúng Content-Type', `${r.status} ${r.type}`);
+ok(r.status === 404, 'ảnh chưa gắn vào bài nào thì khách không xem được', r.status);
+r = await call('GET', `/api/images/${jpegId}`, { cookie: adminCookie });
+ok(r.status === 200 && r.type === 'image/jpeg', 'nhưng chủ trang vẫn xem được (để còn chèn vào bài)', `${r.status} ${r.type}`);
 ok(r.buf.length === JPEG.length && r.buf.every((b, i) => b === JPEG[i]), 'nội dung ảnh giống hệt bản đã tải lên');
 ok(r.nosniff === 'nosniff', 'có tiêu đề nosniff');
 r = await call('GET', '/api/images/999999');
 ok(r.status === 404, 'ảnh không tồn tại trả về 404', r.status);
+// Gắn ảnh vào một bài đã đăng thì mới công khai.
+const pubPost = db.raw.prepare(`INSERT INTO posts (slug, title, title_en, excerpt, excerpt_en, body, body_en, country, trip_date, days, cover, video, status, author_id, created_at, updated_at, published_at)
+  VALUES ('bai-da-dang', 'Bài đã đăng', '', '', '', '', '', '', '', NULL, '', '', 'published', ?, ?, ?, ?)`).run(1, now(), now(), now()).lastInsertRowid;
+db.raw.prepare('UPDATE images SET post_id = ? WHERE id = ?').run(pubPost, jpegId);
+r = await call('GET', `/api/images/${jpegId}`);
+ok(r.status === 200 && r.type === 'image/jpeg', 'gắn vào bài đã đăng rồi thì khách xem được', r.status);
+ok(r.cacheControl && r.cacheControl.startsWith('public'), 'ảnh công khai được cache công khai', r.cacheControl);
+db.raw.prepare('UPDATE images SET post_id = NULL WHERE id = ?').run(jpegId);
+// Gắn vào một bài còn là nháp: vẫn không công khai.
+const draftPost = db.raw.prepare(`INSERT INTO posts (slug, title, title_en, excerpt, excerpt_en, body, body_en, country, trip_date, days, cover, video, status, author_id, created_at, updated_at, published_at)
+  VALUES ('bai-nhap-thu', 'Bài nháp', '', '', '', '', '', '', '', NULL, '', '', 'draft', ?, ?, ?, NULL)`).run(1, now(), now()).lastInsertRowid;
+db.raw.prepare('UPDATE images SET post_id = ? WHERE id = ?').run(draftPost, jpegId);
+r = await call('GET', `/api/images/${jpegId}`);
+ok(r.status === 404, 'gắn vào bài còn là nháp thì khách vẫn không xem được', r.status);
+r = await call('GET', `/api/images/${jpegId}`, { cookie: adminCookie });
+ok(r.status === 200, 'chủ trang vẫn xem được ảnh của bài nháp', r.status);
+ok((r.cacheControl || '').includes('no-store'), 'ảnh chưa công khai không bị cache công khai', r.cacheControl);
+db.raw.prepare('UPDATE images SET post_id = NULL WHERE id = ?').run(jpegId);
 r = await call('GET', '/api/images', { cookie: adminCookie });
 ok(r.status === 200 && r.json.images.length === 3, 'chủ trang thấy danh sách 3 ảnh', JSON.stringify(r.json));
 ok(r.json && r.json.images.every((i) => !('data' in i)), 'danh sách không kèm dữ liệu ảnh');

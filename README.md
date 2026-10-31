@@ -68,6 +68,7 @@ Cách nhanh nhất: đăng nhập tài khoản quản trị và đăng bài ở 
 
 - **Tải ảnh khi viết:** trong `/quan-ly`, mục **Ảnh của bài** nằm ngay dưới ô ảnh bìa. Chọn nhiều ảnh cùng lúc, ảnh sẽ được nén trong trình duyệt thành JPEG dưới 400 KB và lưu trong bảng `images` của D1. Nếu bài chưa được lưu, bài sẽ tự lưu thành nháp trước khi tải ảnh (cần có tiêu đề).
 - **Hiển thị:** mỗi lần mở trang, bài hiện ngẫu nhiên một ảnh trong số ảnh của bài. Bài chưa có ảnh nào thì dùng ảnh bìa (nếu có) hoặc ảnh mặc định.
+- **Quyền xem ảnh:** `GET /api/images/:id` chỉ công khai khi ảnh đang gắn với một bài **đã đăng**. Ảnh mới tải lên (chưa gắn vào bài nào) hoặc gắn với bài còn là **nháp** chỉ chủ trang xem được (404 với người khác), để không lộ ảnh trước khi bài được đăng.
 - **Cập nhật cơ sở dữ liệu:** bảng `images` được tạo bằng `db/schema.sql`. Nếu bảng đã có nhưng thiếu cột `post_id`, chạy một lần: `ALTER TABLE images ADD COLUMN post_id INTEGER REFERENCES posts(id) ON DELETE SET NULL;`
 - **Kiểm thử:** `node --no-warnings dev/test-images.mjs`.
 
@@ -159,8 +160,27 @@ Chủ trang đăng nhập tại `/dang-nhap` rồi vào `/quan-ly` để viết 
 node dev/server.mjs 8788                  # trang + API + cơ sở dữ liệu trong bộ nhớ, mở http://127.0.0.1:8788
 node --no-warnings dev/test-api.mjs       # 213 kiểm tra cho API
 node --no-warnings dev/test-home.mjs      # trang chủ: bài thật thay bài mẫu, thành phố và quốc gia (cần Playwright)
+node --no-warnings dev/test-images.mjs    # thư viện ảnh, quyền xem ảnh theo trạng thái bài
+node --no-warnings dev/test-security.mjs  # bảo mật: tự thử CSRF, IDOR, XSS, SQL injection, dò mật khẩu... (xem bên dưới)
 node --no-warnings dev/test-ui.mjs        # kiểm tra giao diện bằng trình duyệt (cần Playwright)
 ```
+
+## Bảo mật
+
+`dev/test-security.mjs` đóng vai kẻ tấn công trên bản chạy thử (không bao giờ đụng tới trang thật) và thử nhiều kiểu tấn công phổ biến, mỗi lần đều kiểm tra là bị chặn:
+
+- **CSRF:** yêu cầu thay đổi dữ liệu không đến từ chính trang (tiêu đề `Origin` sai, thiếu, hoặc `null`) bị từ chối.
+- **Phân quyền và IDOR:** thành viên thường không gọi được API của chủ trang; không ai đọc/sửa/xóa được dữ liệu của người khác hay bài còn là nháp của người khác qua URL hoặc API.
+- **XSS:** `<script>`, `javascript:`, thẻ HTML được gõ vào tiêu đề, tóm tắt, thành phố, nội dung, tên hiển thị, bình luận... đều bị thoát ký tự khi hiển thị, không chạy được.
+- **Tải ảnh:** tệp giả dạng ảnh (chữ ký tệp sai), SVG có thể chứa JS, và ảnh quá 400 KB đều bị từ chối; chỉ chủ trang tải được.
+- **SQL injection:** ký tự đặc biệt (`'`, `;`, `--`) trong mọi trường không làm hỏng truy vấn hay xóa được dữ liệu (mọi câu lệnh đều dùng tham số, không nối chuỗi).
+- **Dò mật khẩu:** đăng nhập sai liên tục bị khóa theo IP và theo tài khoản.
+- **Phiên đăng nhập:** cookie có `HttpOnly` (JavaScript không đọc được) và `SameSite=Lax`.
+- **Đặt lại mật khẩu:** mã đoán bừa không dùng được; mã thật chỉ dùng được một lần.
+- **Ảnh chưa công khai:** ảnh mới tải lên hoặc gắn với bài còn là nháp không xem được bằng cách đoán số ID; chỉ công khai khi bài đã đăng (xem mục "Ảnh của bài viết" ở trên).
+- **Tiêu đề bảo mật:** mọi trang đều có CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`.
+
+Không có giới hạn này thay được việc tự rà soát khi thêm tính năng mới: trường dữ liệu mới nào hiển thị ra trang cũng cần thoát ký tự, API mới nào thay đổi dữ liệu cũng cần `requireAdmin`/`requireUser` và nằm sau `_middleware.js`.
 
 **Chưa có (làm sau):** tải ảnh lên (cần bật R2 trong Cloudflare, có thẻ thanh toán dù vẫn trong hạn mức miễn phí), và xác nhận email hoặc tự động gửi liên kết quên mật khẩu (cần gói Workers trả phí để gửi thư tới người lạ). Hiện ảnh bìa và ảnh trong bài được chèn bằng đường dẫn `/images/...` hoặc liên kết https.
 
