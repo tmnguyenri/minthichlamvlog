@@ -61,6 +61,24 @@
     return en(h('time', { class: 'tl-item__date', datetime: p.trip_date, text: 'Tháng ' + mm + '/' + m[1] }), MONTHS_EN[mm - 1] + ' ' + m[1]);
   }
 
+  // Thẻ trong nhật ký: ảnh thu nhỏ (tối đa 10 ảnh của bài), kèm tên địa điểm, tiêu đề và tóm tắt.
+  function photoIds(p) {
+    var ids = [];
+    try { ids = JSON.parse(p.image_ids || '[]'); } catch (e) { ids = []; }
+    return ids.slice(0, 10).map(function (id) { return '/api/images/' + id; });
+  }
+
+  function timelineCard(p) {
+    var srcs = photoIds(p);
+    if (!srcs.length) srcs = [M.postImage(p) || '/images/cover-default.svg'];
+    return h('article', { class: 'tl-card' },
+      h('a', { class: 'tl-card__photos', href: link(p), tabindex: '-1', 'aria-hidden': 'true' },
+        srcs.map(function (src) { return h('img', { src: src, alt: '', width: 320, height: 240, loading: 'lazy' }); })),
+      h('div', { class: 'tl-card__body' }, meta(p, true),
+        h('h3', { class: 'card-title' }, titleLink(p)),
+        p.excerpt ? en(h('p', { class: 'card__text', text: p.excerpt }), p.excerpt_en) : null));
+  }
+
   function timeline(posts) {
     var out = [], lastYear = null, list = null;
     posts.forEach(function (p) {
@@ -71,7 +89,7 @@
         out.push(list);
         lastYear = y;
       }
-      list.appendChild(h('li', { class: 'tl-item' }, arrivalLabel(p), card(p)));
+      list.appendChild(h('li', { class: 'tl-item' }, arrivalLabel(p), timelineCard(p)));
     });
     return out;
   }

@@ -381,3 +381,10 @@ details.help .field { margin-top: 1rem; }
   background: var(--sun); border: 3px solid var(--bg); box-sizing: content-box;
 }
 .tl-item__date { display: inline-block; margin-bottom: .6rem; color: var(--lagoon); font-size: .9rem; font-weight: 700; letter-spacing: .02em; }
+
+/* Thẻ nhật ký: ảnh thu nhỏ, tối đa 10 ảnh mỗi bài */
+.tl-card { display: grid; gap: .9rem; }
+.tl-card__photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: .4rem; }
+.tl-card__photos img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: .5rem; background: var(--paper); border: 1px solid var(--line); }
+.tl-card__body .card-title { margin: .2rem 0 .3rem; font-size: 1.15rem; }
+.tl-card__body .card__text { margin: 0; color: var(--muted); font-size: .95rem; }

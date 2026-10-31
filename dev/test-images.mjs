@@ -139,6 +139,16 @@ ok(r.status === 200 && r.text.includes('/images/cover-default.svg'), 'bài khôn
 r = await call('GET', '/api/images', { cookie: adminCookie });
 const mine = r.json && r.json.images.find((i) => i.id === photoA);
 ok(mine && mine.post_title === 'Bài có ảnh' && mine.post_id === withPhotos, 'danh sách ảnh cho biết ảnh thuộc bài nào', JSON.stringify(mine));
+const many = db.raw.prepare(`INSERT INTO posts (slug, title, title_en, excerpt, excerpt_en, body, body_en, country, trip_date, days, cover, video, status, author_id, created_at, updated_at, published_at)
+  VALUES ('bai-nhieu-anh', 'Bài nhiều ảnh', '', '', '', '', '', '', '2026-03', NULL, '', '', 'published', ?, ?, ?, ?)`).run(adminId, t0, t0, t0).lastInsertRowid;
+for (let k = 0; k < 12; k++) await call('POST', `/api/images?post_id=${many}`, { cookie: adminCookie, body: JPEG, type: 'image/jpeg' });
+r = await call('GET', '/api/posts');
+const bigPost = r.json.posts.find((p) => p.slug === 'bai-nhieu-anh');
+const ids = bigPost && JSON.parse(bigPost.image_ids);
+ok(Array.isArray(ids) && ids.length === 10, 'danh sách bài trả về tối đa 10 ảnh', JSON.stringify(ids));
+ok(bigPost && ids.every((i) => Number.isInteger(i)), 'danh sách ảnh là các mã số');
+const withoutPhotos = r.json.posts.find((p) => p.slug === 'bai-khong-anh');
+ok(withoutPhotos && JSON.parse(withoutPhotos.image_ids).length === 0, 'bài không có ảnh trả về danh sách rỗng');
 db.raw.prepare('DELETE FROM posts WHERE id = ?').run(withPhotos);
 const orphan = db.raw.prepare('SELECT post_id FROM images WHERE id = ?').get(photoA);
 ok(orphan && orphan.post_id === null, 'xóa bài thì ảnh vẫn còn trong thư viện (post_id thành NULL)');
