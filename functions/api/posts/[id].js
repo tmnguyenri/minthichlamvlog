@@ -13,7 +13,11 @@ export async function onRequestGet({ params, env, data }) {
   if (denied) return denied;
   const id = idOf(params);
   const post = id && await env.DB.prepare('SELECT * FROM posts WHERE id = ?').bind(id).first();
-  return post ? json({ post }) : notFound();
+  if (!post) return notFound();
+  const { results: images } = await env.DB.prepare(
+    'SELECT id, caption, size, created_at FROM images WHERE post_id = ? ORDER BY id ASC',
+  ).bind(id).all();
+  return json({ post, images });
 }
 
 export async function onRequestPut({ request, params, env, data, waitUntil }) {

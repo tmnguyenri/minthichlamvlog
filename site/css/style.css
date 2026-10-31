@@ -349,3 +349,11 @@ details.help .field { margin-top: 1rem; }
   html { scroll-behavior: auto; }
   * { transition: none !important; }
 }
+
+/* ---------- Ảnh của bài (khu quản lý) ---------- */
+.post-photos { margin: 0 0 1.25rem; padding: 1rem 1.1rem; border: 1px dashed var(--line-2); border-radius: var(--radius); background: var(--paper); }
+.post-photos__title { margin: 0 0 .25rem; font: 700 1rem/1.3 var(--font); }
+.post-photos__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .75rem; margin: .9rem 0 0; padding: 0; list-style: none; }
+.post-photos__item { display: grid; gap: .45rem; padding: .4rem; border: 1px solid var(--line); border-radius: .75rem; background: #fff; }
+.post-photos__item img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: .5rem; }
+.post-photos__actions { display: flex; flex-wrap: wrap; gap: .4rem; }

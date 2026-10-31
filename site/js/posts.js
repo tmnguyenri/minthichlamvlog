@@ -41,7 +41,7 @@
   function card(p) {
     return h('article', { class: 'card' },
       h('div', { class: 'card__media' },
-        h('img', { src: p.cover || '/images/cover-default.svg', alt: '', width: 1600, height: 800, loading: 'lazy' })),
+        h('img', { src: M.postImage(p) || '/images/cover-default.svg', alt: '', width: 1600, height: 800, loading: 'lazy' })),
       h('div', { class: 'card__body' }, meta(p, true),
         h('h3', { class: 'card-title' }, titleLink(p)),
         p.excerpt ? en(h('p', { class: 'card__text', text: p.excerpt }), p.excerpt_en) : null));

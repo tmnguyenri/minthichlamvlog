@@ -4,12 +4,14 @@ import { DatabaseSync } from 'node:sqlite';
 export function createD1(file = ':memory:') {
   const db = new DatabaseSync(file);
   db.exec('PRAGMA foreign_keys = ON');
-  const statement = (sql, args = []) => ({
+  // D1 nhận ArrayBuffer cho cột BLOB; SQLite của Node cần Uint8Array.
+  const fix = (args) => args.map((a) => (a instanceof ArrayBuffer ? new Uint8Array(a) : a));
+  const statement = (sql, rawArgs = []) => ({
     bind: (...a) => statement(sql, a),
-    async first() { return db.prepare(sql).get(...args) ?? null; },
-    async all() { return { results: db.prepare(sql).all(...args), success: true }; },
+    async first() { return db.prepare(sql).get(...fix(rawArgs)) ?? null; },
+    async all() { return { results: db.prepare(sql).all(...fix(rawArgs)), success: true }; },
     async run() {
-      const r = db.prepare(sql).run(...args);
+      const r = db.prepare(sql).run(...fix(rawArgs));
       return { success: true, meta: { changes: Number(r.changes), last_row_id: Number(r.lastInsertRowid) } };
     },
   });

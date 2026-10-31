@@ -93,7 +93,7 @@
     var f = kit.flagOf(p.country);
     return h('div', { class: 'slide', role: 'group', 'aria-roledescription': 'slide' },
       h('a', { class: 'slide__link', href: kit.link(p) },
-        h('img', { class: 'slide__img', src: p.cover, alt: '', width: 1600, height: 800, loading: 'lazy' }),
+        h('img', { class: 'slide__img', src: M.postImage(p), alt: '', width: 1600, height: 800, loading: 'lazy' }),
         h('span', { class: 'slide__caption' },
           p.country ? h('span', { class: 'slide__where' }, f ? kit.flagImg(f[0]) : null, kit.countryEl(p.country)) : null,
           en(h('span', { class: 'slide__title', text: p.title }), p.title_en))));
@@ -102,7 +102,7 @@
   document.addEventListener('mtlv:posts', function (ev) {
     var kit = M.kit, posts = (ev.detail && ev.detail.posts) || [];
     if (!kit) return;
-    var picked = shuffle(posts.filter(function (p) { return p && p.cover; })).slice(0, MAX);
+    var picked = shuffle(posts.filter(function (p) { return p && M.postImage(p); })).slice(0, MAX);
     while (box.firstChild) box.removeChild(box.firstChild);
     setup(picked.map(function (p) { return slideFor(p, kit); }));
   });

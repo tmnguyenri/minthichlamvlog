@@ -8,7 +8,9 @@ export async function onRequestGet({ request, env, data }) {
   const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '20', 10) || 20, 1), 50);
   const all = url.searchParams.get('all') === '1';
   if (all && requireAdmin(data)) return requireAdmin(data);
-  const cols = 'id, slug, title, title_en, excerpt, excerpt_en, country, trip_date, days, cover, video, status, published_at, updated_at';
+  // image_id: một ảnh ngẫu nhiên trong các ảnh đã tải lên cho bài (NULL nếu chưa có).
+  const cols = `id, slug, title, title_en, excerpt, excerpt_en, country, trip_date, days, cover, video, status, published_at, updated_at,
+    (SELECT i.id FROM images i WHERE i.post_id = posts.id ORDER BY RANDOM() LIMIT 1) AS image_id`;
   const sql = all
     ? `SELECT ${cols} FROM posts ORDER BY updated_at DESC LIMIT ?`
     : `SELECT ${cols} FROM posts WHERE status = 'published' ORDER BY COALESCE(trip_date, '') DESC, published_at DESC LIMIT ?`;

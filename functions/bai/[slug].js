@@ -29,7 +29,9 @@ export async function onRequestGet({ params, env, data }) {
        JOIN users u ON u.id = c.user_id WHERE c.post_id = ? ORDER BY c.created_at ASC LIMIT 300`,
   ).bind(post.id).all();
 
-  const cover = post.cover || '/images/cover-default.svg';
+  // Ảnh đầu bài: một ảnh ngẫu nhiên trong các ảnh đã tải lên cho bài; nếu chưa có thì dùng ảnh bìa (nếu có) hoặc ảnh mặc định.
+  const randomPhoto = await env.DB.prepare('SELECT id FROM images WHERE post_id = ? ORDER BY RANDOM() LIMIT 1').bind(post.id).first();
+  const cover = randomPhoto ? `/api/images/${randomPhoto.id}` : (post.cover || '/images/cover-default.svg');
   let when = '';
   const m = /^(\d{4})-(\d{2})$/.exec(post.trip_date);
   if (m) when = `<div><dt><span data-en="When">Thời gian</span></dt><dd><time datetime="${post.trip_date}" data-en="${MONTHS_EN[Number(m[2]) - 1]} ${m[1]}">Tháng ${Number(m[2])}/${m[1]}</time></dd></div>`;
@@ -91,7 +93,7 @@ export async function onRequestGet({ params, env, data }) {
   // Thẻ chia sẻ, địa chỉ chuẩn và dữ liệu có cấu trúc để công cụ tìm kiếm hiểu đây là một bài viết
   const base = siteUrl(env);
   const path = `/bai/${encodeURIComponent(post.slug)}`;
-  const image = shareImage(base, post.cover);
+  const image = shareImage(base, randomPhoto ? cover : post.cover);
   const published = isoDate(post.published_at || post.created_at);
   const modified = isoDate(post.updated_at);
   const author = { '@type': 'Person', name: 'Mìn', url: `${base}/about` };
