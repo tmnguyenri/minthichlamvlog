@@ -68,7 +68,7 @@
   function fill(p) {
     form.reset();
     var f = form.elements;
-    ['title', 'slug', 'excerpt', 'body', 'country', 'trip_date', 'days', 'cover', 'video', 'status', 'title_en', 'excerpt_en', 'body_en']
+    ['title', 'slug', 'excerpt', 'body', 'country', 'trip_date', 'days', 'cover', 'video', 'status']
       .forEach(function (k) { f[k].value = p && p[k] !== null && p[k] !== undefined ? p[k] : (k === 'status' ? 'draft' : ''); });
     slugTouched = !!(p && p.slug);
     document.getElementById('editor-title').textContent = p ? t('Sửa bài viết', 'Edit post') : t('Bài viết mới', 'New post');
@@ -93,7 +93,7 @@
 
   function collect() {
     var f = form.elements, body = {};
-    ['title', 'slug', 'excerpt', 'body', 'country', 'trip_date', 'days', 'cover', 'video', 'status', 'title_en', 'excerpt_en', 'body_en']
+    ['title', 'slug', 'excerpt', 'body', 'country', 'trip_date', 'days', 'cover', 'video', 'status']
       .forEach(function (k) { body[k] = f[k].value; });
     if (!body.slug) body.slug = slugify(body.title);
     return body;
