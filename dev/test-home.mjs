@@ -50,6 +50,25 @@ ok(await page.locator('.tl-card:has-text("Chè lề đường") .tl-card__photos
 ok(await page.locator('.tl-card:has-text("Phố cổ") .tl-card__photos img').count() === 1, 'bài không có ảnh hiện ảnh mặc định');
 ok(errs.length === 0, 'không có lỗi script', errs.join(' | '));
 
+console.log('2b. Chữ trước, ảnh sau; ảnh vuông vức');
+for (const [label, size] of [['máy tính', { width: 1280, height: 800 }], ['điện thoại', { width: 390, height: 844 }]]) {
+  await page.setViewportSize(size);
+  await page.goto(url + '/', { waitUntil: 'networkidle' });
+  await page.waitForSelector('.tl-card');
+  const card = page.locator('.tl-card:has-text("Chè lề đường")');
+  const kids = await card.evaluate((el) => [...el.children].map((c) => c.className));
+  ok(kids[0] === 'tl-card__body' && kids[1] === 'tl-card__photos', `${label}: bài viết nằm trước, ảnh nằm sau`, kids.join(' > '));
+  const boxes = await card.locator('.tl-card__photos img').evaluateAll((imgs) => imgs.map((i) => { const r = i.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; }));
+  ok(boxes.length === 2 && boxes.every(([w, h]) => w > 0 && Math.abs(w - h) <= 1), `${label}: mọi ảnh hình vuông`, JSON.stringify(boxes));
+  const tops = await card.evaluate((el) => [el.querySelector('.tl-card__body').getBoundingClientRect().bottom, el.querySelector('.tl-card__photos').getBoundingClientRect().top]);
+  ok(tops[0] <= tops[1], `${label}: ảnh nằm dưới phần chữ`, JSON.stringify(tops));
+  const widths = await page.locator('.tl-card__photos img').evaluateAll((imgs) => [...new Set(imgs.map((i) => Math.round(i.getBoundingClientRect().width)))]);
+  ok(widths.length === 1, `${label}: các ảnh cùng kích thước`, JSON.stringify(widths));
+}
+await page.setViewportSize({ width: 1280, height: 800 });
+await page.goto(url + '/', { waitUntil: 'networkidle' });
+await page.waitForSelector('.tl-card');
+
 console.log('3. Thành phố và quốc gia');
 const card = page.locator('.tl-card:has-text("Chè lề đường") .meta__where');
 ok((await card.textContent()).replace(/\s+/g, ' ').trim() === 'Đà Nẵng, Việt Nam', 'thẻ bài hiện "thành phố, quốc gia"', await card.textContent());
