@@ -86,7 +86,11 @@ python3 -m http.server 8000
 
 ## Đưa lên mạng (Cloudflare Pages, miễn phí)
 
-Trang này được triển khai từ GitHub: mỗi lần có thay đổi mới trên nhánh `main`, Cloudflare Pages tự dựng lại và cập nhật trang sau chừng một phút. Khi tạo dự án Pages từ kho Git, dùng các thiết lập sau:
+Trang này được triển khai từ GitHub: mỗi lần có thay đổi mới trên nhánh `main`, Cloudflare tự dựng lại và cập nhật trang sau chừng một phút.
+
+Tệp `wrangler.jsonc` ở thư mục gốc cho Cloudflare biết tên dự án (`minthichlamvlog`) và thư mục chứa trang (`site`). Nếu đổi tên dự án trên Cloudflare, phải đổi `name` trong tệp này cho khớp. Với dự án Workers, vào **Settings** rồi **Builds** và bấm **Connect** để nối kho GitHub, để trống ô Build command và giữ nguyên Deploy command mặc định.
+
+Nếu thay vào đó tạo dự án **Pages** từ kho Git, dùng các thiết lập sau:
 
 - **Production branch**: `main`
 - **Framework preset**: None
