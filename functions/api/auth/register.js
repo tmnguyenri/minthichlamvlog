@@ -18,6 +18,9 @@ export async function onRequestPost({ request, env }) {
     return fail(400, 'password', 'Mật khẩu cần từ 10 đến 128 ký tự.', 'Password must be 10 to 128 characters.');
   }
 
+  // Băm trước khi đụng tới mã mời: nếu bước tốn CPU này bị ngắt thì mã mời chưa bị dùng.
+  const passwordHash = await hashPassword(password, env);
+
   let role = 'member';
   let status = 'pending';
   let inviteHash = '';
@@ -45,7 +48,7 @@ export async function onRequestPost({ request, env }) {
   try {
     const res = await env.DB.prepare(
       'INSERT INTO users (email, display_name, password_hash, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-    ).bind(email, name, await hashPassword(password), role, status, now()).run();
+    ).bind(email, name, passwordHash, role, status, now()).run();
     userId = res.meta.last_row_id;
   } catch {
     await releaseInvite();

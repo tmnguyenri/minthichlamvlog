@@ -13,7 +13,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
   const user = await env.DB.prepare('SELECT id, password_hash, role, status FROM users WHERE email = ?').bind(email).first();
   let good = false;
-  if (user) good = await verifyPassword(password, user.password_hash); else await fakeVerify(password);
+  if (user) good = await verifyPassword(password, user.password_hash); else await fakeVerify(password, env);
   if (!good) return fail(401, 'invalid', 'Email hoặc mật khẩu chưa đúng.', 'Wrong email or password.');
 
   if (user.status === 'pending') return fail(403, 'pending', 'Tài khoản của bạn đang chờ được duyệt. Mình sẽ duyệt sớm nhé!', 'Your account is waiting for approval. It will be approved soon.');

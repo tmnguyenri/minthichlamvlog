@@ -2,7 +2,15 @@
 import { fail } from './http.js';
 
 const enc = new TextEncoder();
-const ITERATIONS = 100000; // mức tối đa mà WebCrypto của Cloudflare Workers cho phép
+// Số vòng PBKDF2-SHA256. 100000 là mức tối đa WebCrypto của Cloudflare Workers cho phép.
+// Có thể chỉnh bằng biến PBKDF2_ITERATIONS (10000 đến 100000) nếu gói Cloudflare giới hạn thời gian CPU.
+const MAX_ITERATIONS = 100000;
+const MIN_ITERATIONS = 10000;
+const DEFAULT_ITERATIONS = 100000;
+export function iterationsFor(env) {
+  const n = Number(env && env.PBKDF2_ITERATIONS);
+  return Number.isInteger(n) && n >= MIN_ITERATIONS && n <= MAX_ITERATIONS ? n : DEFAULT_ITERATIONS;
+}
 const SESSION_SECONDS = 30 * 24 * 3600;
 
 export const now = () => Math.floor(Date.now() / 1000);
@@ -29,10 +37,11 @@ function sameBytes(a, b) {
   return diff === 0;
 }
 
-export async function hashPassword(password) {
+export async function hashPassword(password, env) {
+  const iterations = iterationsFor(env);
   const salt = crypto.getRandomValues(new Uint8Array(16));
-  const hash = await derive(password, salt, ITERATIONS);
-  return `pbkdf2-sha256$${ITERATIONS}$${toB64(salt)}$${toB64(hash)}`;
+  const hash = await derive(password, salt, iterations);
+  return `pbkdf2-sha256$${iterations}$${toB64(salt)}$${toB64(hash)}`;
 }
 
 const DUMMY_SALT = new Uint8Array(16);
@@ -41,13 +50,13 @@ export async function verifyPassword(password, stored) {
   const [alg, iter, salt, hash] = String(stored || '').split('$');
   if (alg !== 'pbkdf2-sha256') return false;
   const n = Number(iter);
-  if (!Number.isInteger(n) || n < 1000 || n > ITERATIONS) return false;
+  if (!Number.isInteger(n) || n < 1000 || n > MAX_ITERATIONS) return false;
   const got = await derive(password, fromB64(salt), n);
   return sameBytes(got, fromB64(hash));
 }
 
 // Tốn thời gian như thật khi email không tồn tại, để không lộ email nào đã đăng ký.
-export async function fakeVerify(password) { await derive(password, DUMMY_SALT, ITERATIONS); }
+export async function fakeVerify(password, env) { await derive(password, DUMMY_SALT, iterationsFor(env)); }
 
 export function randomToken() { return toB64Url(crypto.getRandomValues(new Uint8Array(32))); }
 
