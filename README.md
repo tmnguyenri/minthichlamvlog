@@ -71,6 +71,15 @@ Cách nhanh nhất: đăng nhập tài khoản quản trị và đăng bài ở 
 - **Cập nhật cơ sở dữ liệu:** bảng `images` được tạo bằng `db/schema.sql`. Nếu bảng đã có nhưng thiếu cột `post_id`, chạy một lần: `ALTER TABLE images ADD COLUMN post_id INTEGER REFERENCES posts(id) ON DELETE SET NULL;`
 - **Kiểm thử:** `node --no-warnings dev/test-images.mjs`.
 
+## Tự dịch bài viết sang tiếng Anh
+
+- Khi lưu bài, các phần tiếng Anh còn trống (tiêu đề, tóm tắt, nội dung) được tự dịch từ tiếng Việt bằng **Workers AI** (mô hình `m2m100`). Phần đã có chữ tiếng Anh thì giữ nguyên, không bị ghi đè.
+- Muốn dịch lại một bài: xóa phần tiếng Anh của bài đó rồi lưu.
+- Bản dịch máy có thể chưa chuẩn. Nên đọc lại và sửa trực tiếp trong ô tiếng Anh; sau khi sửa, lần lưu sau sẽ không dịch đè.
+- Cần bật Workers AI trong tài khoản Cloudflare (binding `AI` đã có trong `wrangler.jsonc`). Nếu chưa bật, bài vẫn lưu bình thường, chỉ phần tiếng Anh để trống.
+- Mỗi lần lưu tối đa khoảng 60 lượt gọi mô hình. Bài rất dài có thể cần sửa tay phần còn lại.
+- Kiểm thử: `node --no-warnings dev/test-translate.mjs`.
+
 ## Thêm ảnh
 
 1. Đổi kích thước ảnh còn khoảng 1600 px chiều ngang và lưu dạng JPG dưới 400 KB. Ảnh nhỏ tải nhanh hơn trên điện thoại.
