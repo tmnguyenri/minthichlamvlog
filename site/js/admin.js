@@ -82,11 +82,11 @@
   function edit(id) {
     M.api('GET', '/api/posts/' + id).then(function (res) {
       if (!res.ok) { say(M.msgOf(res), 'error'); return; }
-      editingId = id; say(''); fill(res.json.post);
+      editingId = id; say(''); fill(res.json.post); renderPostPhotos(id, res.json.images);
     });
   }
 
-  document.getElementById('new-post').addEventListener('click', function () { editingId = null; say(''); fill(null); });
+  document.getElementById('new-post').addEventListener('click', function () { editingId = null; say(''); fill(null); renderPostPhotos(null, []); });
   document.getElementById('cancel-post').addEventListener('click', closeEditor);
   form.elements.title.addEventListener('input', function () { if (!slugTouched) form.elements.slug.value = slugify(form.elements.title.value); });
   form.elements.slug.addEventListener('input', function () { slugTouched = true; });
@@ -105,7 +105,78 @@
       editingId = res.json.id;
       say(body.status === 'published' ? t('Đã lưu và đăng bài.', 'Saved and published.') : t('Đã lưu bản nháp.', 'Draft saved.'), 'success');
       loadPosts();
+      loadPostPhotos(editingId);
     });
+  });
+
+  // ------------------------------------------------------------ Ảnh của bài
+  // Mỗi bài có nhiều ảnh. Khi mở trang, máy chủ chọn ngẫu nhiên một ảnh để hiển thị.
+  var pp = {
+    body: document.getElementById('pp-body'), hint: document.getElementById('pp-hint'), file: document.getElementById('pp-file'),
+    status: document.getElementById('pp-status'), list: document.getElementById('pp-list'), empty: document.getElementById('pp-empty'),
+  };
+
+  function ppStatus(text) { pp.status.textContent = text || ''; pp.status.hidden = !text; }
+
+  function insertIntoBody(md) {
+    var ta = form.elements.body, v = ta.value;
+    ta.value = v + (v && !/\n$/.test(v) ? '\n\n' : '') + md + '\n\n';
+    ta.focus();
+    say(t('Đã chèn ảnh vào nội dung. Bấm Lưu để giữ thay đổi.', 'Photo inserted into the content. Click Save to keep the change.'), 'success');
+  }
+
+  function renderPostPhotos(postId, images) {
+    pp.hint.hidden = !!postId;
+    pp.body.hidden = !postId;
+    clear(pp.list);
+    images = images || [];
+    pp.empty.hidden = !postId || images.length > 0;
+    images.forEach(function (img) {
+      var md = '![' + (img.caption || '') + '](/api/images/' + img.id + ')';
+      var insert = tx('button', 'Chèn vào nội dung', 'Insert into content', { type: 'button', class: 'btn btn--ghost btn--xs' });
+      insert.addEventListener('click', function () { insertIntoBody(md); });
+      var del = confirmButton('Xóa', 'Delete', 'Bấm lần nữa', 'Click again', function () {
+        M.api('DELETE', '/api/images/' + img.id).then(function (r) {
+          if (r.ok) loadPostPhotos(postId); else say(M.msgOf(r), 'error');
+        });
+      });
+      pp.list.appendChild(h('li', { class: 'post-photos__item' },
+        h('img', { src: '/api/images/' + img.id, alt: img.caption || '', width: 160, height: 120, loading: 'lazy' }),
+        h('div', { class: 'post-photos__actions' }, insert, del)));
+    });
+  }
+
+  function loadPostPhotos(postId) {
+    if (!postId) { renderPostPhotos(null, []); return; }
+    return M.api('GET', '/api/posts/' + postId).then(function (res) {
+      if (res.ok && editingId === postId) renderPostPhotos(postId, res.json.images);
+    });
+  }
+
+  pp.file.addEventListener('change', function () {
+    var files = Array.prototype.slice.call(pp.file.files || []);
+    pp.file.value = '';
+    if (!editingId || !files.length) return;
+    var postId = editingId, i = 0, failed = 0;
+    function next() {
+      if (i >= files.length) {
+        ppStatus(failed
+          ? t(failed + ' ảnh không tải được.', failed + ' photo(s) could not be uploaded.')
+          : t('Đã tải lên ' + files.length + ' ảnh.', 'Uploaded ' + files.length + ' photo(s).'));
+        loadPostPhotos(postId);
+        return;
+      }
+      var f = files[i++];
+      ppStatus(t('Đang xử lý ' + i + '/' + files.length + '…', 'Processing ' + i + ' of ' + files.length + '…'));
+      if (!/^image\/(jpeg|png|webp)$/.test(f.type)) { failed++; return next(); }
+      window.mtlvPhoto.compress(f).then(function (blob) {
+        var caption = encodeURIComponent(f.name.replace(/\.[^.]+$/, ''));
+        return fetch('/api/images?post_id=' + postId + '&caption=' + caption, {
+          method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'image/jpeg' }, body: blob,
+        });
+      }).then(function (r) { if (!r.ok) failed++; }).catch(function () { failed++; }).then(next);
+    }
+    next();
   });
 
   // ------------------------------------------------------------ Thành viên

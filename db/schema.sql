@@ -64,3 +64,16 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   count    INTEGER NOT NULL,
   reset_at INTEGER NOT NULL
 );
+
+-- Ảnh tải lên từ trang Thư viện (site/thu-vien.html). Ảnh đã nén thành JPEG, lưu trực tiếp trong bảng.
+CREATE TABLE IF NOT EXISTS images (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id    INTEGER REFERENCES posts(id) ON DELETE SET NULL,  -- bài đang dùng ảnh (NULL = chỉ nằm trong thư viện)
+  mime       TEXT NOT NULL,
+  size       INTEGER NOT NULL,
+  data       BLOB NOT NULL,
+  caption    TEXT NOT NULL DEFAULT '',
+  author_id  INTEGER NOT NULL REFERENCES users(id),
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_images_created ON images(created_at DESC);

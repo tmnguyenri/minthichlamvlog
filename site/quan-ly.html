@@ -53,6 +53,7 @@
         <div class="tabs" role="tablist">
           <button type="button" role="tab" class="tab" data-tab="posts" aria-selected="true"><span data-en="Posts">Bài viết</span></button>
           <button type="button" role="tab" class="tab" data-tab="users" aria-selected="false"><span data-en="Members">Thành viên</span><span id="pending-count" class="count" hidden></span></button>
+          <a class="tab" href="thu-vien.html" data-en="Photo library">Thư viện ảnh</a>
         </div>
 
         <section id="tab-posts">
@@ -114,10 +115,24 @@
           <p class="hint" data-en="Paste the video link, or leave empty.">Dán liên kết video, để trống nếu không có.</p>
         </div>
         <div class="field">
-          <label for="f-cover" data-en="Cover image">Ảnh bìa</label>
+          <label for="f-cover" data-en="Cover image (optional)">Ảnh bìa (không bắt buộc)</label>
           <input id="f-cover" name="cover" type="text" maxlength="500" placeholder="/images/ten-anh.jpg">
-          <p class="hint" data-en="A path starting with / or an https link. Leave empty for the default image.">Đường dẫn bắt đầu bằng / hoặc liên kết https. Để trống sẽ dùng ảnh mặc định.</p>
+          <p class="hint" data-en="Only used when the post has no uploaded photos. A path starting with / or an https link.">Chỉ dùng khi bài chưa có ảnh nào được tải lên. Đường dẫn bắt đầu bằng / hoặc liên kết https.</p>
         </div>
+        <section class="post-photos" aria-labelledby="pp-title">
+          <h3 id="pp-title" class="post-photos__title" data-en="Photos for this post">Ảnh của bài</h3>
+          <p id="pp-hint" class="hint" data-en="Save the post first, then add photos. Each time the page loads, it shows one of them at random.">Lưu bài trước, sau đó thêm ảnh. Mỗi lần mở trang, bài sẽ hiện ngẫu nhiên một trong các ảnh này.</p>
+          <div id="pp-body" hidden>
+            <div class="field">
+              <label for="pp-file" data-en="Add photos">Thêm ảnh</label>
+              <input id="pp-file" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+              <p class="hint" data-en="You can choose several photos at once. They are resized and compressed automatically.">Có thể chọn nhiều ảnh cùng lúc. Ảnh sẽ tự thu nhỏ và nén.</p>
+            </div>
+            <p id="pp-status" class="muted" role="status" hidden></p>
+            <ul id="pp-list" class="post-photos__list"></ul>
+            <p id="pp-empty" class="muted" data-en="No photos yet." hidden>Chưa có ảnh nào.</p>
+          </div>
+        </section>
           <details class="help">
             <summary data-en="English version (optional)">Bản tiếng Anh (không bắt buộc)</summary>
         <div class="field">
@@ -167,6 +182,7 @@
     </div>
   </footer>
   <script src="js/ui.js" defer></script>
+  <script src="js/photo.js"></script>
   <script src="js/admin.js" defer></script>
 </body>
 </html>

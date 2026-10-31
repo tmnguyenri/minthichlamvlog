@@ -64,6 +64,15 @@ Cách nhanh nhất: đăng nhập tài khoản quản trị và đăng bài ở 
 6. Ở cuối bài mới, sửa các liên kết "Chuyến đi trước" và "Chuyến đi sau". Xóa một liên kết nếu không có bài kề bên. Làm tương tự với bài kề bên để liên kết sang bài mới hiện ra ở đó.
 7. Xóa nhãn **Mẫu** (thẻ `<span class="badge">`) và khung ghi chú `sample-note` khi bài đã là bài thật.
 
+## Ảnh tải lên và thư viện
+
+- **Thư viện:** `/thu-vien` (giao diện tối, chỉ chủ trang). Ảnh được nén trong trình duyệt thành JPEG dưới 400 KB và lưu trong bảng `images` của D1.
+- **Ảnh của từng bài:** mở bài trong `/quan-ly`, lưu bài, rồi mục **Ảnh của bài** cho phép tải nhiều ảnh cùng lúc. Mỗi lần mở trang, bài hiện ngẫu nhiên một ảnh trong số đó. Bài chưa có ảnh nào thì dùng ảnh bìa (nếu có) hoặc ảnh mặc định.
+- **Cập nhật cơ sở dữ liệu:** nếu bạn đã chạy `db/schema.sql` trước khi có tính năng này, hãy chạy thêm một lần trong D1 Console:
+  `ALTER TABLE images ADD COLUMN post_id INTEGER REFERENCES posts(id) ON DELETE SET NULL;`
+  Nếu bảng `images` chưa tồn tại, chỉ cần chạy lại `db/schema.sql`.
+- **Kiểm thử:** `node --no-warnings dev/test-images.mjs`.
+
 ## Thêm ảnh
 
 1. Đổi kích thước ảnh còn khoảng 1600 px chiều ngang và lưu dạng JPG dưới 400 KB. Ảnh nhỏ tải nhanh hơn trên điện thoại.

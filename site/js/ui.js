@@ -58,5 +58,11 @@
 
   function refresh() { if (window.mtlvI18n) window.mtlvI18n.refresh(); }
 
-  window.MTLV = { lang: lang, t: t, api: api, msgOf: msgOf, h: h, tx: tx, show: show, refresh: refresh };
+  // Ảnh đại diện của bài trên trang chủ: một ảnh ngẫu nhiên trong ảnh đã tải lên, hoặc ảnh bìa, hoặc rỗng.
+  function postImage(p) {
+    if (p && p.image_id) return '/api/images/' + p.image_id;
+    return (p && p.cover) || '';
+  }
+
+  window.MTLV = { lang: lang, t: t, api: api, msgOf: msgOf, h: h, tx: tx, show: show, refresh: refresh, postImage: postImage };
 })();
