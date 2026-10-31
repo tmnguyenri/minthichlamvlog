@@ -259,6 +259,101 @@ console.log('9b. SEO: robots, sitemap, RSS, thẻ chia sẻ, IndexNow');
   }
 }
 
+console.log('9c. Quên mật khẩu: liên kết do chủ trang tạo, mã khôi phục khẩn cấp');
+{
+  const NEWPW = 'mat-khau-moi-4567', NEWPW2 = 'mat-khau-moi-8901';
+  const lost = new Client('10.0.9.1');
+  await lost.req('POST', '/api/auth/register', { email: 'quen@example.com', name: 'Người quên', password: PW });
+  const lostId = (await admin.req('GET', '/api/admin/users')).json.users.find((u) => u.email === 'quen@example.com').id;
+  await admin.req('PATCH', `/api/admin/users/${lostId}`, { status: 'approved' });
+  r = await lost.req('POST', '/api/auth/login', { email: 'quen@example.com', password: PW }); ok(r.status === 200, 'thành viên thử nghiệm đăng nhập được');
+  const resetOf = async (id = lostId) => (await admin.req('POST', `/api/admin/users/${id}/reset`)).json?.link?.split('#')[1];
+  const redeem = (body, c = anon) => c.req('POST', '/api/auth/reset', body);
+  const unused = (tok) => db.raw.prepare('SELECT used_at FROM invites WHERE token_hash = ?').get(tok)?.used_at === null;
+
+  // quyền tạo liên kết
+  r = await anon.req('POST', `/api/admin/users/${lostId}/reset`); ok(r.status === 401, 'chưa đăng nhập không tạo được liên kết đặt lại');
+  r = await lost.req('POST', `/api/admin/users/${lostId}/reset`); ok(r.status === 403, 'thành viên không tự tạo được liên kết đặt lại');
+  r = await admin.req('POST', `/api/admin/users/${adminId}/reset`); ok(r.status === 403, 'không tạo liên kết cho tài khoản quản trị');
+  r = await admin.req('POST', '/api/admin/users/999999/reset'); ok(r.status === 404, 'thành viên không tồn tại');
+  r = await admin.req('POST', '/api/admin/users/abc/reset'); ok(r.status === 404, 'mã thành viên sai định dạng');
+
+  // tạo liên kết: mã nằm sau dấu #, cơ sở dữ liệu chỉ lưu băm
+  r = await admin.req('POST', `/api/admin/users/${lostId}/reset`);
+  ok(r.status === 200 && r.json.link.startsWith(`${url}/dat-lai-mat-khau#`) && r.json.expires_at > Math.floor(Date.now() / 1000) + 23 * 3600, 'tạo được liên kết, hạn khoảng 24 giờ', JSON.stringify(r.json));
+  const token = r.json.link.split('#')[1];
+  ok(token.length >= 40, 'mã đủ dài');
+  const stored = db.raw.prepare('SELECT token_hash, role FROM invites WHERE role = ?').all(`reset:${lostId}`);
+  ok(stored.length === 1 && stored[0].token_hash === await sha256Hex(token) && !JSON.stringify(stored).includes(token), 'chỉ lưu băm của mã, không lưu mã gốc');
+  r = await anon.req('GET', '/dat-lai-mat-khau'); ok(r.status === 200 && r.text.includes('id="reset-form"') && r.text.includes('noindex'), 'trang đặt mật khẩu mới mở được và không cho lập chỉ mục');
+  r = await anon.req('GET', '/quen-mat-khau'); ok(r.status === 200 && r.text.includes('noindex'), 'trang quên mật khẩu mở được và không cho lập chỉ mục');
+  r = await anon.req('GET', '/sitemap.xml'); ok(!/mat-khau/.test(r.text), 'sơ đồ trang không chứa trang đặt mật khẩu');
+  r = await anon.req('GET', '/dang-nhap'); ok(r.text.includes('href="quen-mat-khau.html"'), 'trang đăng nhập có liên kết Quên mật khẩu');
+
+  // dữ liệu sai
+  r = await redeem({ token, password: 'ngan' }); ok(r.status === 400 && r.json.error === 'password', 'mật khẩu mới quá ngắn');
+  r = await redeem({ password: NEWPW }); ok(r.status === 400 && r.json.error === 'token', 'thiếu mã');
+  r = await redeem({ token: 'ma-khong-ton-tai-0123456789', password: NEWPW }); ok(r.status === 400 && r.json.error === 'invalid_token', 'mã không tồn tại');
+  r = await redeem(undefined); ok(r.status === 400, 'thân yêu cầu không phải JSON');
+  r = await new Client('10.0.9.2').req('POST', '/api/auth/register', { email: 'la@example.com', name: 'Kẻ lạ', password: PW, invite: token });
+  ok(r.status === 400 && r.json.error === 'invite' && !db.raw.prepare("SELECT id FROM users WHERE email = 'la@example.com'").get() && unused(await sha256Hex(token)), 'mã đặt lại không dùng làm mã mời tạo tài khoản');
+  r = await lost.req('GET', '/api/auth/me'); ok(r.json.user !== null, 'trước khi đặt lại, phiên cũ vẫn dùng được');
+
+  // đặt lại thành công
+  r = await redeem({ token, password: NEWPW }); ok(r.status === 200 && r.json.ok, 'đặt lại bằng liên kết');
+  r = await lost.req('GET', '/api/auth/me'); ok(r.json.user === null, 'đặt lại xong thì đăng xuất mọi nơi');
+  r = await lost.req('POST', '/api/auth/login', { email: 'quen@example.com', password: PW }); ok(r.status === 401, 'mật khẩu cũ không còn dùng được');
+  r = await lost.req('POST', '/api/auth/login', { email: 'quen@example.com', password: NEWPW }); ok(r.status === 200, 'đăng nhập bằng mật khẩu mới');
+  ok(!db.raw.prepare('SELECT password_hash FROM users WHERE id = ?').get(lostId).password_hash.includes(NEWPW), 'mật khẩu mới được băm');
+  r = await redeem({ token, password: 'mat-khau-khac-9999' }); ok(r.status === 400 && r.json.error === 'invalid_token', 'liên kết chỉ dùng được một lần');
+  r = await lost.req('POST', '/api/auth/login', { email: 'quen@example.com', password: NEWPW }); ok(r.status === 200, 'dùng lại liên kết không đổi mật khẩu');
+
+  // liên kết mới làm liên kết cũ hết hiệu lực
+  const l1 = await resetOf(), l2 = await resetOf();
+  r = await redeem({ token: l1, password: NEWPW2 }); ok(r.status === 400, 'liên kết cũ hết hiệu lực khi có liên kết mới');
+  r = await redeem({ token: l2, password: NEWPW2 }); ok(r.status === 200, 'liên kết mới nhất dùng được');
+  // quá hạn
+  const l3 = await resetOf();
+  db.raw.prepare('UPDATE invites SET created_at = created_at - ? WHERE token_hash = ?').run(24 * 3600 + 5, await sha256Hex(l3));
+  r = await redeem({ token: l3, password: NEWPW }); ok(r.status === 400 && r.json.error === 'invalid_token', 'liên kết quá 24 giờ bị từ chối');
+  r = await lost.req('POST', '/api/auth/login', { email: 'quen@example.com', password: NEWPW2 }); ok(r.status === 200, 'liên kết quá hạn không đổi mật khẩu');
+  // dọn: mã đã dùng hoặc quá hạn lâu ngày bị xóa, mã mời quản trị thì giữ nguyên
+  const { cleanup } = await import('../functions/_lib/auth.js');
+  db.raw.prepare('UPDATE invites SET created_at = 0 WHERE token_hash = ?').run(await sha256Hex(l3));
+  await cleanup({ DB: db });
+  ok(!db.raw.prepare('SELECT 1 FROM invites WHERE token_hash = ?').get(await sha256Hex(l3)), 'dọn mã đặt lại quá hạn');
+  ok(!!db.raw.prepare('SELECT 1 FROM invites WHERE token_hash = ?').get(await sha256Hex(INVITE)), 'dọn không xóa mã mời tạo tài khoản');
+
+  // mã khôi phục khẩn cấp do chủ trang tự thêm vào D1 (cần kèm email), dùng được cho cả tài khoản quản trị
+  const CODE = 'ma-khoi-phuc-khan-cap-xyz-987654321', codeHash = await sha256Hex(CODE);
+  db.raw.prepare("INSERT INTO invites (token_hash, role, created_at) VALUES (?, 'reset', ?)").run(codeHash, Math.floor(Date.now() / 1000));
+  r = await redeem({ token: CODE, password: NEWPW }); ok(r.status === 400 && r.json.error === 'email' && unused(codeHash), 'mã khẩn cấp cần email, chưa bị dùng mất');
+  r = await redeem({ token: CODE, email: 'khong-co@example.com', password: NEWPW }); ok(r.status === 400 && r.json.error === 'invalid_token' && unused(codeHash), 'email không có tài khoản thì không dùng mã');
+  r = await redeem({ token: CODE, email: 'CHU@example.com', password: NEWPW }); ok(r.status === 200, 'chủ trang đặt lại được mật khẩu bằng mã khẩn cấp');
+  r = await admin.req('GET', '/api/auth/me'); ok(r.json.user === null, 'phiên quản trị cũ bị đăng xuất');
+  r = await admin.req('POST', '/api/auth/login', { email: 'chu@example.com', password: PW }); ok(r.status === 401, 'mật khẩu quản trị cũ không dùng được');
+  r = await admin.req('POST', '/api/auth/login', { email: 'chu@example.com', password: NEWPW }); ok(r.status === 200 && r.json.role === 'admin', 'quản trị đăng nhập bằng mật khẩu mới');
+  r = await redeem({ token: CODE, email: 'chu@example.com', password: NEWPW2 }); ok(r.status === 400, 'mã khẩn cấp chỉ dùng một lần');
+  // mã khẩn cấp cũng hết hạn sau 24 giờ
+  const OLD = 'ma-khan-cap-da-cu-1234567890', oldHash = await sha256Hex(OLD);
+  db.raw.prepare("INSERT INTO invites (token_hash, role, created_at) VALUES (?, 'reset', ?)").run(oldHash, Math.floor(Date.now() / 1000) - 25 * 3600);
+  r = await redeem({ token: OLD, email: 'chu@example.com', password: NEWPW2 }, new Client('10.0.9.5')); ok(r.status === 400 && r.json.error === 'invalid_token', 'mã khẩn cấp quá 24 giờ bị từ chối', r.status);
+
+  // giới hạn số lần thử đoán mã
+  const spam = new Client('10.0.9.9'); let last = 0;
+  for (let i = 0; i < 12; i++) last = (await redeem({ token: `doan-ma-${i}-0123456789abcdef`, password: NEWPW }, spam)).status;
+  ok(last === 429, 'đoán mã quá nhiều lần bị chặn tạm thời', last);
+
+  // thành viên bị xóa thì liên kết của họ không còn tác dụng
+  const gone = new Client('10.0.9.3');
+  await gone.req('POST', '/api/auth/register', { email: 'xoa@example.com', name: 'Sắp xóa', password: PW });
+  const goneId = (await admin.req('GET', '/api/admin/users')).json.users.find((u) => u.email === 'xoa@example.com').id;
+  const gl = await resetOf(goneId);
+  await admin.req('DELETE', `/api/admin/users/${goneId}`);
+  r = await redeem({ token: gl, password: NEWPW }, new Client('10.0.9.4')); ok(r.status === 400, 'liên kết của thành viên đã bị xóa không dùng được');
+  await admin.req('DELETE', `/api/admin/users/${lostId}`); // dọn
+}
+
 console.log('10. Hàm tiện ích');
 ok(slugify('Đà Lạt mộng mơ!') === 'da-lat-mong-mo', 'slugify tiếng Việt');
 ok(youtubeId('dQw4w9WgXcQ') === 'dQw4w9WgXcQ' && youtubeId('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=5') === 'dQw4w9WgXcQ' && youtubeId('https://youtube.com/shorts/dQw4w9WgXcQ') === 'dQw4w9WgXcQ' && youtubeId('') === '' && youtubeId('nope') === null && youtubeId('https://evil.com/watch?v=dQw4w9WgXcQ') === null, 'youtubeId');

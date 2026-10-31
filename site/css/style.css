@@ -57,8 +57,8 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.15; letter-spacing: -.0
 .h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); }
 .muted { color: var(--muted); }
 .hint { margin: .4rem 0 0; font-size: .875rem; line-height: 1.5; color: var(--muted); }
-.hint a, .form-alt a, .muted a, .prose a { color: var(--lagoon); text-underline-offset: .18em; }
-.hint a:hover, .form-alt a:hover, .muted a:hover, .prose a:hover { color: var(--lagoon-deep); }
+.hint a, .form-alt a, .muted a, .prose a, .steps a { color: var(--lagoon); text-underline-offset: .18em; }
+.hint a:hover, .form-alt a:hover, .muted a:hover, .prose a:hover, .steps a:hover { color: var(--lagoon-deep); }
 
 /* ---------- Nút ---------- */
 .btn {
@@ -275,6 +275,11 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.15; letter-spacing: -.0
 .form p { margin: 0; }
 .form-alt { text-align: center; color: var(--muted); font-size: .95rem; }
 .form-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.form ol.steps { margin: 0; padding-left: 1.25rem; display: grid; gap: .6rem; }
+.reset-box { display: grid; gap: .75rem; margin-bottom: 1.25rem; padding: 1rem 1.1rem; border: 1px solid var(--sun); border-radius: .85rem; background: #fff8e6; }
+.reset-box p { margin: 0; }
+.reset-box__title { font-weight: 700; }
+.reset-box .field input { font: 500 .85rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
 .field { display: grid; gap: .4rem; min-width: 0; }
 .field label { font-size: .9rem; font-weight: 600; }

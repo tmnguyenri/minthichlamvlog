@@ -45,7 +45,7 @@ try {
   for (const [name, vp] of [['desktop', { width: 1280, height: 800 }], ['mobile', { width: 390, height: 844 }]]) {
     const ctx = await newCtx(vp);
     const page = await ctx.newPage(); watch(page, name);
-    for (const p of ['/', '/about', '/dang-nhap', '/dang-ky', '/rieng-tu', '/quan-ly', '/khong-co-trang-nay']) {
+    for (const p of ['/', '/about', '/dang-nhap', '/dang-ky', '/quen-mat-khau', '/dat-lai-mat-khau', '/rieng-tu', '/quan-ly', '/khong-co-trang-nay']) {
       await page.goto(url + p, { waitUntil: 'networkidle' });
       ok((await overflow(page)) <= 0, `${name} ${p} không tràn ngang`, await overflow(page));
       if (p !== '/') await page.screenshot({ path: `${SHOTS}/${name}${p.replace(/\//g, '-') || '-home'}.png`, fullPage: true });
@@ -327,6 +327,62 @@ try {
   await owner.waitForFunction(() => !document.querySelector('.comment'));
   ok(true, 'chủ trang xóa được bình luận');
 
+  // ---------- 5b. Quên mật khẩu: chủ trang tạo liên kết, thành viên tự đặt mật khẩu mới ----------
+  await owner.goto(url + '/quan-ly', { waitUntil: 'networkidle' });
+  await owner.click('[data-tab=users]');
+  ok((await owner.locator('#user-list .row:has(.muted:has-text("Quản trị")) button:has-text("Đặt lại mật khẩu")').count()) === 0, 'tài khoản quản trị không có nút đặt lại mật khẩu');
+  await owner.click('#user-list .row:has-text("lan@example.com") button:has-text("Đặt lại mật khẩu")');
+  await owner.waitForSelector('#reset-result:not([hidden]) #reset-link');
+  const resetLink = await owner.inputValue('#reset-link');
+  ok(resetLink.startsWith(url + '/dat-lai-mat-khau#') && resetLink.split('#')[1].length >= 40, 'chủ trang nhận được liên kết đặt lại mật khẩu', resetLink);
+  ok((await owner.locator('#reset-result').textContent()).includes('lan@example.com'), 'hộp liên kết nói rõ là của ai');
+  await owner.screenshot({ path: `${SHOTS}/admin-reset-link.png`, fullPage: true });
+  await owner.click('#reset-result button:has-text("Sao chép liên kết")');
+  await owner.waitForFunction(() => /Đã sao chép/.test(document.getElementById('reset-result').textContent));
+  ok(true, 'nút Sao chép liên kết báo đã sao chép');
+
+  const ctxR = await newCtx({ width: 390, height: 844 });
+  const rp = await ctxR.newPage(); watch(rp, 'reset');
+  await rp.goto(resetLink, { waitUntil: 'networkidle' });
+  ok(await rp.locator('#reset-extra').isHidden(), 'mở bằng liên kết thì không hỏi lại email và mã');
+  ok(!rp.url().includes('#'), 'mã được xóa khỏi thanh địa chỉ sau khi mở');
+  await rp.fill('#password', 'Mat-khau-moi-cua-Lan-3');
+  await rp.fill('#password2', 'khac-hoan-toan-1234');
+  await rp.click('button[type=submit]');
+  await rp.waitForSelector('#form-msg:not([hidden])');
+  ok((await rp.textContent('#form-msg')).includes('chưa giống'), 'hai mật khẩu lệch nhau thì báo lỗi');
+  await rp.fill('#password2', 'Mat-khau-moi-cua-Lan-3');
+  await rp.click('button[type=submit]');
+  await rp.waitForSelector('#reset-done:not([hidden])');
+  ok(await rp.locator('#reset-form').isHidden(), 'đặt xong thì ẩn biểu mẫu, hiện thông báo thành công');
+  await rp.screenshot({ path: `${SHOTS}/reset-done-mobile.png`, fullPage: true });
+  ok((await overflow(rp)) <= 0, 'trang đặt mật khẩu mới không tràn ngang trên điện thoại');
+  const meAfter = await mem.evaluate(() => fetch('/api/auth/me').then((x) => x.json()));
+  ok(meAfter.user === null, 'phiên đăng nhập cũ của thành viên bị đăng xuất sau khi đặt lại');
+  await rp.goto(url + '/dang-nhap', { waitUntil: 'networkidle' });
+  ok((await rp.locator('a[href="quen-mat-khau.html"]').count()) === 1, 'trang đăng nhập có liên kết Quên mật khẩu');
+  await rp.fill('#email', 'lan@example.com');
+  await rp.fill('#password', 'Mat-khau-moi-cua-Lan-3');
+  await Promise.all([rp.waitForURL(url + '/'), rp.click('button[type=submit]')]);
+  ok(true, 'đăng nhập được bằng mật khẩu mới');
+  await rp.goto(resetLink, { waitUntil: 'networkidle' });
+  await rp.fill('#password', 'Mat-khau-khac-nua-9');
+  await rp.fill('#password2', 'Mat-khau-khac-nua-9');
+  await rp.click('button[type=submit]');
+  await rp.waitForSelector('#form-msg:not([hidden])');
+  ok((await rp.textContent('#form-msg')).includes('đã được dùng'), 'dùng lại liên kết cũ thì báo lỗi');
+  await rp.goto(url + '/dat-lai-mat-khau', { waitUntil: 'networkidle' });
+  ok(await rp.locator('#reset-extra').isVisible(), 'mở trang không có liên kết thì hỏi email và mã khôi phục');
+  await rp.fill('#reset-email', 'lan@example.com');
+  await rp.fill('#reset-code', 'ma-sai-hoan-toan-0123456789');
+  await rp.fill('#password', 'Mat-khau-khac-nua-9');
+  await rp.fill('#password2', 'Mat-khau-khac-nua-9');
+  await rp.click('button[type=submit]');
+  await rp.waitForSelector('#form-msg:not([hidden])');
+  ok((await rp.textContent('#form-msg')).includes('không đúng'), 'mã khôi phục sai thì báo lỗi');
+  await rp.screenshot({ path: `${SHOTS}/reset-code-mobile.png`, fullPage: true });
+  await ctxR.close();
+
   // đăng xuất
   await owner.click('.nav-logout');
   await owner.waitForLoadState('networkidle');
@@ -335,7 +391,7 @@ try {
   // ---------- 6. CSP: không có vi phạm nào ----------
   const csp = problems.filter((p) => /Content Security Policy|Refused to/i.test(p));
   ok(csp.length === 0, 'không vi phạm CSP', csp.join('\n'));
-  const other = problems.filter((p) => !/Content Security Policy|Refused to/i.test(p) && !/status of (403|404)/.test(p));
+  const other = problems.filter((p) => !/Content Security Policy|Refused to/i.test(p) && !/status of (400|403|404)/.test(p));
   ok(other.length === 0, 'không có lỗi console khác', other.join('\n'));
 } catch (e) {
   fail++; console.log('  ✗ ngoại lệ:', e.message);

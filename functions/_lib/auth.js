@@ -12,6 +12,8 @@ export function iterationsFor(env) {
   return Number.isInteger(n) && n >= MIN_ITERATIONS && n <= MAX_ITERATIONS ? n : DEFAULT_ITERATIONS;
 }
 const SESSION_SECONDS = 30 * 24 * 3600;
+// Liên kết / mã đặt lại mật khẩu chỉ dùng được một lần và hết hạn sau ngần này giây tính từ lúc tạo.
+export const RESET_SECONDS = 24 * 3600;
 
 export const now = () => Math.floor(Date.now() / 1000);
 
@@ -138,6 +140,8 @@ export async function cleanup(env) {
   await env.DB.batch([
     env.DB.prepare('DELETE FROM sessions WHERE expires_at <= ?').bind(t),
     env.DB.prepare('DELETE FROM rate_limits WHERE reset_at <= ?').bind(t),
+    // Dọn mã đặt lại mật khẩu đã dùng hoặc quá hạn từ lâu (không đụng tới mã mời tạo tài khoản).
+    env.DB.prepare(`DELETE FROM invites WHERE (role = 'reset' OR role LIKE 'reset:%') AND created_at <= ?`).bind(t - 7 * 24 * 3600),
   ]);
 }
 

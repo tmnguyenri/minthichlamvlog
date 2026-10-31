@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-en="Set a new password – Mìn Thích Làm Vlog">Đặt mật khẩu mới – Mìn Thích Làm Vlog</title>
+  <meta name="description" content="Chọn mật khẩu mới cho tài khoản Mìn Thích Làm Vlog." data-en-content="Choose a new password for your Mìn Thích Làm Vlog account.">
+  <meta property="og:title" content="Đặt mật khẩu mới – Mìn Thích Làm Vlog">
+  <meta property="og:description" content="Chọn mật khẩu mới cho tài khoản Mìn Thích Làm Vlog.">
+  <meta property="og:type" content="website">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" href="favicon-48.png" type="image/png" sizes="48x48">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/lang.js"></script>
+  <script src="js/session.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main" data-en="Skip to content">Chuyển đến nội dung</a>
+
+  <header class="site-header">
+    <div class="wrap site-header__inner">
+      <a class="brand" href="index.html">
+        <img class="brand__mark" src="images/logo-96.png" alt="" width="44" height="44">
+        <span class="brand__name">Mìn Thích Làm Vlog</span>
+      </a>
+      <nav class="nav" aria-label="Menu chính" data-en-aria-label="Main menu">
+        <a href="index.html#nhat-ky" data-en="Journal">Nhật ký</a>
+        <a href="index.html#ban-do" data-en="Atlas">Bản đồ</a>
+        <a href="about.html" data-en="About">Giới thiệu</a>
+        <a class="nav-account" href="dang-nhap.html" data-en="Log in">Đăng nhập</a>
+      </nav>
+      <div class="lang-switch" role="group" aria-label="Ngôn ngữ" data-en-aria-label="Language">
+        <button type="button" data-set-lang="vi" aria-pressed="true" lang="vi" aria-label="Tiếng Việt">VI</button>
+        <button type="button" data-set-lang="en" aria-pressed="false" lang="en" aria-label="English">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-hero">
+      <div class="wrap">
+        <h1 class="page-title"><span data-en="Choose a new">Đặt mật khẩu</span> <span data-en="password">mới</span></h1>
+      </div>
+    </section>
+    <div class="wrap auth">
+      <form class="form" id="reset-form" novalidate>
+        <div class="form form--wide" id="reset-extra" hidden>
+          <p class="hint" data-en="Opened a reset link from me? Open that link again. If you have a recovery code instead, enter your email and the code here.">Có liên kết do Mìn gửi? Hãy mở lại đúng liên kết đó. Nếu bạn có mã khôi phục thì nhập email và mã vào đây.</p>
+          <div class="field">
+            <label for="reset-email" data-en="Email">Email</label>
+            <input id="reset-email" name="email" type="email" autocomplete="username" maxlength="254">
+          </div>
+          <div class="field">
+            <label for="reset-code" data-en="Recovery code">Mã khôi phục</label>
+            <input id="reset-code" name="token" type="text" autocomplete="off" maxlength="200" spellcheck="false">
+          </div>
+        </div>
+        <div class="field">
+          <label for="password" data-en="New password">Mật khẩu mới</label>
+          <input id="password" name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="128">
+          <p class="hint" data-en="At least 10 characters.">Ít nhất 10 ký tự.</p>
+        </div>
+        <div class="field">
+          <label for="password2" data-en="Repeat the password">Nhập lại mật khẩu</label>
+          <input id="password2" name="password2" type="password" autocomplete="new-password" required maxlength="128">
+        </div>
+        <p id="form-msg" class="notice" role="alert" hidden></p>
+        <button class="btn btn--primary" type="submit" data-en="Save new password">Lưu mật khẩu mới</button>
+        <p class="form-alt"><a href="quen-mat-khau.html" data-en="How do I get a link?">Làm sao để có liên kết?</a></p>
+      </form>
+      <div class="form" id="reset-done" hidden>
+        <h2 data-en="Your new password is saved!">Đã lưu mật khẩu mới!</h2>
+        <p data-en="You were logged out on your other devices. Log in with the new password.">Bạn đã được đăng xuất khỏi các thiết bị khác. Hãy đăng nhập bằng mật khẩu mới.</p>
+        <p><a class="btn btn--primary" href="dang-nhap.html" data-en="Log in">Đăng nhập</a></p>
+      </div>
+      <noscript><p class="notice notice--error" data-en="JavaScript is needed to set a new password.">Cần bật JavaScript để đặt mật khẩu mới.</p></noscript>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap site-footer__inner">
+      <p data-en="© 2026 Mìn Thích Làm Vlog">© 2026 Mìn Thích Làm Vlog</p>
+      <ul class="footer-nav">
+        <li><a href="index.html#nhat-ky" data-en="Journal">Nhật ký</a></li>
+        <li><a href="index.html#ban-do" data-en="Atlas">Bản đồ</a></li>
+        <li><a href="about.html" data-en="About">Giới thiệu</a></li>
+        <li><a href="about.html#lien-he" data-en="Contact">Liên hệ</a></li>
+        <li><a href="rieng-tu.html" data-en="Privacy">Quyền riêng tư</a></li>
+      </ul>
+    </div>
+  </footer>
+  <script src="js/ui.js" defer></script>
+  <script src="js/auth.js" defer></script>
+</body>
+</html>

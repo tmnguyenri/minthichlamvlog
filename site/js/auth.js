@@ -1,4 +1,4 @@
-/* Biểu mẫu đăng nhập và đăng ký. */
+/* Biểu mẫu đăng nhập, đăng ký và đặt mật khẩu mới. */
 (function () {
   'use strict';
   var M = window.MTLV;
@@ -45,6 +45,30 @@
         reg.hidden = true;
         var done = document.getElementById('register-done');
         if (done) done.hidden = false;
+      });
+    });
+  }
+
+  // Đặt mật khẩu mới: mã nằm sau dấu # của liên kết (không gửi lên máy chủ khi mở trang).
+  // Không có mã trong liên kết thì hiện ô nhập email và mã khôi phục.
+  var rst = document.getElementById('reset-form');
+  if (rst) {
+    var code = window.location.hash.replace(/^#/, '');
+    if (/^[A-Za-z0-9_-]{20,200}$/.test(code)) {
+      try { window.history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) { /* bỏ qua */ }
+    } else code = '';
+    document.getElementById('reset-extra').hidden = !!code;
+    wire(rst, function (finish) {
+      if (rst.password.value !== rst.password2.value) {
+        M.show(note, M.t('Hai mật khẩu chưa giống nhau.', 'The two passwords do not match.'), 'error');
+        finish();
+        return;
+      }
+      var body = { token: code || rst.token.value, email: code ? '' : rst.email.value, password: rst.password.value };
+      M.api('POST', '/api/auth/reset', body).then(function (res) {
+        if (!res.ok) { M.show(note, M.msgOf(res), 'error'); finish(); return; }
+        rst.hidden = true;
+        document.getElementById('reset-done').hidden = false;
       });
     });
   }

@@ -109,6 +109,34 @@
   });
 
   // ------------------------------------------------------------ Thành viên
+  // Tạo liên kết đặt lại mật khẩu cho một thành viên rồi hiện ra để chủ trang sao chép gửi họ.
+  function resetLink(u) {
+    var box = document.getElementById('reset-result');
+    M.api('POST', '/api/admin/users/' + u.id + '/reset').then(function (res) {
+      if (!res.ok) { say(M.msgOf(res), 'error'); return; }
+      say('');
+      clear(box);
+      var input = h('input', { id: 'reset-link', type: 'text', readonly: true, value: res.json.link, spellcheck: 'false' });
+      var copy = tx('button', 'Sao chép liên kết', 'Copy link', { type: 'button', class: 'btn btn--primary btn--xs' });
+      copy.addEventListener('click', function () {
+        function done() { copy.textContent = t('Đã sao chép', 'Copied'); copy.setAttribute('data-en', 'Copied'); copy.setAttribute('data-vi', 'Đã sao chép'); }
+        input.select();
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(res.json.link).then(done, function () { try { document.execCommand('copy'); done(); } catch (e) { /* người dùng tự chép */ } });
+        else { try { document.execCommand('copy'); done(); } catch (e) { /* người dùng tự chép */ } }
+      });
+      box.appendChild(tx('p', 'Liên kết đặt lại mật khẩu cho ' + u.display_name + ' (' + u.email + ')', 'Password reset link for ' + u.display_name + ' (' + u.email + ')', { class: 'reset-box__title' }));
+      box.appendChild(tx('p', 'Gửi riêng cho đúng người đó. Dùng được một lần và hết hạn sau 24 giờ. Tạo liên kết mới sẽ làm liên kết cũ hết hiệu lực.',
+        'Send it privately to that person only. It works once and expires after 24 hours. Creating a new link cancels the old one.', { class: 'muted' }));
+      box.appendChild(h('div', { class: 'field' }, tx('label', 'Liên kết', 'Link', { for: 'reset-link' }), input));
+      box.appendChild(h('div', { class: 'row__actions' }, copy,
+        tx('button', 'Đóng', 'Close', { type: 'button', class: 'btn btn--ghost btn--xs', onclick: function () { clear(box); box.hidden = true; } })));
+      box.hidden = false;
+      M.refresh();
+      input.focus(); input.select();
+      box.scrollIntoView({ block: 'nearest' });
+    });
+  }
+
   function loadUsers() {
     var list = document.getElementById('user-list');
     return M.api('GET', '/api/admin/users').then(function (res) {
@@ -124,6 +152,7 @@
           function setStatus(s) { M.api('PATCH', '/api/admin/users/' + u.id, { status: s }).then(function (r) { if (r.ok) loadUsers(); else say(M.msgOf(r), 'error'); }); }
           if (u.status !== 'approved') actions.appendChild(tx('button', 'Duyệt', 'Approve', { type: 'button', class: 'btn btn--primary btn--xs', onclick: function () { setStatus('approved'); } }));
           if (u.status !== 'blocked') actions.appendChild(confirmButton('Chặn', 'Block', 'Bấm lần nữa để chặn', 'Click again to block', function () { setStatus('blocked'); }));
+          actions.appendChild(tx('button', 'Đặt lại mật khẩu', 'Reset password', { type: 'button', class: 'btn btn--ghost btn--xs', onclick: function () { resetLink(u); } }));
           actions.appendChild(confirmButton('Xóa', 'Delete', 'Bấm lần nữa để xóa', 'Click again to delete', function () {
             M.api('DELETE', '/api/admin/users/' + u.id).then(function (r) { if (r.ok) loadUsers(); else say(M.msgOf(r), 'error'); });
           }));

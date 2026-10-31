@@ -26,8 +26,10 @@ export async function onRequestPost({ request, env }) {
   let inviteHash = '';
   if (invite) {
     inviteHash = await sha256Hex(invite);
-    const used = await env.DB.prepare('UPDATE invites SET used_at = ? WHERE token_hash = ? AND used_at IS NULL')
-      .bind(now(), inviteHash).run();
+    // Chỉ mã mời tạo tài khoản mới dùng được ở đây; mã đặt lại mật khẩu (role "reset...") thì không.
+    const used = await env.DB.prepare(
+      `UPDATE invites SET used_at = ? WHERE token_hash = ? AND used_at IS NULL AND role IN ('admin', 'member')`,
+    ).bind(now(), inviteHash).run();
     if (!used.meta.changes) return fail(400, 'invite', 'Mã mời không đúng hoặc đã được dùng.', 'The invite code is wrong or already used.');
     role = (await env.DB.prepare('SELECT role FROM invites WHERE token_hash = ?').bind(inviteHash).first()).role;
     status = 'approved';

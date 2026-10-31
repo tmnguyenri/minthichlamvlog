@@ -16,6 +16,7 @@ site/                  <- mọi thứ trong thư mục này sẽ được đưa 
   js/lang.js           nút chuyển tiếng Việt / tiếng Anh
   js/ui.js, session.js, auth.js, admin.js, comments.js, posts.js, slider.js   đăng nhập, khu quản lý, bình luận, bài viết và dải ảnh chạy ở trang chủ
   dang-nhap.html, dang-ky.html, quan-ly.html, rieng-tu.html        các trang tài khoản
+  quen-mat-khau.html, dat-lai-mat-khau.html   quên mật khẩu và đặt mật khẩu mới
   images/logo-96.png, logo-240.png   logo tròn ở góc trên bên trái mọi trang (cắt từ ảnh đại diện kênh)
   favicon-48.png, favicon-32.png, favicon.ico   biểu tượng trên thẻ trình duyệt
   apple-touch-icon.png biểu tượng khi lưu trang ra màn hình chính điện thoại
@@ -122,15 +123,23 @@ Chủ trang đăng nhập tại `/dang-nhap` rồi vào `/quan-ly` để viết 
 2. Mở **Console** của cơ sở dữ liệu, dán nội dung `db/schema.sql` (bỏ các dòng chú thích) và chạy. Chạy lại nhiều lần vẫn an toàn.
 3. Tạo tài khoản chủ trang: sinh một mã ngẫu nhiên dài, lưu **SHA-256 của mã** vào bảng `invites` (`INSERT INTO invites (token_hash, role, created_at) VALUES ('<sha256 hex>', 'admin', strftime('%s','now'));`), rồi mở `/dang-ky`, bấm "Mình có mã mời", dán **mã gốc** và tự chọn mật khẩu. Mã chỉ dùng được một lần.
 
+**Quên mật khẩu.** Mật khẩu chỉ lưu dạng băm nên không ai xem lại được; chỉ có thể đặt mật khẩu mới. Trang chưa gửi được email tự động nên việc này làm thủ công, không cần cài thêm gì:
+
+- **Thành viên quên mật khẩu:** họ nhắn cho chủ trang (qua mục Liên hệ). Chủ trang vào `/quan-ly` → tab **Thành viên** → bấm **Đặt lại mật khẩu** ở dòng của người đó → sao chép liên kết và gửi riêng cho họ. Liên kết dùng được một lần, hết hạn sau 24 giờ; tạo liên kết mới thì liên kết cũ hết hiệu lực. Khi họ đặt xong, mọi phiên đăng nhập cũ bị đăng xuất. Mã nằm sau dấu `#` của liên kết nên không đi vào nhật ký máy chủ.
+- **Chủ trang quên mật khẩu của chính mình:** nút trên không dùng được cho tài khoản quản trị, nên dùng mã khẩn cấp qua D1 Console:
+  1. Tự nghĩ một mã dài và ngẫu nhiên (từ 30 ký tự), rồi tính SHA-256 của mã. Cách nhanh: mở một thẻ trình duyệt bất kỳ, bấm F12 → **Console**, dán `crypto.subtle.digest('SHA-256', new TextEncoder().encode('MÃ-CỦA-BẠN')).then(b => console.log([...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('')))`.
+  2. Trong Cloudflare → D1 → `minthichlamvlog-db` → **Console**, chạy `INSERT INTO invites (token_hash, role, created_at) VALUES ('<sha256 vừa tính>', 'reset', strftime('%s','now'));`
+  3. Mở `/dat-lai-mat-khau`, nhập email của bạn, **mã gốc** (không phải bản băm) và mật khẩu mới. Mã dùng được một lần và hết hạn sau 24 giờ.
+
 **Chạy thử trên máy** (cần Node 22 trở lên, không cần cài gói nào):
 
 ```
 node dev/server.mjs 8788                  # trang + API + cơ sở dữ liệu trong bộ nhớ, mở http://127.0.0.1:8788
-node --no-warnings dev/test-api.mjs       # 146 kiểm tra cho API
+node --no-warnings dev/test-api.mjs       # 190 kiểm tra cho API
 node --no-warnings dev/test-ui.mjs        # kiểm tra giao diện bằng trình duyệt (cần Playwright)
 ```
 
-**Chưa có (làm sau):** tải ảnh lên (cần bật R2 trong Cloudflare, có thẻ thanh toán dù vẫn trong hạn mức miễn phí), và xác nhận email (cần gói Workers trả phí để gửi thư tới người lạ). Hiện ảnh bìa và ảnh trong bài được chèn bằng đường dẫn `/images/...` hoặc liên kết https.
+**Chưa có (làm sau):** tải ảnh lên (cần bật R2 trong Cloudflare, có thẻ thanh toán dù vẫn trong hạn mức miễn phí), và xác nhận email hoặc tự động gửi liên kết quên mật khẩu (cần gói Workers trả phí để gửi thư tới người lạ). Hiện ảnh bìa và ảnh trong bài được chèn bằng đường dẫn `/images/...` hoặc liên kết https.
 
 ## Công cụ tìm kiếm và chia sẻ
 
