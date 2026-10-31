@@ -30,8 +30,14 @@ export async function onRequestPut({ request, params, env, data, waitUntil }) {
   if (!body) return badRequest();
   const { value: p, error } = cleanPost(body);
   if (error) return fail(400, error.code, error.vi, error.en);
-  const old = await env.DB.prepare('SELECT slug, status, published_at FROM posts WHERE id = ?').bind(id).first();
+  const old = await env.DB.prepare(
+    'SELECT slug, status, published_at, title, excerpt, body, title_en, excerpt_en, body_en FROM posts WHERE id = ?',
+  ).bind(id).first();
   if (!old) return notFound();
+  // Bản tiếng Anh do máy dịch: giữ nguyên khi nội dung tiếng Việt không đổi, dịch lại khi tiếng Việt đổi.
+  for (const [vi, en] of [['title', 'title_en'], ['excerpt', 'excerpt_en'], ['body', 'body_en']]) {
+    p[en] = p[vi] === old[vi] ? old[en] : '';
+  }
   await fillEnglish(env, p);
   const t = now();
   const publishedAt = p.status === 'published' ? (old.published_at || t) : old.published_at;
