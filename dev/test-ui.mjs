@@ -385,8 +385,12 @@ try {
 
   // đăng xuất
   await owner.click('.nav-logout');
-  await owner.waitForLoadState('networkidle');
-  ok((await owner.locator('.nav-account').first().textContent()).trim() === 'Đăng nhập', 'đăng xuất xong menu về Đăng nhập');
+  // Đăng xuất gọi máy chủ rồi tải lại trang: chờ cho tới khi menu thật sự đổi, không đoán thời điểm tải xong.
+  const loggedOut = await owner.waitForFunction(() => {
+    const a = document.querySelector('.nav-account');
+    return !!a && a.textContent.trim() === 'Đăng nhập' && !document.querySelector('.nav-logout');
+  }, null, { timeout: 10000 }).then(() => true, () => false);
+  ok(loggedOut, 'đăng xuất xong menu về Đăng nhập');
 
   // ---------- 6. CSP: không có vi phạm nào ----------
   const csp = problems.filter((p) => /Content Security Policy|Refused to/i.test(p));
