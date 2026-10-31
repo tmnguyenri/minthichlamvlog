@@ -13,7 +13,7 @@ function notFound() {
     title: 'Không tìm thấy bài viết – Mìn Thích Làm Vlog', titleEn: 'Post not found – Mìn Thích Làm Vlog', status: 404, seo: { robots: 'noindex' },
     main: `    <section class="notfound wrap">
       <h1 class="page-title" data-en="This post could not be found">Không tìm thấy bài viết này</h1>
-      <div class="prose"><p><a href="/#nhat-ky" data-en="Back to all posts">Quay lại tất cả bài viết</a></p></div>
+      <div class="prose"><p><a href="/nhat-ky" data-en="Back to all posts">Quay lại tất cả bài viết</a></p></div>
     </section>`,
   });
 }
@@ -73,7 +73,7 @@ export async function onRequestGet({ params, env, data }) {
       <header class="post-hero">
         <img class="post-hero__img" src="${esc(cover)}" alt="" width="1600" height="800">
         <div class="wrap post-hero__content">
-          <a class="crumb" href="/#nhat-ky"><span data-en="All posts">Tất cả bài viết</span></a>
+          <a class="crumb" href="/nhat-ky"><span data-en="All posts">Tất cả bài viết</span></a>
           <h1><span${en(post.title_en)}>${esc(post.title)}</span></h1>
           ${post.excerpt ? `<p class="post-dek"${en(post.excerpt_en)}>${esc(post.excerpt)}</p>` : ''}
           ${facts}
