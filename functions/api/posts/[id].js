@@ -2,6 +2,7 @@ import { requireAdmin, now } from '../../_lib/auth.js';
 import { badRequest, fail, json, readJson } from '../../_lib/http.js';
 import { cleanPost } from '../../_lib/validate.js';
 import { notifyIndexNow } from '../../_lib/indexnow.js';
+import { fillEnglish } from '../../_lib/translate.js';
 
 const postPath = (slug) => `/bai/${encodeURIComponent(slug)}`;
 
@@ -31,6 +32,7 @@ export async function onRequestPut({ request, params, env, data, waitUntil }) {
   if (error) return fail(400, error.code, error.vi, error.en);
   const old = await env.DB.prepare('SELECT slug, status, published_at FROM posts WHERE id = ?').bind(id).first();
   if (!old) return notFound();
+  await fillEnglish(env, p);
   const t = now();
   const publishedAt = p.status === 'published' ? (old.published_at || t) : old.published_at;
   try {

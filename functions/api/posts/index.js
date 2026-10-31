@@ -2,6 +2,7 @@ import { requireAdmin, now } from '../../_lib/auth.js';
 import { badRequest, fail, json, readJson } from '../../_lib/http.js';
 import { cleanPost } from '../../_lib/validate.js';
 import { notifyIndexNow } from '../../_lib/indexnow.js';
+import { fillEnglish } from '../../_lib/translate.js';
 
 export async function onRequestGet({ request, env, data }) {
   const url = new URL(request.url);
@@ -25,6 +26,7 @@ export async function onRequestPost({ request, env, data, waitUntil }) {
   if (!body) return badRequest();
   const { value: p, error } = cleanPost(body);
   if (error) return fail(400, error.code, error.vi, error.en);
+  await fillEnglish(env, p);
   const t = now();
   try {
     const res = await env.DB.prepare(

@@ -7,6 +7,8 @@
   "vars": {
     "INDEXNOW_KEY": "3ae21506ba356dda8200a6c0e9acc343"
   },
+  // Workers AI: dịch bài viết sang tiếng Anh khi phần tiếng Anh còn trống (xem functions/_lib/translate.js).
+  "ai": { "binding": "AI" },
   "d1_databases": [
     {
       "binding": "DB",
