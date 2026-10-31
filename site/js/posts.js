@@ -63,6 +63,9 @@
     });
   }
 
+  // Cho js/slider.js dùng lại các hàm dựng cờ, tên nước và liên kết bài.
+  M.kit = { link: link, flagOf: flagOf, flagImg: flagImg, countryEl: countryEl };
+
   function replaceChildren(el, nodes) { while (el.firstChild) el.removeChild(el.firstChild); nodes.forEach(function (n) { el.appendChild(n); }); }
 
   fetch('/api/posts?limit=50', { credentials: 'same-origin' })
@@ -79,6 +82,8 @@
       if (places && items.length) replaceChildren(places, items);
 
       M.refresh();
+      // Báo cho dải ảnh ở đầu trang biết đã có bài thật để lấy ảnh bìa.
+      document.dispatchEvent(new CustomEvent('mtlv:posts', { detail: { posts: posts } }));
     })
     .catch(function () { /* giữ nguyên bài mẫu */ });
 })();

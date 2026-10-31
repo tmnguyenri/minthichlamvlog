@@ -53,6 +53,121 @@ try {
     await ctx.close();
   }
 
+  // ---------- 1b. Dải ảnh chạy ở đầu trang chủ (ảnh mẫu) ----------
+  {
+    const ctx = await newCtx();
+    const activeHref = (pg) => pg.locator('#showcase .slide.is-active .slide__link').getAttribute('href');
+    const idx = async (pg) => parseInt((await pg.locator('#showcase .slide.is-active').getAttribute('aria-label')).split('/')[0], 10);
+
+    // thứ tự ngẫu nhiên: mở nhiều lần thì ảnh đầu tiên phải khác nhau
+    const firsts = new Set();
+    for (let i = 0; i < 12; i++) {
+      const pg = await ctx.newPage(); watch(pg, 'showcase-random');
+      await pg.goto(url + '/', { waitUntil: 'networkidle' });
+      firsts.add(await activeHref(pg));
+      await pg.close();
+    }
+    ok(firsts.size >= 2, 'ảnh đầu tiên của dải ảnh thay đổi ngẫu nhiên giữa các lần mở trang', [...firsts].join(', '));
+
+    const pg = await ctx.newPage(); watch(pg, 'showcase');
+    await pg.clock.install();
+    await pg.goto(url + '/', { waitUntil: 'networkidle' });
+    ok((await pg.locator('#showcase .slide').count()) === 4, 'dải ảnh mẫu có 4 ảnh');
+    ok((await pg.locator('#showcase .slide.is-active').count()) === 1, 'mỗi lúc chỉ một ảnh hiện');
+    ok(await pg.locator('#showcase .showcase__controls').isVisible(), 'nút điều khiển hiện khi có từ 2 ảnh');
+    const hrefs = await pg.locator('#showcase .slide__link').evaluateAll((a) => a.map((x) => x.getAttribute('href')));
+    ok(hrefs.every((h) => /^posts\/[a-z-]+\.html$/.test(h)) && new Set(hrefs).size === 4, 'mỗi ảnh là một liên kết riêng tới bài của nó', hrefs.join(', '));
+    ok((await pg.locator('#showcase .slide:not(.is-active) .slide__link').first().isVisible()) === false, 'ảnh không hiện thì không nhận Tab');
+
+    // tự chuyển
+    await pg.mouse.move(5, 780);
+    const a0 = await activeHref(pg);
+    await pg.clock.runFor(6000);
+    ok((await activeHref(pg)) !== a0, 'dải ảnh tự chuyển sang ảnh khác');
+
+    // nút sau / trước, phím mũi tên
+    let i0 = await idx(pg);
+    await pg.click('[data-slide=next]'); await pg.mouse.move(5, 780);
+    ok((await idx(pg)) === (i0 % 4) + 1, 'nút "Ảnh sau" chuyển tới ảnh kế');
+    await pg.click('[data-slide=prev]'); await pg.mouse.move(5, 780);
+    ok((await idx(pg)) === i0, 'nút "Ảnh trước" quay lại ảnh cũ');
+    await pg.focus('[data-slide=next]');
+    await pg.keyboard.press('ArrowRight'); await pg.mouse.move(5, 780);
+    ok((await idx(pg)) === (i0 % 4) + 1, 'phím mũi tên phải chuyển ảnh');
+    await pg.keyboard.press('ArrowLeft'); await pg.mouse.move(5, 780);
+    ok((await idx(pg)) === i0, 'phím mũi tên trái chuyển ảnh');
+    await pg.evaluate(() => document.activeElement && document.activeElement.blur());
+
+    // rê chuột vào thì dừng, rời ra thì chạy lại
+    await pg.mouse.move(640, 250);
+    i0 = await idx(pg);
+    await pg.clock.runFor(20000);
+    ok((await idx(pg)) === i0, 'rê chuột vào dải ảnh thì dừng');
+    await pg.mouse.move(5, 780);
+    await pg.clock.runFor(6000);
+    ok((await idx(pg)) !== i0, 'rời chuột ra thì chạy tiếp');
+
+    // nút tạm dừng
+    await pg.click('.showcase__toggle'); await pg.mouse.move(5, 780);
+    ok((await pg.getAttribute('.showcase__toggle', 'aria-pressed')) === 'false', 'nút tạm dừng ở trạng thái tắt');
+    i0 = await idx(pg);
+    await pg.clock.runFor(20000);
+    ok((await idx(pg)) === i0, 'bấm tạm dừng thì không tự chuyển');
+    await pg.click('.showcase__toggle'); await pg.mouse.move(5, 780);
+    await pg.clock.runFor(6000);
+    ok((await idx(pg)) !== i0, 'bấm lần nữa thì chạy tiếp');
+
+    // tiếng Anh
+    await pg.click('[data-set-lang=en]');
+    const titlesEn = await pg.locator('#showcase .slide__title').allTextContents();
+    ok(titlesEn.includes('A rainy afternoon in the old town') && titlesEn.includes('Four days on the mountain passes'), 'tiêu đề ảnh dịch sang EN', titlesEn.join(' | '));
+    ok((await pg.getAttribute('[data-slide=next]', 'aria-label')) === 'Next photo', 'nút điều khiển dịch sang EN');
+    await pg.click('[data-set-lang=vi]');
+    await pg.close();
+
+    // bấm vào ảnh thì mở đúng bài có ảnh đó
+    const pg2 = await ctx.newPage(); watch(pg2, 'showcase-click');
+    await pg2.goto(url + '/', { waitUntil: 'networkidle' });
+    await pg2.mouse.move(5, 780);
+    const want = await activeHref(pg2);
+    const wantTitle = (await pg2.locator('#showcase .slide.is-active .slide__title').textContent()).trim();
+    await Promise.all([pg2.waitForURL(/\/posts\/[a-z-]+\.html$/), pg2.click('#showcase .slide.is-active .slide__link')]);
+    ok(pg2.url().endsWith('/' + want), 'bấm vào ảnh mở đúng liên kết của ảnh đó', pg2.url() + ' vs ' + want);
+    ok((await pg2.locator('h1').first().textContent()).trim() === wantTitle, 'trang mở ra đúng là bài có tiêu đề ghi trên ảnh', wantTitle);
+    await pg2.close();
+
+    // người dùng chọn "giảm chuyển động": không tự chạy
+    const rm = await ctx.newPage(); watch(rm, 'showcase-reduced');
+    await rm.emulateMedia({ reducedMotion: 'reduce' });
+    await rm.clock.install();
+    await rm.goto(url + '/', { waitUntil: 'networkidle' });
+    await rm.mouse.move(5, 780);
+    ok((await rm.getAttribute('.showcase__toggle', 'aria-pressed')) === 'false', 'giảm chuyển động: nút ở trạng thái đang dừng');
+    const r0 = await idx(rm);
+    await rm.clock.runFor(30000);
+    ok((await idx(rm)) === r0, 'giảm chuyển động: dải ảnh không tự chuyển');
+    await rm.click('[data-slide=next]');
+    ok((await idx(rm)) !== r0, 'giảm chuyển động: vẫn tự bấm chuyển được');
+    await rm.close();
+    await ctx.close();
+
+    // điện thoại: vuốt ngang để chuyển ảnh, vuốt không bị tính là bấm vào ảnh
+    const mctx = await newCtx({ width: 390, height: 844 });
+    const mp = await mctx.newPage(); watch(mp, 'showcase-mobile');
+    await mp.goto(url + '/', { waitUntil: 'networkidle' });
+    const m0 = await idx(mp);
+    await mp.evaluate(() => {
+      const st = document.querySelector('.showcase__stage');
+      const ev = (type, x) => st.dispatchEvent(new PointerEvent(type, { pointerType: 'touch', clientX: x, bubbles: true }));
+      ev('pointerdown', 300); ev('pointerup', 100);
+      document.querySelector('.slide.is-active .slide__link').click();
+    });
+    await mp.waitForTimeout(300);
+    ok((await idx(mp)) === (m0 % 4) + 1, 'vuốt sang trái chuyển tới ảnh kế');
+    ok(/\/$/.test(mp.url()), 'vuốt không bị tính là bấm mở bài', mp.url());
+    await mctx.close();
+  }
+
   // ---------- 2. Chủ trang đăng ký bằng mã mời ----------
   const ownerCtx = await newCtx();
   const owner = await ownerCtx.newPage(); watch(owner, 'owner');
@@ -131,6 +246,31 @@ try {
   await anon.goto(url + '/', { waitUntil: 'networkidle' });
   ok((await anon.content()).includes('Đà Lạt mùa mưa'), 'trang chủ hiện bài thật');
   await anon.screenshot({ path: `${SHOTS}/home-with-post.png`, fullPage: true });
+  ok(await anon.locator('#showcase').isHidden(), 'chưa bài nào có ảnh bìa thì dải ảnh ở đầu trang ẩn đi');
+
+  // dải ảnh dùng ảnh bìa của bài thật: bài nháp và bài không có ảnh bìa không xuất hiện
+  const mk = (title, extra) => owner.request.post(url + '/api/posts', {
+    headers: { origin: url }, data: { title, status: 'published', country: 'Nhật Bản', trip_date: '2026-05', days: 5, ...extra },
+  });
+  let rr = await mk('Kyoto mùa lá đỏ', { title_en: 'Kyoto in red leaves', cover: '/images/scene-kyoto-wide.svg' });
+  ok(rr.ok(), 'tạo bài có ảnh bìa bằng API', rr.status());
+  rr = await mk('Bài nháp có ảnh', { status: 'draft', cover: '/images/scene-lisbon-wide.svg' });
+  ok(rr.ok(), 'tạo bài nháp có ảnh bìa', rr.status());
+  await anon.goto(url + '/', { waitUntil: 'networkidle' });
+  ok((await anon.locator('#showcase .slide').count()) === 1, 'dải ảnh chỉ lấy bài đã đăng có ảnh bìa');
+  ok(await anon.locator('#showcase .showcase__controls').isHidden(), 'chỉ một ảnh thì không có nút điều khiển');
+  const realHref = await anon.locator('#showcase .slide__link').getAttribute('href');
+  ok(/^\/bai\/kyoto/.test(realHref), 'ảnh trỏ tới trang bài viết thật', realHref);
+  await Promise.all([anon.waitForURL(/\/bai\//), anon.click('#showcase .slide.is-active .slide__link')]);
+  ok((await anon.locator('h1').first().textContent()).includes('Kyoto mùa lá đỏ'), 'bấm ảnh mở đúng bài viết thật');
+  rr = await mk('Hà Nội se lạnh', { cover: '/images/scene-hagiang-wide.svg' });
+  ok(rr.ok(), 'tạo bài thứ hai có ảnh bìa', rr.status());
+  await anon.goto(url + '/', { waitUntil: 'networkidle' });
+  ok((await anon.locator('#showcase .slide').count()) === 2, 'có hai bài có ảnh bìa thì dải ảnh có hai ảnh');
+  ok(await anon.locator('#showcase .showcase__controls').isVisible(), 'từ hai ảnh trở lên thì hiện nút điều khiển');
+  await anon.click('[data-set-lang=en]');
+  ok((await anon.locator('#showcase .slide__title').allTextContents()).includes('Kyoto in red leaves'), 'tiêu đề tiếng Anh của bài hiện trên ảnh');
+  await anon.click('[data-set-lang=vi]');
 
   // ---------- 4. Thành viên đăng ký -> chờ duyệt ----------
   const memCtx = await newCtx({ width: 390, height: 844 });

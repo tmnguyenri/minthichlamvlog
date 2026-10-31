@@ -1,20 +1,20 @@
 # Mìn Thích Làm Vlog
 
 Trang nhật ký du lịch bằng HTML, CSS và JavaScript thuần. Không cần build, không dùng framework. Phần đăng nhập, đăng ký, bài viết và bình luận chạy bằng Cloudflare Pages Functions và cơ sở dữ liệu D1 (xem mục "Tài khoản, cơ sở dữ liệu và khu quản lý").
-Giao diện tối. **Mặc định tiếng Việt**, người xem bấm nút **EN** ở góc trên để đọc bản tiếng Anh.
+Giao diện sáng. **Mặc định tiếng Việt**, người xem bấm nút **EN** ở góc trên để đọc bản tiếng Anh.
 
 ## Trong thư mục này có gì
 
 ```
 site/                  <- mọi thứ trong thư mục này sẽ được đưa lên mạng
-  index.html           trang chủ: mở đầu, bài nổi bật, danh sách bài, bản đồ
+  index.html           trang chủ: dải ảnh chạy, phần mở đầu, danh sách bài, bản đồ
   about.html           trang giới thiệu, có mục Liên hệ
   404.html             hiện ra khi không tìm thấy trang
   posts/               mỗi chuyến đi một tệp HTML
   images/              ảnh. scene-*.svg là ảnh minh họa mẫu, flags/ là cờ các nước
   css/style.css        toàn bộ màu sắc, font và bố cục
   js/lang.js           nút chuyển tiếng Việt / tiếng Anh
-  js/ui.js, session.js, auth.js, admin.js, comments.js, posts.js   đăng nhập, khu quản lý, bình luận, bài viết từ cơ sở dữ liệu
+  js/ui.js, session.js, auth.js, admin.js, comments.js, posts.js, slider.js   đăng nhập, khu quản lý, bình luận, bài viết và dải ảnh chạy ở trang chủ
   dang-nhap.html, dang-ky.html, quan-ly.html, rieng-tu.html        các trang tài khoản
   favicon.svg          biểu tượng trên thẻ trình duyệt
 functions/             mã chạy trên máy chủ Cloudflare (API, trang bài viết /bai/<tên>)
@@ -32,6 +32,7 @@ README.md              tệp này
 3. Bốn bài viết mẫu (Oaxaca, Kyoto, Lisbon, Hà Giang) và các ảnh minh họa chỉ là chỗ giữ chỗ, đều có nhãn **Mẫu**. Khi có bài thật, hãy xóa tệp của chúng trong `site/posts/`, xóa các khối tương ứng trong `site/index.html`, và xóa các tệp `scene-*.svg` không còn dùng.
 4. Màu sắc và font nằm ở đầu tệp `site/css/style.css`, trong khối `:root`. Giao diện sáng chỉ dùng một font (Be Vietnam Pro) và vài màu: `--sun` (vàng nắng, dùng cho nút và nét nhấn), `--lagoon` (xanh ngọc, dùng cho liên kết), `--ink` (chữ), `--paper` (nền mint nhạt). Muốn đổi màu nhấn, sửa `--sun` và `--sun-deep`.
 5. Trang chủ tự lấy bài thật từ cơ sở dữ liệu. Khi đã có bài đăng trong khu quản lý (`/quan-ly`), các thẻ mẫu và danh sách quốc gia tự được thay bằng bài thật, không phải sửa tay.
+6. Dải ảnh chạy ở đầu trang chủ lấy **ảnh bìa** của các bài đã đăng (nhập ở ô "Ảnh bìa" trong khu quản lý), xáo ngẫu nhiên mỗi lần mở trang và lấy tối đa 8 ảnh. Bấm vào ảnh sẽ mở bài viết có ảnh đó. Bài nháp hoặc bài chưa có ảnh bìa không xuất hiện ở đây; nếu chưa bài nào có ảnh bìa thì cả dải ảnh tự ẩn. Muốn đổi tốc độ hay số ảnh, sửa `INTERVAL` (mili giây) và `MAX` ở đầu `site/js/slider.js`. Dải ảnh tự dừng khi rê chuột vào hoặc khi người xem bật "giảm chuyển động" trong thiết bị.
 
 ## Hai ngôn ngữ hoạt động thế nào
 

@@ -40,6 +40,70 @@
   </header>
 
   <main id="main">
+    <!--
+      Dải ảnh chạy ở đầu trang: tự đổi thứ tự ngẫu nhiên mỗi lần mở trang, bấm vào ảnh sẽ mở bài viết có ảnh đó.
+      Khi đã có bài thật (đăng trong /quan-ly), js/slider.js lấy ảnh bìa của các bài đó thay cho 4 ảnh mẫu dưới đây.
+      Bài nào không có ảnh bìa thì không xuất hiện ở đây.
+    -->
+    <section class="showcase wrap" id="showcase" aria-roledescription="carousel" aria-label="Ảnh từ các chuyến đi" data-en-aria-label="Photos from the trips">
+      <div class="showcase__stage">
+        <div class="showcase__slides">
+        <div class="slide is-active" role="group" aria-roledescription="slide" aria-label="1 / 4">
+          <a class="slide__link" href="posts/oaxaca.html">
+            <img class="slide__img" src="images/scene-oaxaca-wide.svg" alt="" width="1600" height="800">
+            <span class="badge" data-en="Sample">Mẫu</span>
+            <span class="slide__caption">
+              <span class="slide__where"><img class="flag" src="images/flags/mx.svg" alt="" width="36" height="24"><span data-en="Mexico">Mexico</span></span>
+              <span class="slide__title" data-en="Early markets, woodsmoke and chocolate">Chợ sớm, khói bếp và mùi chocolate</span>
+            </span>
+          </a>
+        </div>
+        <div class="slide" role="group" aria-roledescription="slide" aria-label="2 / 4">
+          <a class="slide__link" href="posts/kyoto.html">
+            <img class="slide__img" src="images/scene-kyoto-wide.svg" alt="" width="1600" height="800">
+            <span class="badge" data-en="Sample">Mẫu</span>
+            <span class="slide__caption">
+              <span class="slide__where"><img class="flag" src="images/flags/jp.svg" alt="" width="36" height="24"><span data-en="Japan">Nhật Bản</span></span>
+              <span class="slide__title" data-en="A rainy afternoon in the old town">Một buổi chiều mưa ở phố cổ</span>
+            </span>
+          </a>
+        </div>
+        <div class="slide" role="group" aria-roledescription="slide" aria-label="3 / 4">
+          <a class="slide__link" href="posts/lisbon.html">
+            <img class="slide__img" src="images/scene-lisbon-wide.svg" alt="" width="1600" height="800">
+            <span class="badge" data-en="Sample">Mẫu</span>
+            <span class="slide__caption">
+              <span class="slide__where"><img class="flag" src="images/flags/pt.svg" alt="" width="36" height="24"><span data-en="Portugal">Bồ Đào Nha</span></span>
+              <span class="slide__title" data-en="Hills, tiles and golden afternoons">Dốc, ngói và ánh chiều vàng</span>
+            </span>
+          </a>
+        </div>
+        <div class="slide" role="group" aria-roledescription="slide" aria-label="4 / 4">
+          <a class="slide__link" href="posts/ha-giang.html">
+            <img class="slide__img" src="images/scene-hagiang-wide.svg" alt="" width="1600" height="800">
+            <span class="badge" data-en="Sample">Mẫu</span>
+            <span class="slide__caption">
+              <span class="slide__where"><img class="flag" src="images/flags/vn.svg" alt="" width="36" height="24"><span data-en="Vietnam">Việt Nam</span></span>
+              <span class="slide__title" data-en="Four days on the mountain passes">Bốn ngày trên những con đèo</span>
+            </span>
+          </a>
+        </div>
+        </div>
+        <div class="showcase__controls" hidden>
+          <button class="showcase__btn" type="button" data-slide="prev" aria-label="Ảnh trước" data-en-aria-label="Previous photo">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <button class="showcase__btn showcase__toggle" type="button" aria-pressed="true" aria-label="Tự động chuyển ảnh" data-en-aria-label="Play photos automatically">
+            <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5v14M16 5v14"/></svg>
+            <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5l11 7-11 7z"/></svg>
+          </button>
+          <button class="showcase__btn" type="button" data-slide="next" aria-label="Ảnh sau" data-en-aria-label="Next photo">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
     <section class="hero">
       <div class="wrap hero__grid">
         <div class="hero__copy">
@@ -141,6 +205,7 @@
     </div>
   </footer>
   <script src="js/ui.js" defer></script>
+  <script src="js/slider.js" defer></script>
   <script src="js/posts.js" defer></script>
 </body>
 </html>
