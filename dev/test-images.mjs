@@ -83,6 +83,14 @@ ok(r.json && r.json.images.every((i) => !('data' in i)), 'danh sách không kèm
 const row = db.raw.prepare('SELECT caption FROM images WHERE id = ?').get(jpegId);
 ok(row && !row.caption.includes('<') && row.caption.startsWith('Bình minh'), 'chú thích đã được làm sạch', row && row.caption);
 
+console.log('3b. Chuyển đổi dạng dữ liệu BLOB');
+const { toBytes } = await import('../functions/api/images/[id].js');
+ok(toBytes(new Uint8Array([1, 2]).buffer) instanceof Uint8Array, 'ArrayBuffer đổi được về Uint8Array');
+ok(toBytes(new Uint8Array([1, 2])).length === 2, 'Uint8Array giữ nguyên');
+ok(toBytes([255, 216]).length === 2, 'mảng số đổi được');
+ok(toBytes('/9g=')[0] === 255, 'chuỗi base64 đổi được');
+ok(toBytes(null) === null, 'giá trị lạ trả về null');
+
 console.log('4. Xóa');
 r = await call('DELETE', `/api/images/${pngId}`, { cookie: memberCookie });
 ok(r.status === 403, 'thành viên không xóa được ảnh', r.status);
