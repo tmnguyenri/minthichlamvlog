@@ -44,9 +44,9 @@ export async function onRequestPut({ request, params, env, data, waitUntil }) {
   const publishedAt = p.status === 'published' ? (old.published_at || t) : old.published_at;
   try {
     await env.DB.prepare(
-      `UPDATE posts SET slug=?, title=?, title_en=?, excerpt=?, excerpt_en=?, body=?, body_en=?, country=?, trip_date=?, days=?,
+      `UPDATE posts SET slug=?, title=?, title_en=?, excerpt=?, excerpt_en=?, body=?, body_en=?, country=?, city=?, trip_date=?, days=?,
               cover=?, video=?, status=?, updated_at=?, published_at=? WHERE id=?`,
-    ).bind(p.slug, p.title, p.title_en, p.excerpt, p.excerpt_en, p.body, p.body_en, p.country, p.trip_date, p.days,
+    ).bind(p.slug, p.title, p.title_en, p.excerpt, p.excerpt_en, p.body, p.body_en, p.country, p.city, p.trip_date, p.days,
       p.cover, p.video, p.status, t, publishedAt, id).run();
     // Báo cho Bing, Yandex... khi bài đang công khai được đăng hoặc sửa, hoặc vừa bị gỡ / đổi đường dẫn
     const paths = [];

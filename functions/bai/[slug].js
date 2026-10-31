@@ -35,7 +35,8 @@ export async function onRequestGet({ params, env, data }) {
   let when = '';
   const m = /^(\d{4})-(\d{2})$/.exec(post.trip_date);
   if (m) when = `<div><dt><span data-en="When">Thời gian</span></dt><dd><time datetime="${post.trip_date}" data-en="${MONTHS_EN[Number(m[2]) - 1]} ${m[1]}">Tháng ${Number(m[2])}/${m[1]}</time></dd></div>`;
-  const where = post.country ? `<div><dt><span data-en="Where">Địa điểm</span></dt><dd>${esc(post.country)}</dd></div>` : '';
+  const place = [post.city, post.country].filter(Boolean).join(', ');
+  const where = place ? `<div><dt><span data-en="Where">Địa điểm</span></dt><dd>${esc(place)}</dd></div>` : '';
   const length = post.days ? `<div><dt><span data-en="Length">Thời lượng</span></dt><dd><span data-en="${post.days} ${post.days === 1 ? 'day' : 'days'}">${post.days} ngày</span></dd></div>` : '';
   const facts = when || where || length ? `<dl class="facts">${when}${where}${length}</dl>` : '';
 
@@ -110,7 +111,12 @@ export async function onRequestGet({ params, env, data }) {
     mainEntityOfPage: { '@type': 'WebPage', '@id': base + path },
     author,
     publisher: { '@type': 'Person', name: SITE_NAME, url: base + '/' },
-    contentLocation: post.country ? { '@type': 'Place', name: post.country } : undefined,
+    contentLocation: place
+      ? {
+        '@type': 'Place', name: place,
+        address: { '@type': 'PostalAddress', addressLocality: post.city || undefined, addressCountry: post.country || undefined },
+      }
+      : undefined,
   };
   return page({
     title: `${post.title} – Mìn Thích Làm Vlog`, titleEn: post.title_en ? `${post.title_en} – Mìn Thích Làm Vlog` : '',

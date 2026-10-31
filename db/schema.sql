@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS posts (
   body         TEXT NOT NULL DEFAULT '',
   body_en      TEXT NOT NULL DEFAULT '',
   country      TEXT NOT NULL DEFAULT '',
+  city         TEXT NOT NULL DEFAULT '',             -- thành phố / địa danh (bảng cũ được tự thêm cột này, xem functions/_lib/schema.js)
   trip_date    TEXT NOT NULL DEFAULT '',             -- YYYY-MM
   days         INTEGER,
   cover        TEXT NOT NULL DEFAULT '',             -- https://... hoặc /images/...

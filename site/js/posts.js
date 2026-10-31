@@ -17,16 +17,18 @@
   function flagOf(country) { return FLAGS[(country || '').toLowerCase()] || null; }
   function flagImg(code) { return h('img', { class: 'flag', src: '/images/flags/' + code + '.svg', alt: '', width: 36, height: 24 }); }
 
-  function countryEl(country) {
+  // "Thành phố, Quốc gia" (chỉ có một trong hai thì hiện một). Bản tiếng Anh dùng tên nước tiếng Anh nếu biết.
+  function countryEl(country, city) {
     var f = flagOf(country);
-    return en(h('span', { text: country }), f && f[1]);
+    var vi = [city, country].filter(Boolean).join(', ');
+    return en(h('span', { text: vi }), [city, f ? f[1] : country].filter(Boolean).join(', '));
   }
 
   function meta(p, withCountry) {
     var parts = [];
-    if (withCountry && p.country) {
+    if (withCountry && (p.country || p.city)) {
       var f = flagOf(p.country);
-      parts.push(h('span', { class: 'meta__where' }, f ? flagImg(f[0]) : null, countryEl(p.country)));
+      parts.push(h('span', { class: 'meta__where' }, f ? flagImg(f[0]) : null, countryEl(p.country, p.city)));
     }
     var m = /^(\d{4})-(\d{2})$/.exec(p.trip_date || '');
     if (m) parts.push(en(h('time', { datetime: p.trip_date, text: 'Tháng ' + Number(m[2]) + '/' + m[1] }), MONTHS_EN[Number(m[2]) - 1] + ' ' + m[1]));
@@ -94,19 +96,29 @@
     return out;
   }
 
+  // Mỗi quốc gia một thẻ: tên, số bài và các thành phố đã đi (mới nhất trước, không lặp, tối đa 8).
+  var MAX_CITIES = 8;
   function atlas(posts) {
     var groups = {};
     posts.forEach(function (p) {
       if (!p.country) return;
       var key = p.country.toLowerCase();
-      (groups[key] = groups[key] || { name: p.country, posts: [] }).posts.push(p);
+      var g = groups[key] = groups[key] || { name: p.country, posts: [], cities: [] };
+      g.posts.push(p);
+      var c = (p.city || '').trim();
+      if (c && !g.cities.some(function (x) { return x.toLowerCase() === c.toLowerCase(); })) g.cities.push(c);
     });
     return Object.keys(groups).map(function (k) {
       var g = groups[k], f = flagOf(g.name), n = g.posts.length;
+      var more = g.cities.length - MAX_CITIES;
+      var cities = g.cities.length
+        ? h('span', { class: 'country__cities', text: g.cities.slice(0, MAX_CITIES).join(', ') + (more > 0 ? ' +' + more : '') })
+        : null;
       return h('a', { class: 'country', href: link(g.posts[0]) },
         f ? flagImg(f[0]) : null,
         h('span', {}, en(h('span', { class: 'country__name', text: g.name }), f && f[1]),
-          en(h('span', { class: 'country__count', text: n + ' bài viết' }), n + (n === 1 ? ' post' : ' posts'))));
+          en(h('span', { class: 'country__count', text: n + ' bài viết' }), n + (n === 1 ? ' post' : ' posts')),
+          cities));
     });
   }
 

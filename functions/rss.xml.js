@@ -5,7 +5,7 @@ import { SITE_DESC, SITE_NAME, isoDate, siteUrl, describe } from './_lib/site.js
 export async function onRequestGet({ env }) {
   const base = siteUrl(env);
   const { results } = await env.DB.prepare(
-    `SELECT slug, title, excerpt, body, country, published_at, updated_at, created_at FROM posts
+    `SELECT slug, title, excerpt, body, country, city, published_at, updated_at, created_at FROM posts
       WHERE status = 'published' ORDER BY COALESCE(published_at, created_at) DESC LIMIT 30`,
   ).all();
   const rfc = (sec) => (isoDate(sec) ? new Date(sec * 1000).toUTCString() : '');
@@ -15,7 +15,7 @@ export async function onRequestGet({ env }) {
       <title>${esc(p.title)}</title>
       <link>${esc(link)}</link>
       <guid isPermaLink="true">${esc(link)}</guid>
-      <pubDate>${rfc(p.published_at || p.created_at)}</pubDate>${p.country ? `\n      <category>${esc(p.country)}</category>` : ''}
+      <pubDate>${rfc(p.published_at || p.created_at)}</pubDate>${p.country ? `\n      <category>${esc(p.country)}</category>` : ''}${p.city ? `\n      <category>${esc(p.city)}</category>` : ''}
       <description>${esc(describe(p))}</description>
     </item>`;
   });

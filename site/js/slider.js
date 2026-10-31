@@ -95,7 +95,7 @@
       h('a', { class: 'slide__link', href: kit.link(p) },
         h('img', { class: 'slide__img', src: M.postImage(p), alt: '', width: 1600, height: 800, loading: 'lazy' }),
         h('span', { class: 'slide__caption' },
-          p.country ? h('span', { class: 'slide__where' }, f ? kit.flagImg(f[0]) : null, kit.countryEl(p.country)) : null,
+          (p.country || p.city) ? h('span', { class: 'slide__where' }, f ? kit.flagImg(f[0]) : null, kit.countryEl(p.country, p.city)) : null,
           en(h('span', { class: 'slide__title', text: p.title }), p.title_en))));
   }
 

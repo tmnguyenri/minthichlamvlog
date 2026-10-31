@@ -63,7 +63,7 @@ export function cleanPost(b) {
     value: {
       slug, title, title_en: text(b.title_en, 150), excerpt: text(b.excerpt, 400), excerpt_en: text(b.excerpt_en, 400),
       body: text(b.body, 60000), body_en: text(b.body_en, 60000),
-      country: text(b.country, 60), trip_date, days, cover, video, status,
+      country: text(b.country, 60), city: text(b.city, 60), trip_date, days, cover, video, status,
     },
   };
 }

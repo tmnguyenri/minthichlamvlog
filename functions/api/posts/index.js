@@ -10,7 +10,7 @@ export async function onRequestGet({ request, env, data }) {
   const all = url.searchParams.get('all') === '1';
   if (all && requireAdmin(data)) return requireAdmin(data);
   // image_id: một ảnh ngẫu nhiên trong các ảnh đã tải lên cho bài (NULL nếu chưa có).
-  const cols = `id, slug, title, title_en, excerpt, excerpt_en, country, trip_date, days, cover, video, status, published_at, updated_at,
+  const cols = `id, slug, title, title_en, excerpt, excerpt_en, country, city, trip_date, days, cover, video, status, published_at, updated_at,
     (SELECT i.id FROM images i WHERE i.post_id = posts.id ORDER BY RANDOM() LIMIT 1) AS image_id,
     (SELECT json_group_array(x.id) FROM (SELECT id FROM images WHERE post_id = posts.id ORDER BY id LIMIT 10) x) AS image_ids`;
   const sql = all
@@ -31,9 +31,9 @@ export async function onRequestPost({ request, env, data, waitUntil }) {
   const t = now();
   try {
     const res = await env.DB.prepare(
-      `INSERT INTO posts (slug, title, title_en, excerpt, excerpt_en, body, body_en, country, trip_date, days, cover, video, status, author_id, created_at, updated_at, published_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).bind(p.slug, p.title, p.title_en, p.excerpt, p.excerpt_en, p.body, p.body_en, p.country, p.trip_date, p.days, p.cover, p.video,
+      `INSERT INTO posts (slug, title, title_en, excerpt, excerpt_en, body, body_en, country, city, trip_date, days, cover, video, status, author_id, created_at, updated_at, published_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).bind(p.slug, p.title, p.title_en, p.excerpt, p.excerpt_en, p.body, p.body_en, p.country, p.city, p.trip_date, p.days, p.cover, p.video,
       p.status, data.user.id, t, t, p.status === 'published' ? t : null).run();
     if (p.status === 'published') notifyIndexNow({ env, waitUntil }, [`/bai/${encodeURIComponent(p.slug)}`, '/']);
     return json({ ok: true, id: res.meta.last_row_id, slug: p.slug }, 201);

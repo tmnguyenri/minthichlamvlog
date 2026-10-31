@@ -179,11 +179,12 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.15; letter-spacing: -.0
 
 /* Bản đồ: các quốc gia là những thẻ nhỏ */
 .atlas { display: flex; flex-wrap: wrap; gap: .6rem; }
-.country { display: inline-flex; align-items: center; gap: .6rem; padding: .5rem 1rem .5rem .65rem; border: 1px solid var(--line-2); border-radius: 999px; background: #fff; text-decoration: none; transition: border-color .15s; }
+.country { display: inline-flex; align-items: center; gap: .6rem; padding: .5rem 1rem .5rem .65rem; border: 1px solid var(--line-2); border-radius: 1.4rem; background: #fff; text-decoration: none; transition: border-color .15s; }
 .country:hover { border-color: var(--lagoon); }
-.country > span { display: inline-flex; align-items: baseline; gap: .5rem; }
+.country > span { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: .1rem .5rem; }
 .country__name { font-weight: 600; }
 .country__count { color: var(--muted); font-size: .85rem; }
+.country__cities { flex-basis: 100%; max-width: 20rem; color: var(--muted); font-size: .85rem; line-height: 1.35; }
 
 /* ---------- Chân trang ---------- */
 .site-footer { margin-top: clamp(3rem, 7vw, 5rem); border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }

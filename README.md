@@ -71,6 +71,12 @@ Cách nhanh nhất: đăng nhập tài khoản quản trị và đăng bài ở 
 - **Cập nhật cơ sở dữ liệu:** bảng `images` được tạo bằng `db/schema.sql`. Nếu bảng đã có nhưng thiếu cột `post_id`, chạy một lần: `ALTER TABLE images ADD COLUMN post_id INTEGER REFERENCES posts(id) ON DELETE SET NULL;`
 - **Kiểm thử:** `node --no-warnings dev/test-images.mjs`.
 
+## Thành phố và quốc gia đã đi
+
+- Trong `/quan-ly`, mỗi bài có ô **Thành phố** (ví dụ Đà Nẵng) bên cạnh ô **Quốc gia**. Thẻ bài và trang bài hiện "Đà Nẵng, Việt Nam"; mục **Những nơi mình đã đi** ở trang chủ liệt kê các thành phố đã đi dưới từng quốc gia (mới nhất trước, không lặp, tối đa 8 thành phố mỗi nước).
+- **Cơ sở dữ liệu cũ tự được nâng cấp:** cột `city` của bảng `posts` được thêm tự động ở lần truy cập đầu tiên (`functions/_lib/schema.js`), bạn không cần chạy SQL. Muốn tự chạy cũng được: `ALTER TABLE posts ADD COLUMN city TEXT NOT NULL DEFAULT '';`
+- **Kiểm thử:** `node --no-warnings dev/test-home.mjs` và mục 5c, 9b2 của `dev/test-api.mjs`.
+
 ## Tự dịch bài viết sang tiếng Anh
 
 - Khi lưu bài, các phần tiếng Anh còn trống (tiêu đề, tóm tắt, nội dung) được tự dịch từ tiếng Việt bằng **Workers AI** (mô hình `m2m100`). Phần đã có chữ tiếng Anh thì giữ nguyên, không bị ghi đè.
@@ -151,7 +157,8 @@ Chủ trang đăng nhập tại `/dang-nhap` rồi vào `/quan-ly` để viết 
 
 ```
 node dev/server.mjs 8788                  # trang + API + cơ sở dữ liệu trong bộ nhớ, mở http://127.0.0.1:8788
-node --no-warnings dev/test-api.mjs       # 196 kiểm tra cho API
+node --no-warnings dev/test-api.mjs       # 213 kiểm tra cho API
+node --no-warnings dev/test-home.mjs      # trang chủ: bài thật thay bài mẫu, thành phố và quốc gia (cần Playwright)
 node --no-warnings dev/test-ui.mjs        # kiểm tra giao diện bằng trình duyệt (cần Playwright)
 ```
 

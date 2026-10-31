@@ -7,6 +7,7 @@ import { listen } from './server.mjs';
 import { sha256Hex } from '../functions/_lib/auth.js';
 import { renderMarkdown } from '../functions/_lib/md.js';
 import { slugify, youtubeId } from '../functions/_lib/validate.js';
+import { resetSchemaCheck } from '../functions/_lib/schema.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const db = createD1();
@@ -147,6 +148,37 @@ console.log('5b. Bản tiếng Anh viết tay khi sửa bài');
   r = await admin.req('DELETE', url); ok(r.status === 200 || r.status === 204, 'dọn bài thử');
 }
 
+console.log('5c. Thành phố và quốc gia của bài');
+{
+  r = await admin.req('POST', '/api/posts', { title: 'Chè lề đường', slug: 'che-city-thu', country: 'Việt Nam', city: '  Đà Nẵng  ', body: 'x', status: 'published' });
+  ok(r.status === 201, 'tạo bài có thành phố');
+  const id = r.json.id, url = `/api/posts/${id}`;
+  let g = (await admin.req('GET', url)).json.post;
+  ok(g.city === 'Đà Nẵng' && g.country === 'Việt Nam', 'thành phố được lưu, cắt khoảng trắng', JSON.stringify([g.city, g.country]));
+  r = await anon.req('GET', '/api/posts');
+  ok(r.json.posts.some((p) => p.slug === 'che-city-thu' && p.city === 'Đà Nẵng'), 'danh sách công khai có thành phố');
+  r = await admin.req('GET', '/api/posts?all=1');
+  ok(r.json.posts.some((p) => p.slug === 'che-city-thu' && p.city === 'Đà Nẵng'), 'danh sách của chủ trang có thành phố');
+  r = await anon.req('GET', '/bai/che-city-thu');
+  ok(r.text.includes('<dd>Đà Nẵng, Việt Nam</dd>'), 'trang bài hiện "thành phố, quốc gia"');
+  ok(r.text.includes('"addressLocality":"Đà Nẵng"') && r.text.includes('"addressCountry":"Việt Nam"'), 'dữ liệu có cấu trúc ghi thành phố và quốc gia');
+  r = await anon.req('GET', '/rss.xml');
+  ok(r.text.includes('<category>Đà Nẵng</category>') && r.text.includes('<category>Việt Nam</category>'), 'RSS có thành phố và quốc gia');
+  r = await admin.req('PUT', url, { ...g, city: 'Hội An' });
+  g = (await admin.req('GET', url)).json.post;
+  ok(r.status === 200 && g.city === 'Hội An', 'sửa thành phố');
+  r = await admin.req('PUT', url, { ...g, country: '', city: 'Hội An' });
+  r = await anon.req('GET', '/bai/che-city-thu');
+  ok(r.text.includes('<dd>Hội An</dd>'), 'chỉ có thành phố thì chỉ hiện thành phố');
+  r = await admin.req('PUT', url, { ...g, city: 'x'.repeat(80) });
+  g = (await admin.req('GET', url)).json.post;
+  ok(g.city.length === 60, 'thành phố dài quá bị cắt còn 60 ký tự', g.city.length);
+  r = await admin.req('PUT', url, { ...g, city: '<b>Huế</b>' });
+  r = await anon.req('GET', '/bai/che-city-thu');
+  ok(!r.text.includes('<b>Huế</b>') && r.text.includes('&lt;b&gt;Huế&lt;/b&gt;'), 'thành phố được escape trên trang bài');
+  r = await admin.req('DELETE', url); ok(r.status === 200 || r.status === 204, 'dọn bài thử');
+}
+
 console.log('6. Bình luận');
 r = await anon.req('POST', '/api/comments', { post_id: postId, body: 'xin chào' }); ok(r.status === 401, 'khách không bình luận được');
 r = await member.req('POST', '/api/comments', { post_id: postId, body: '' }); ok(r.status === 400, 'bình luận rỗng');
@@ -283,6 +315,26 @@ console.log('9b. SEO: robots, sitemap, RSS, thẻ chia sẻ, IndexNow');
     const row = db.raw.prepare('SELECT id FROM posts WHERE slug = ?').get(sl);
     if (row) await admin.req('DELETE', `/api/posts/${row.id}`);
   }
+}
+
+console.log('9b2. Cơ sở dữ liệu cũ thiếu cột thành phố được tự nâng cấp');
+{
+  const oldSchema = fs.readFileSync(path.join(root, 'db/schema.sql'), 'utf8').replace(/^\s*city\s+TEXT[^\n]*\n/m, '');
+  ok(!/^\s*city\s+TEXT/m.test(oldSchema), 'giả lập bảng cũ không có cột city');
+  const oldDb = createD1();
+  oldDb.exec(oldSchema);
+  ok(!oldDb.raw.prepare('PRAGMA table_info(posts)').all().some((c) => c.name === 'city'), 'cơ sở dữ liệu cũ chưa có cột city');
+  resetSchemaCheck();
+  const { server: s2, url: u2 } = await listen({ db: oldDb });
+  const get = () => fetch(u2 + '/api/posts', { headers: { 'cf-connecting-ip': '10.0.8.1' } });
+  let res = await get();
+  ok(res.status === 200, 'API vẫn chạy trên cơ sở dữ liệu cũ', res.status);
+  ok(oldDb.raw.prepare('PRAGMA table_info(posts)').all().some((c) => c.name === 'city'), 'cột city được tự thêm');
+  resetSchemaCheck();
+  res = await get();
+  ok(res.status === 200, 'kiểm tra lại khi cột đã có không gây lỗi', res.status);
+  s2.close();
+  resetSchemaCheck();
 }
 
 console.log('9c. Quên mật khẩu: liên kết do chủ trang tạo, mã khôi phục khẩn cấp');
