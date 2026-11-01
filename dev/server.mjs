@@ -60,15 +60,22 @@ export async function createApp({ db, staticDir = path.join(root, 'site') } = {}
       context.next = async () => h(context);
       return middleware ? middleware(context) : h(context);
     }
-    // tệp tĩnh, có đường dẫn gọn như Cloudflare Pages (/about -> about.html)
-    let rel = decodeURIComponent(url.pathname).replace(/\/+$/, '') || '/index';
-    const candidates = [rel, `${rel}.html`, `${rel}/index.html`].map((c) => path.join(staticDir, c));
-    for (const f of candidates) {
-      if (f.startsWith(staticDir) && fs.existsSync(f) && fs.statSync(f).isFile()) {
-        return new Response(fs.readFileSync(f), { headers: { ...staticHeaders(staticDir), 'content-type': MIME[path.extname(f)] || 'application/octet-stream' } });
+    // Không khớp hàm nào trong functions/: phục vụ tệp tĩnh, có đường dẫn gọn như Cloudflare Pages thật
+    // (/about -> about.html). Vẫn chạy qua _middleware.js như trang thật (Cloudflare Pages chạy middleware
+    // cho mọi yêu cầu, kể cả tệp tĩnh), để có cùng tiêu đề bảo mật và được tính vào lượt xem.
+    async function serveStatic() {
+      let rel = decodeURIComponent(url.pathname).replace(/\/+$/, '') || '/index';
+      const candidates = [rel, `${rel}.html`, `${rel}/index.html`].map((c) => path.join(staticDir, c));
+      for (const f of candidates) {
+        if (f.startsWith(staticDir) && fs.existsSync(f) && fs.statSync(f).isFile()) {
+          return new Response(fs.readFileSync(f), { headers: { ...staticHeaders(staticDir), 'content-type': MIME[path.extname(f)] || 'application/octet-stream' } });
+        }
       }
+      return new Response(fs.readFileSync(path.join(staticDir, '404.html')), { status: 404, headers: { ...staticHeaders(staticDir), 'content-type': MIME['.html'] } });
     }
-    return new Response(fs.readFileSync(path.join(staticDir, '404.html')), { status: 404, headers: { ...staticHeaders(staticDir), 'content-type': MIME['.html'] } });
+    if (!middleware) return serveStatic();
+    const context = { request, env, params: {}, data: {}, waitUntil: () => {}, next: serveStatic };
+    return middleware(context);
   };
 }
 

@@ -54,6 +54,7 @@
           <button type="button" role="tab" class="tab" data-tab="posts" aria-selected="true"><span data-en="Posts">Bài viết</span></button>
           <button type="button" role="tab" class="tab" data-tab="users" aria-selected="false"><span data-en="Members">Thành viên</span><span id="pending-count" class="count" hidden></span></button>
           <button type="button" role="tab" class="tab" data-tab="media" aria-selected="false"><span data-en="Photos">Ảnh</span></button>
+          <button type="button" role="tab" class="tab" data-tab="stats" aria-selected="false"><span data-en="Stats">Thống kê</span></button>
         </div>
 
         <section id="tab-posts">
@@ -164,6 +165,24 @@
           <p class="muted" data-en="New sign-ups wait here until you approve them.">Người mới đăng ký sẽ chờ ở đây cho đến khi bạn duyệt.</p>
           <div id="reset-result" class="reset-box" hidden></div>
           <ul id="user-list" class="rows"></ul>
+        </section>
+
+        <section id="tab-stats" hidden>
+          <div class="admin__head"><h2 data-en="Stats">Thống kê</h2></div>
+          <p class="muted" data-en="Numbers refresh every time you open this tab.">Số liệu cập nhật lại mỗi khi bạn mở tab này.</p>
+          <ul id="stats-grid" class="stats-grid"></ul>
+          <div class="stats-cols">
+            <div class="stats-block">
+              <h3 data-en="Members online now">Thành viên đang online</h3>
+              <ul id="stats-online" class="rows"></ul>
+              <p id="stats-online-empty" class="muted" data-en="No one online right now." hidden>Hiện không có ai online.</p>
+            </div>
+            <div class="stats-block">
+              <h3 data-en="Top 5 most active">Top 5 hoạt động nhiều nhất</h3>
+              <ol id="stats-top" class="stats-top"></ol>
+              <p id="stats-top-empty" class="muted" data-en="No activity yet." hidden>Chưa có hoạt động nào.</p>
+            </div>
+          </div>
         </section>
       </div>
     </div>

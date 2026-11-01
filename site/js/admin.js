@@ -4,7 +4,7 @@
   var M = window.MTLV, h = M.h, tx = M.tx, t = M.t;
   var panel = document.getElementById('admin-root');
   var note = document.getElementById('admin-msg');
-  var tabs = { posts: document.getElementById('tab-posts'), media: document.getElementById('tab-media'), users: document.getElementById('tab-users') };
+  var tabs = { posts: document.getElementById('tab-posts'), media: document.getElementById('tab-media'), users: document.getElementById('tab-users'), stats: document.getElementById('tab-stats') };
   var tabBtns = document.querySelectorAll('[data-tab]');
 
   function slugify(s) {
@@ -198,7 +198,9 @@
       ppStatus(t('Đang xử lý ' + i + '/' + files.length + '…', 'Processing ' + i + ' of ' + files.length + '…'));
       if (!/^image\/(jpeg|png|webp)$/.test(f.type)) { failed++; return next(); }
       window.mtlvPhoto.compress(f).then(function (blob) {
-        var caption = encodeURIComponent(f.name.replace(/\.[^.]+$/, ''));
+        // Tên tệp ảnh điện thoại/máy ảnh thường rất dài; rút ngắn lại để chú thích gọn, dễ quản lý
+        // mà vẫn biết là tệp nào.
+        var caption = encodeURIComponent(M.shortenName(f.name, 40));
         return fetch('/api/images?post_id=' + postId + '&caption=' + caption, {
           method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'image/jpeg' }, body: blob,
         });
@@ -305,12 +307,74 @@
     });
   }
 
+  // ------------------------------------------------------------ Thống kê
+  function fmtAgo(ts) {
+    var s = Math.max(0, Math.floor(Date.now() / 1000) - (ts || 0));
+    if (s < 60) return t('vừa xong', 'just now');
+    var m = Math.floor(s / 60);
+    if (m < 60) return t(m + ' phút trước', m + ' min ago');
+    return t(Math.floor(m / 60) + ' giờ trước', Math.floor(m / 60) + ' h ago');
+  }
+
+  function tile(n, vi, en) { return h('li', { class: 'stat-tile' }, h('strong', { text: String(n) }), tx('span', vi, en)); }
+
+  function renderStatsGrid(s) {
+    var grid = document.getElementById('stats-grid');
+    clear(grid);
+    [
+      tile(s.visits.total, 'Lượt xem', 'Page views'),
+      tile(s.visits.today, 'Lượt xem hôm nay', 'Views today'),
+      tile(s.visits.unique_total, 'Khách khác nhau', 'Unique visitors'),
+      tile(s.members.total, 'Thành viên', 'Members'),
+      tile(s.online.count, 'Đang online', 'Online now'),
+      tile(s.posts.total, 'Bài viết', 'Posts'),
+      tile(s.comments.total, 'Bình luận', 'Comments'),
+      tile(s.images.total, 'Hình ảnh', 'Photos'),
+    ].forEach(function (li) { grid.appendChild(li); });
+  }
+
+  function renderOnline(list) {
+    var ul = document.getElementById('stats-online');
+    clear(ul);
+    document.getElementById('stats-online-empty').hidden = list.length > 0;
+    list.forEach(function (u) {
+      ul.appendChild(h('li', { class: 'row' },
+        h('div', { class: 'row__main' }, h('strong', { text: u.display_name }),
+          h('span', { class: 'row__sub', text: fmtAgo(u.last_seen_at) }))));
+    });
+  }
+
+  function renderTopActive(list) {
+    var ol = document.getElementById('stats-top');
+    clear(ol);
+    document.getElementById('stats-top-empty').hidden = list.length > 0;
+    list.forEach(function (u) {
+      ol.appendChild(h('li', {},
+        h('span', { class: 'stats-top__name', text: u.display_name }),
+        h('span', {
+          class: 'stats-top__meta',
+          text: ' — ' + t(u.posts + ' bài · ' + u.comments + ' bình luận', u.posts + ' posts · ' + u.comments + ' comments'),
+        })));
+    });
+  }
+
+  function loadStats() {
+    return M.api('GET', '/api/admin/stats').then(function (res) {
+      if (!res.ok) { say(M.msgOf(res), 'error'); return; }
+      renderStatsGrid(res.json);
+      renderOnline(res.json.online.users);
+      renderTopActive(res.json.top_active);
+      M.refresh();
+    });
+  }
+
   // ------------------------------------------------------------ Tab và khởi động
   function openTab(name) {
     Object.keys(tabs).forEach(function (k) { tabs[k].hidden = k !== name; });
     tabBtns.forEach(function (b) { b.setAttribute('aria-selected', String(b.getAttribute('data-tab') === name)); });
     say('');
     if (name === 'media') loadMedia();
+    if (name === 'stats') loadStats();
   }
   tabBtns.forEach(function (b) { b.addEventListener('click', function () { openTab(b.getAttribute('data-tab')); }); });
 

@@ -5,6 +5,21 @@
 // Mỗi mục: bảng, cột, và câu lệnh thêm cột (khớp với db/schema.sql).
 const COLUMNS = [
   { table: 'posts', column: 'city', ddl: "ALTER TABLE posts ADD COLUMN city TEXT NOT NULL DEFAULT ''" },
+  { table: 'users', column: 'last_seen_at', ddl: 'ALTER TABLE users ADD COLUMN last_seen_at INTEGER' },
+];
+
+// Bảng được thêm sau khi trang đã chạy thật (chưa có trong lần cài đầu của một số trang đang chạy):
+// tạo bằng CREATE TABLE/INDEX IF NOT EXISTS nên chạy lại vô hại, và chủ trang không phải tự vào D1
+// Console chạy tay (khớp với db/schema.sql, nơi bảng mới luôn có từ đầu).
+const TABLES = [
+  `CREATE TABLE IF NOT EXISTS page_views (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    path       TEXT NOT NULL,
+    visitor_id TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS idx_page_views_created ON page_views(created_at)',
+  'CREATE INDEX IF NOT EXISTS idx_page_views_visitor ON page_views(visitor_id)',
 ];
 
 let ready = null;
@@ -14,6 +29,9 @@ export function resetSchemaCheck() { ready = null; } // dùng trong kiểm thử
 export function ensureSchema(env) {
   if (!ready) {
     ready = (async () => {
+      for (const ddl of TABLES) {
+        try { await env.DB.prepare(ddl).run(); } catch { /* đã có, hoặc một bản chạy khác vừa tạo xong */ }
+      }
       for (const { table, column, ddl } of COLUMNS) {
         const { results } = await env.DB.prepare(`PRAGMA table_info(${table})`).all();
         if (!results.length) continue; // bảng chưa có: để db/schema.sql tạo

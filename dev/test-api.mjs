@@ -432,6 +432,73 @@ console.log('9c. Quên mật khẩu: liên kết do chủ trang tạo, mã khôi
   await admin.req('DELETE', `/api/admin/users/${lostId}`); // dọn
 }
 
+console.log('9d. Thống kê: đang online, hoạt động nhiều nhất, lượt xem, và tự nâng cấp cơ sở dữ liệu cũ');
+{
+  r = await anon.req('GET', '/api/admin/stats'); ok(r.status === 401, 'chưa đăng nhập không xem được thống kê');
+  r = await member.req('GET', '/api/admin/stats'); ok(r.status === 401 || r.status === 403, 'thành viên bị chặn không xem được thống kê', r.status);
+  r = await admin.req('GET', '/api/admin/stats'); ok(r.status === 200, 'quản trị xem được thống kê', r.status);
+  let s = r.json;
+  ok(typeof s.members.total === 'number' && s.members.total >= 2, 'có số thành viên', JSON.stringify(s.members));
+  ok(typeof s.posts.total === 'number' && typeof s.comments.total === 'number' && typeof s.images.total === 'number', 'có số bài viết/bình luận/ảnh');
+  ok(s.online.count === s.online.users.length, 'số đang online khớp với danh sách');
+  ok(s.online.users.some((u) => u.id === adminId), 'quản trị vừa gọi API nên tự thấy mình đang online', JSON.stringify(s.online.users));
+  ok(!s.online.users.some((u) => u.id === anId), 'thành viên đã bị chặn không hiện trong danh sách đang online dù có hoạt động cũ');
+
+  // Top hoạt động nhiều nhất: tạo tạm một bài để quản trị chắc chắn có hoạt động, rồi dọn lại.
+  r = await admin.req('POST', '/api/posts', { title: 'Bài thử thống kê', slug: 'thong-ke-thu', status: 'published', body: 'x' });
+  ok(r.status === 201, 'tạo bài tạm để thử top hoạt động');
+  const statsPostId = r.json.id;
+  s = (await admin.req('GET', '/api/admin/stats')).json;
+  ok(s.top_active.length <= 5 && s.top_active.every((u) => u.posts + u.comments > 0), 'top hoạt động nhiều nhất tối đa 5 người, đều có hoạt động thật');
+  ok(s.top_active.some((u) => u.id === adminId), 'quản trị (vừa viết bài) nằm trong top hoạt động nhiều nhất', JSON.stringify(s.top_active));
+  await admin.req('DELETE', `/api/posts/${statsPostId}`); // dọn để không ảnh hưởng các mục sau
+
+  // Lượt xem trang công khai: mở một trang vài lần, số liệu phải tăng đúng; khách được gắn mã ẩn danh.
+  const before = (await admin.req('GET', '/api/admin/stats')).json.visits;
+  const visitor = new Client('10.0.10.1');
+  await visitor.req('GET', '/about');
+  await visitor.req('GET', '/about');
+  ok(!!visitor.jar.vid, 'khách được gắn mã ẩn danh để đếm (cookie vid)', JSON.stringify(visitor.jar));
+  let after = (await admin.req('GET', '/api/admin/stats')).json.visits;
+  ok(after.total === before.total + 2, 'lượt xem tăng đúng số lần mở trang', JSON.stringify([before.total, after.total]));
+  ok(after.unique_total === before.unique_total + 1, 'một khách xem nhiều lần chỉ tính một khách khác nhau', JSON.stringify([before.unique_total, after.unique_total]));
+  ok(after.today === before.today + 2, 'lượt xem hôm nay cũng tăng theo');
+
+  // Gọi API, trang không phải HTML, hoặc khu quản lý không tính vào lượt xem.
+  const before2 = (await admin.req('GET', '/api/admin/stats')).json.visits;
+  await visitor.req('GET', '/sitemap.xml');
+  await visitor.req('GET', '/quan-ly');
+  await admin.req('GET', '/api/posts');
+  const after2 = (await admin.req('GET', '/api/admin/stats')).json.visits;
+  ok(after2.total === before2.total, 'gọi API, trang XML, hoặc khu quản lý không tính vào lượt xem công khai', JSON.stringify([before2.total, after2.total]));
+
+  // Cơ sở dữ liệu cũ (trước khi có tab Thống kê): chưa có bảng page_views, chưa có cột last_seen_at -> tự tạo/thêm.
+  // (Dùng fetch trực tiếp, không dùng Client, vì Client trong tệp này luôn gọi vào server chính ở trên.)
+  let oldSchema2 = fs.readFileSync(path.join(root, 'db/schema.sql'), 'utf8');
+  oldSchema2 = oldSchema2.replace(/^\s*last_seen_at\s+INTEGER.*\n/m, '').replace(/,(\s*\n\);)/, '$1');
+  oldSchema2 = oldSchema2.replace(/CREATE TABLE IF NOT EXISTS page_views[\s\S]*?\);\n/, '').replace(/CREATE INDEX IF NOT EXISTS idx_page_views[^\n]*\n/g, '');
+  ok(!/last_seen_at/.test(oldSchema2) && !/page_views/.test(oldSchema2), 'giả lập: cơ sở dữ liệu cũ chưa có cột/bảng mới');
+  const oldDb2 = createD1();
+  oldDb2.exec(oldSchema2);
+  const INVITE2 = 'ma-moi-cu-456';
+  await oldDb2.prepare('INSERT INTO invites (token_hash, role, created_at) VALUES (?, ?, ?)').bind(await sha256Hex(INVITE2), 'admin', 0).run();
+  resetSchemaCheck();
+  const { server: s2b, url: u2b } = await listen({ db: oldDb2 });
+  const regRes = await fetch(u2b + '/api/auth/register', {
+    method: 'POST', headers: { 'content-type': 'application/json', origin: u2b, 'cf-connecting-ip': '10.0.10.2' },
+    body: JSON.stringify({ email: 'cu@example.com', name: 'Chủ cũ', password: PW, invite: INVITE2 }),
+  });
+  const regJson = await regRes.json();
+  ok(regRes.status === 200 && regJson.role === 'admin', 'tạo quản trị trên cơ sở dữ liệu cũ', JSON.stringify(regJson));
+  const oldCookie = regRes.headers.getSetCookie().map((c) => c.split(';')[0]).join('; ');
+  const statsRes = await fetch(u2b + '/api/admin/stats', { headers: { cookie: oldCookie, 'cf-connecting-ip': '10.0.10.2' } });
+  ok(statsRes.status === 200, 'tab Thống kê vẫn chạy được trên cơ sở dữ liệu cũ nhờ tự nâng cấp', await statsRes.text());
+  ok(oldDb2.raw.prepare('PRAGMA table_info(users)').all().some((c) => c.name === 'last_seen_at'), 'cột last_seen_at được tự thêm');
+  ok(!!oldDb2.raw.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='page_views'").get(), 'bảng page_views được tự tạo');
+  s2b.close();
+  resetSchemaCheck();
+}
+
 console.log('10. Hàm tiện ích');
 ok(slugify('Đà Lạt mộng mơ!') === 'da-lat-mong-mo', 'slugify tiếng Việt');
 ok(youtubeId('dQw4w9WgXcQ') === 'dQw4w9WgXcQ' && youtubeId('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=5') === 'dQw4w9WgXcQ' && youtubeId('https://youtube.com/shorts/dQw4w9WgXcQ') === 'dQw4w9WgXcQ' && youtubeId('') === '' && youtubeId('nope') === null && youtubeId('https://evil.com/watch?v=dQw4w9WgXcQ') === null, 'youtubeId');

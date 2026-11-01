@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,                       -- pbkdf2-sha256$vòng$muối$băm (không bao giờ lưu mật khẩu thật)
   role          TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member')),
   status        TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'blocked')),
-  created_at    INTEGER NOT NULL
+  created_at    INTEGER NOT NULL,
+  last_seen_at  INTEGER                                          -- lần cuối có yêu cầu từ người này (xem "đang online" ở khu quản lý)
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
@@ -78,3 +79,14 @@ CREATE TABLE IF NOT EXISTS images (
   created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_images_created ON images(created_at DESC);
+
+-- Lượt xem các trang công khai, để hiện số liệu ở tab Thống kê trong khu quản lý. Mã khách ẩn danh
+-- (cookie ngẫu nhiên, không gắn với tài khoản nào) chỉ dùng để đếm khách khác nhau, không để theo dõi ai.
+CREATE TABLE IF NOT EXISTS page_views (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  path       TEXT NOT NULL,
+  visitor_id TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_page_views_created ON page_views(created_at);
+CREATE INDEX IF NOT EXISTS idx_page_views_visitor ON page_views(visitor_id);

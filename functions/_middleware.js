@@ -2,13 +2,14 @@
 import { getUser } from './_lib/auth.js';
 import { CSP, SECURITY_HEADERS, fail } from './_lib/http.js';
 import { ensureSchema } from './_lib/schema.js';
+import { touchLastSeen, trackPageView } from './_lib/stats.js';
 
 export async function onRequest(context) {
-  const { request, env, data } = context;
+  const { request, env, data, waitUntil } = context;
   if (!env.DB) {
     return new Response('Chưa cấu hình cơ sở dữ liệu (binding DB).', { status: 503, headers: { 'content-type': 'text/plain; charset=utf-8' } });
   }
-  await ensureSchema(env); // bảng cũ thiếu cột mới thì tự thêm, để cập nhật mã không cần chạy SQL tay
+  await ensureSchema(env); // bảng cũ thiếu cột/bảng mới thì tự thêm, để cập nhật mã không cần chạy SQL tay
   // Chặn CSRF: mọi yêu cầu làm thay đổi dữ liệu phải đến từ chính trang này.
   if (!['GET', 'HEAD'].includes(request.method)) {
     if (request.headers.get('origin') !== new URL(request.url).origin) {
@@ -16,9 +17,11 @@ export async function onRequest(context) {
     }
   }
   data.user = await getUser(request, env);
+  if (data.user) touchLastSeen(env, data.user.id, waitUntil); // để tab Thống kê biết ai đang online
   const res = await context.next();
-  const out = new Response(res.body, res);
+  let out = new Response(res.body, res);
   for (const [k, v] of Object.entries(SECURITY_HEADERS)) out.headers.set(k, v);
   if ((out.headers.get('content-type') || '').startsWith('text/html')) out.headers.set('content-security-policy', CSP);
+  out = trackPageView(request, env, out, waitUntil);
   return out;
 }

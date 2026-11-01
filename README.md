@@ -67,6 +67,7 @@ Cách nhanh nhất: đăng nhập tài khoản quản trị và đăng bài ở 
 ## Ảnh của bài viết
 
 - **Tải ảnh khi viết:** trong `/quan-ly`, mục **Ảnh của bài** nằm ngay dưới ô ảnh bìa. Chọn nhiều ảnh cùng lúc, ảnh sẽ được nén trong trình duyệt thành JPEG dưới 400 KB và lưu trong bảng `images` của D1. Nếu bài chưa được lưu, bài sẽ tự lưu thành nháp trước khi tải ảnh (cần có tiêu đề).
+- **Tên ảnh:** chú thích của ảnh (hiện ở tab **Ảnh** và dùng làm `alt`) lấy từ tên tệp gốc, nhưng được tự rút ngắn còn khoảng 40 ký tự (cắt ở khoảng trắng gần cuối nếu có) thay vì giữ nguyên tên dài của điện thoại/máy ảnh — vẫn đủ để biết là ảnh nào mà không chiếm quá nhiều chỗ khi quản lý.
 - **Hiển thị:** mỗi lần mở trang, bài hiện ngẫu nhiên một ảnh trong số ảnh của bài. Bài chưa có ảnh nào thì dùng ảnh bìa (nếu có) hoặc ảnh mặc định.
 - **Quyền xem ảnh:** `GET /api/images/:id` chỉ công khai khi ảnh đang gắn với một bài **đã đăng**. Ảnh mới tải lên (chưa gắn vào bài nào) hoặc gắn với bài còn là **nháp** chỉ chủ trang xem được (404 với người khác), để không lộ ảnh trước khi bài được đăng.
 - **Cập nhật cơ sở dữ liệu:** bảng `images` được tạo bằng `db/schema.sql`. Nếu bảng đã có nhưng thiếu cột `post_id`, chạy một lần: `ALTER TABLE images ADD COLUMN post_id INTEGER REFERENCES posts(id) ON DELETE SET NULL;`
@@ -158,12 +159,21 @@ Chủ trang đăng nhập tại `/dang-nhap` rồi vào `/quan-ly` để viết 
 
 ```
 node dev/server.mjs 8788                  # trang + API + cơ sở dữ liệu trong bộ nhớ, mở http://127.0.0.1:8788
-node --no-warnings dev/test-api.mjs       # 213 kiểm tra cho API
+node --no-warnings dev/test-api.mjs       # hơn 200 kiểm tra cho API
 node --no-warnings dev/test-home.mjs      # trang chủ: bài thật thay bài mẫu, thành phố và quốc gia (cần Playwright)
 node --no-warnings dev/test-images.mjs    # thư viện ảnh, quyền xem ảnh theo trạng thái bài
 node --no-warnings dev/test-security.mjs  # bảo mật: tự thử CSRF, IDOR, XSS, SQL injection, dò mật khẩu... (xem bên dưới)
 node --no-warnings dev/test-ui.mjs        # kiểm tra giao diện bằng trình duyệt (cần Playwright)
 ```
+
+## Thống kê
+
+Tab **Thống kê** trong `/quan-ly` cho chủ trang xem nhanh: tổng lượt xem (và lượt xem hôm nay), số khách khác nhau, số thành viên, ai đang online (hoạt động trong 5 phút gần nhất) kèm danh sách, top 5 thành viên hoạt động nhiều nhất (tính theo số bài viết + bình luận), số bài viết, số bình luận và số hình ảnh. Số liệu nạp lại mỗi khi mở tab, không tự làm mới.
+
+- **Lượt xem** đếm các trang công khai (GET, trả về HTML) — không tính lời gọi API, tệp XML, hay chính trang `/quan-ly`. Khách được gắn một mã ẩn danh trong cookie `vid` (không gắn với tài khoản nào, chỉ để đếm khách khác nhau) để không đếm trùng khi họ xem nhiều trang.
+- **Đang online** dựa trên cột `users.last_seen_at`, được cập nhật mỗi khi có yêu cầu kèm phiên đăng nhập hợp lệ.
+- **Cơ sở dữ liệu cũ tự được nâng cấp:** bảng `page_views` và cột `users.last_seen_at` được tự tạo/thêm ở lần truy cập đầu tiên (`functions/_lib/schema.js`), bạn không cần vào D1 Console chạy tay.
+- **Kiểm thử:** mục 9d của `dev/test-api.mjs`.
 
 ## Bảo mật
 

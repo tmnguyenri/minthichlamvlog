@@ -67,6 +67,19 @@
     return (p && p.cover) || '';
   }
 
+  // Rút ngắn tên tệp (ảnh điện thoại/máy ảnh thường đặt tên rất dài) để dùng làm tên gợi nhớ gọn gàng:
+  // bỏ phần mở rộng, đổi gạch dưới thành khoảng trắng, rồi cắt ở khoảng trắng gần cuối nếu có.
+  function shortenName(name, max) {
+    max = max || 40;
+    var base = String(name || '').replace(/\.[^./\\]+$/, '')
+      .normalize('NFC').replace(/[_]+/g, ' ').replace(/\s+/g, ' ').trim();
+    if (base.length <= max) return base;
+    var cut = base.slice(0, max);
+    var sp = cut.lastIndexOf(' ');
+    if (sp >= Math.floor(max * 0.6)) cut = cut.slice(0, sp);
+    return cut.trim();
+  }
+
   // Đường dẫn gọn /nhat-ky và /ban-do: cuộn tới đúng mục trên trang chủ sau khi trang tải xong.
   var SECTIONS = { '/nhat-ky': 'nhat-ky', '/ban-do': 'ban-do' };
   var target = SECTIONS[window.location.pathname.replace(/\/+$/, '')];
@@ -77,5 +90,5 @@
     });
   }
 
-  window.MTLV = { lang: lang, t: t, api: api, msgOf: msgOf, h: h, tx: tx, show: show, refresh: refresh, postImage: postImage };
+  window.MTLV = { lang: lang, t: t, api: api, msgOf: msgOf, h: h, tx: tx, show: show, refresh: refresh, postImage: postImage, shortenName: shortenName };
 })();
