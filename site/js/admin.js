@@ -200,7 +200,7 @@
       window.mtlvPhoto.compress(f).then(function (blob) {
         // Tên tệp ảnh điện thoại/máy ảnh thường rất dài; rút ngắn lại để chú thích gọn, dễ quản lý
         // mà vẫn biết là tệp nào.
-        var caption = encodeURIComponent(M.shortenName(f.name, 40));
+        var caption = encodeURIComponent(M.shortenName(f.name, 10));
         return fetch('/api/images?post_id=' + postId + '&caption=' + caption, {
           method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'image/jpeg' }, body: blob,
         });
