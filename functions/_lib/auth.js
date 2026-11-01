@@ -100,6 +100,21 @@ export async function createSession(env, userId) {
   return token;
 }
 
+// Tạo liên kết đặt lại mật khẩu cho một thành viên (role "reset:<id>" trong bảng invites).
+// Liên kết cũ còn treo của cùng thành viên hết hiệu lực ngay, chỉ liên kết mới nhất dùng được.
+// Dùng chung cho cả chủ trang tự tạo (functions/api/admin/users/[id]/reset.js) và thành viên tự
+// yêu cầu qua email (functions/api/auth/forgot.js).
+export async function createResetToken(env, userId) {
+  const token = randomToken();
+  const role = `reset:${userId}`;
+  const t = now();
+  await env.DB.batch([
+    env.DB.prepare('UPDATE invites SET used_at = ? WHERE used_at IS NULL AND role = ?').bind(t, role),
+    env.DB.prepare('INSERT INTO invites (token_hash, role, created_at) VALUES (?, ?, ?)').bind(await sha256Hex(token), role, t),
+  ]);
+  return token;
+}
+
 export async function getUser(request, env) {
   const token = readCookie(request, sidName(request));
   if (!token) return null;

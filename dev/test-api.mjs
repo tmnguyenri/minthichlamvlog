@@ -432,6 +432,65 @@ console.log('9c. Quên mật khẩu: liên kết do chủ trang tạo, mã khôi
   await admin.req('DELETE', `/api/admin/users/${lostId}`); // dọn
 }
 
+console.log('9c2. Quên mật khẩu: thành viên tự yêu cầu đặt lại qua email, không cần quản trị');
+{
+  const fw = (email, c = anon) => c.req('POST', '/api/auth/forgot', { email });
+  const resetRows = (uid) => db.raw.prepare("SELECT COUNT(*) n FROM invites WHERE role = ? AND used_at IS NULL").get(`reset:${uid}`).n;
+
+  const ana = new Client('10.0.10.1');
+  await ana.req('POST', '/api/auth/register', { email: 'tuquen@example.com', name: 'Tự quên', password: PW });
+  const anaId = (await admin.req('GET', '/api/admin/users')).json.users.find((u) => u.email === 'tuquen@example.com').id;
+
+  // thành viên chưa được duyệt: vẫn trả lời như thường, nhưng chưa tạo liên kết nào (chưa đăng nhập được nên chưa cần)
+  r = await fw('tuquen@example.com'); ok(r.status === 200 && r.json.ok === true, 'thành viên chưa duyệt vẫn nhận phản hồi như thường', JSON.stringify(r.json));
+  ok(resetRows(anaId) === 0, 'thành viên chưa duyệt chưa có liên kết nào được tạo');
+
+  await admin.req('PATCH', `/api/admin/users/${anaId}`, { status: 'approved' });
+
+  // email sai định dạng, không tồn tại, hoặc của quản trị: trả lời giống nhau hệt, không lộ gì, không tạo liên kết
+  r = await fw('khong-hop-le'); ok(r.status === 200 && r.json.ok === true, 'email sai định dạng vẫn trả lời ok, không lộ gì', JSON.stringify(r.json));
+  r = await fw('khong-ton-tai@example.com'); ok(r.status === 200 && r.json.ok === true, 'email không tồn tại vẫn trả lời giống hệt', JSON.stringify(r.json));
+  r = await fw('chu@example.com'); ok(r.status === 200 && r.json.ok === true, 'email quản trị vẫn trả lời giống hệt', JSON.stringify(r.json));
+  ok(resetRows(adminId) === 0, 'không tạo liên kết cho tài khoản quản trị qua đường tự phục vụ');
+
+  // email thật, đã duyệt, không phải quản trị: tạo được một liên kết trong cơ sở dữ liệu, nhưng API không lộ liên kết đó ra ngoài
+  r = await fw('tuquen@example.com'); ok(r.status === 200 && r.json.ok === true && !('link' in r.json) && !('token' in r.json), 'thành viên hợp lệ cũng chỉ nhận phản hồi chung, liên kết không lộ qua API', JSON.stringify(r.json));
+  ok(resetRows(anaId) === 1, 'đã tạo một liên kết trong cơ sở dữ liệu cho thành viên này');
+  const stored = db.raw.prepare('SELECT token_hash FROM invites WHERE role = ? AND used_at IS NULL').get(`reset:${anaId}`);
+  ok(!!stored && stored.token_hash.length === 64, 'liên kết được lưu dưới dạng băm SHA-256, không lưu mã gốc');
+
+  // không cần đăng nhập để gọi
+  r = await fw('tuquen@example.com', new Client('10.0.10.2')); ok(r.status === 200, 'không cần đăng nhập mới gọi được');
+
+  // thân yêu cầu không hợp lệ (không gửi JSON, khác với gửi { email: undefined })
+  r = await new Client('10.0.10.3').req('POST', '/api/auth/forgot', undefined); ok(r.status === 400, 'thân yêu cầu không phải JSON bị từ chối', r.status);
+
+  // giới hạn số lần thử: 5 lần/giờ theo IP (nhiều email khác nhau, một IP)
+  const spamIp = new Client('10.0.10.9'); let lastIp = 0;
+  for (let i = 0; i < 7; i++) lastIp = (await fw(`spam-ip-${i}@example.com`, spamIp)).status;
+  ok(lastIp === 429, 'yêu cầu quá nhiều lần từ một IP bị chặn tạm thời', lastIp);
+
+  // giới hạn số lần thử: 5 lần/giờ theo tài khoản (một email, nhiều IP khác nhau)
+  let lastAcct = 0;
+  for (let i = 0; i < 7; i++) lastAcct = (await fw('tuquen@example.com', new Client(`10.0.10.${20 + i}`))).status;
+  ok(lastAcct === 429, 'yêu cầu liên tục cho cùng một email (từ nhiều IP khác nhau) bị chặn tạm thời', lastAcct);
+
+  // liên kết do quản trị tạo trong /quan-ly và liên kết tự phục vụ dùng chung một cơ chế:
+  // yêu cầu mới làm liên kết cũ (của cả hai đường) hết hiệu lực, chỉ liên kết mới nhất dùng được
+  const bothC = new Client('10.0.10.30');
+  await bothC.req('POST', '/api/auth/register', { email: 'hai-duong@example.com', name: 'Hai đường', password: PW });
+  const bothId = (await admin.req('GET', '/api/admin/users')).json.users.find((u) => u.email === 'hai-duong@example.com').id;
+  await admin.req('PATCH', `/api/admin/users/${bothId}`, { status: 'approved' });
+  const adminLink = (await admin.req('POST', `/api/admin/users/${bothId}/reset`)).json.link.split('#')[1];
+  r = await fw('hai-duong@example.com', new Client('10.0.10.31')); ok(r.status === 200, 'yêu cầu tự phục vụ cho thành viên đã có liên kết do quản trị tạo trước đó');
+  r = await bothC.req('POST', '/api/auth/reset', { token: adminLink, password: 'mat-khau-moi-0001' });
+  ok(r.status === 400 && r.json.error === 'invalid_token', 'liên kết cũ của quản trị hết hiệu lực khi có yêu cầu tự phục vụ mới hơn', JSON.stringify(r.json));
+  ok(resetRows(bothId) === 1, 'chỉ còn đúng một liên kết còn hiệu lực cho thành viên này');
+
+  await admin.req('DELETE', `/api/admin/users/${anaId}`);
+  await admin.req('DELETE', `/api/admin/users/${bothId}`);
+}
+
 console.log('9d. Thống kê: đang online, hoạt động nhiều nhất, lượt xem, và tự nâng cấp cơ sở dữ liệu cũ');
 {
   r = await anon.req('GET', '/api/admin/stats'); ok(r.status === 401, 'chưa đăng nhập không xem được thống kê');

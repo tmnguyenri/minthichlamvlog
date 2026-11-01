@@ -84,11 +84,11 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.12; letter-spacing: -.0
 .h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); }
 .muted { color: var(--muted); }
 .hint { margin: .4rem 0 0; font-size: .875rem; line-height: 1.5; color: var(--muted); }
-.hint a, .form-alt a, .muted a, .prose a, .steps a {
+.hint a, .form-alt a, .muted a, .prose a {
   color: var(--ink); text-decoration-line: underline; text-decoration-color: var(--pink);
   text-decoration-thickness: 2px; text-underline-offset: .18em;
 }
-.hint a:hover, .form-alt a:hover, .muted a:hover, .prose a:hover, .steps a:hover { text-decoration-color: var(--pink-deep); }
+.hint a:hover, .form-alt a:hover, .muted a:hover, .prose a:hover { text-decoration-color: var(--pink-deep); }
 .timecode { font-variant-numeric: tabular-nums; letter-spacing: .02em; font-weight: 700; }
 
 /* Chữ có gradient thương hiệu cắt theo nét chữ — dùng tiết chế, một hai từ trong tiêu đề lớn. */
@@ -489,7 +489,6 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.12; letter-spacing: -.0
 .form p { margin: 0; }
 .form-alt { text-align: center; color: var(--muted); font-size: .95rem; }
 .form-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
-.form ol.steps { margin: 0; padding-left: 1.25rem; display: grid; gap: .6rem; }
 .reset-box { display: grid; gap: .75rem; margin-bottom: 1.25rem; padding: 1rem 1.1rem; border: 1px solid var(--gold); border-radius: 1rem; background: var(--gold-tint); }
 .reset-box p { margin: 0; }
 .reset-box__title { font-weight: 700; }

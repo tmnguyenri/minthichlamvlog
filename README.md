@@ -146,9 +146,9 @@ Chủ trang đăng nhập tại `/dang-nhap` rồi vào `/quan-ly` để viết 
 2. Mở **Console** của cơ sở dữ liệu, dán nội dung `db/schema.sql` (bỏ các dòng chú thích) và chạy. Chạy lại nhiều lần vẫn an toàn.
 3. Tạo tài khoản chủ trang: sinh một mã ngẫu nhiên dài, lưu **SHA-256 của mã** vào bảng `invites` (`INSERT INTO invites (token_hash, role, created_at) VALUES ('<sha256 hex>', 'admin', strftime('%s','now'));`), rồi mở `/dang-ky`, bấm "Mình có mã mời", dán **mã gốc** và tự chọn mật khẩu. Mã chỉ dùng được một lần.
 
-**Quên mật khẩu.** Mật khẩu chỉ lưu dạng băm nên không ai xem lại được; chỉ có thể đặt mật khẩu mới. Trang chưa gửi được email tự động nên việc này làm thủ công, không cần cài thêm gì:
+**Quên mật khẩu.** Mật khẩu chỉ lưu dạng băm nên không ai xem lại được; chỉ có thể đặt mật khẩu mới.
 
-- **Thành viên quên mật khẩu:** họ nhắn cho chủ trang (qua mục Liên hệ). Chủ trang vào `/quan-ly` → tab **Thành viên** → bấm **Đặt lại mật khẩu** ở dòng của người đó → sao chép liên kết và gửi riêng cho họ. Liên kết dùng được một lần, hết hạn sau 24 giờ; tạo liên kết mới thì liên kết cũ hết hiệu lực. Khi họ đặt xong, mọi phiên đăng nhập cũ bị đăng xuất. Mã nằm sau dấu `#` của liên kết nên không đi vào nhật ký máy chủ.
+- **Thành viên quên mật khẩu:** họ tự vào `/quen-mat-khau`, nhập email đã đăng ký. Nếu đã cấu hình gửi email (xem mục "Thành viên tự đặt lại mật khẩu qua email" trong phần Bảo mật ở dưới), một liên kết được gửi tới email đó ngay, không cần chủ trang làm gì. Chưa cấu hình gửi email, hoặc muốn gửi tay vì lý do khác, chủ trang vẫn vào `/quan-ly` → tab **Thành viên** → bấm **Đặt lại mật khẩu** ở dòng của người đó → sao chép liên kết và gửi riêng cho họ. Liên kết dùng được một lần, hết hạn sau 24 giờ; tạo liên kết mới bằng đường nào cũng làm liên kết cũ (của cả hai đường) hết hiệu lực. Khi họ đặt xong, mọi phiên đăng nhập cũ bị đăng xuất. Mã nằm sau dấu `#` của liên kết nên không đi vào nhật ký máy chủ.
 - **Chủ trang quên mật khẩu của chính mình:** nút trên không dùng được cho tài khoản quản trị, nên dùng mã khẩn cấp qua D1 Console:
   1. Tự nghĩ một mã dài và ngẫu nhiên (từ 30 ký tự), rồi tính SHA-256 của mã. Cách nhanh: mở một thẻ trình duyệt bất kỳ, bấm F12 → **Console**, dán `crypto.subtle.digest('SHA-256', new TextEncoder().encode('MÃ-CỦA-BẠN')).then(b => console.log([...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('')))`.
   2. Trong Cloudflare → D1 → `minthichlamvlog-db` → **Console**, chạy `INSERT INTO invites (token_hash, role, created_at) VALUES ('<sha256 vừa tính>', 'reset', strftime('%s','now'));`
@@ -214,13 +214,31 @@ Nội dung trang Giới thiệu (`/about`) — ảnh chân dung, phần giới t
 - **SQL injection:** ký tự đặc biệt (`'`, `;`, `--`) trong mọi trường không làm hỏng truy vấn hay xóa được dữ liệu (mọi câu lệnh đều dùng tham số, không nối chuỗi).
 - **Dò mật khẩu:** đăng nhập sai liên tục bị khóa theo IP và theo tài khoản.
 - **Phiên đăng nhập:** cookie có `HttpOnly` (JavaScript không đọc được) và `SameSite=Lax`.
-- **Đặt lại mật khẩu:** mã đoán bừa không dùng được; mã thật chỉ dùng được một lần.
+- **Đặt lại mật khẩu:** mã đoán bừa không dùng được; mã thật chỉ dùng được một lần; dù thành viên tự yêu cầu qua email hay quản trị tạo tay trong `/quan-ly`, yêu cầu không bao giờ tiết lộ một email có tài khoản hay không (luôn trả lời giống nhau).
 - **Ảnh chưa công khai:** ảnh mới tải lên hoặc gắn với bài còn là nháp không xem được bằng cách đoán số ID; chỉ công khai khi bài đã đăng (xem mục "Ảnh của bài viết" ở trên).
 - **Tiêu đề bảo mật:** mọi trang đều có CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`.
 
 Không có giới hạn này thay được việc tự rà soát khi thêm tính năng mới: trường dữ liệu mới nào hiển thị ra trang cũng cần thoát ký tự, API mới nào thay đổi dữ liệu cũng cần `requireAdmin`/`requireUser` và nằm sau `_middleware.js`.
 
-**Chưa có (làm sau):** tải ảnh lên (cần bật R2 trong Cloudflare, có thẻ thanh toán dù vẫn trong hạn mức miễn phí), và xác nhận email hoặc tự động gửi liên kết quên mật khẩu (cần gói Workers trả phí để gửi thư tới người lạ). Hiện ảnh bìa và ảnh trong bài được chèn bằng đường dẫn `/images/...` hoặc liên kết https.
+**Chưa có (làm sau):** tải ảnh lên (cần bật R2 trong Cloudflare, có thẻ thanh toán dù vẫn trong hạn mức miễn phí), và xác nhận email lúc đăng ký. Hiện ảnh bìa và ảnh trong bài được chèn bằng đường dẫn `/images/...` hoặc liên kết https.
+
+### Thành viên tự đặt lại mật khẩu qua email
+
+Trang `/quen-mat-khau` có một biểu mẫu: thành viên nhập email, máy chủ (`functions/api/auth/forgot.js`) tự tạo liên kết đặt lại mật khẩu và gửi tới email đó — không cần quản trị can thiệp. Vì lý do an toàn (không lộ email nào có tài khoản), máy chủ luôn trả lời giống nhau dù email có tồn tại, đã được duyệt, hay chưa — và **tài khoản quản trị không dùng được đường này**, vẫn phải khôi phục bằng mã khẩn cấp thêm tay vào D1 như trước (xem mục "Quên mật khẩu" ở trên), để một email quản trị bị chiếm không tự mở khóa được trang quản trị.
+
+Máy chủ Cloudflare Pages **chưa tự gửi được email tới người lạ nếu không cấu hình gì thêm** (cần gói Workers trả phí để dùng Email Routing của Cloudflare gửi cho người ngoài danh sách đã xác minh). Mã đã viết sẵn để gửi qua [Resend](https://resend.com) (gói miễn phí: 3.000 email/tháng, 100/ngày, không cần SMTP) — nếu chưa cấu hình, liên kết vẫn được tạo trong cơ sở dữ liệu như thường (có thể lấy thủ công từ D1 nếu cần) nhưng không email nào được gửi đi, không có lỗi hiện ra cho người dùng.
+
+Để bật gửi email thật:
+
+1. Tạo tài khoản tại [resend.com](https://resend.com) (miễn phí).
+2. Vào **Domains**, thêm một tên miền bạn có toàn quyền chỉnh DNS (không nhất thiết là tên miền của trang này — `minthichlamvlog.pages.dev` do Cloudflare cấp, bạn không chỉnh DNS được nên không dùng để xác minh ở đây), rồi thêm các bản ghi DNS (SPF/DKIM) Resend đưa ra và chờ xác minh xong (thường vài phút tới vài giờ).
+3. Tạo một **API key** trong Resend.
+4. Trong Cloudflare Pages: **Settings → Environment variables**, thêm:
+   - `RESEND_API_KEY` — dán API key, **chọn kiểu Secret** (không hiện lại chữ, không nằm trong `wrangler.jsonc`).
+   - `RESEND_FROM` — địa chỉ gửi đi thuộc tên miền đã xác minh, ví dụ `Mìn Thích Làm Vlog <no-reply@ten-mien-cua-ban.com>`. Không cần đặt kiểu Secret (không phải thông tin bí mật).
+5. Phát hành lại trang (hoặc chờ lần đẩy mã tiếp theo) để biến mới có hiệu lực.
+
+Từ đó, mỗi yêu cầu ở `/quen-mat-khau` sẽ gửi thật một email (xem `functions/_lib/email.js`). Nếu Resend báo lỗi (API key sai, tên miền chưa xác minh...), lỗi chỉ ghi vào log Cloudflare, người dùng vẫn thấy phản hồi bình thường — không lộ lý do ra ngoài.
 
 ## Công cụ tìm kiếm và chia sẻ
 

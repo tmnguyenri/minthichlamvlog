@@ -47,17 +47,24 @@
       </div>
     </section>
     <div class="wrap auth">
-      <div class="form">
-        <p data-en="Passwords are stored encrypted, so nobody can read them back, not even me. But you can choose a new one in a minute:">Mật khẩu được lưu dưới dạng mã hóa nên không ai xem lại được, kể cả Mìn. Nhưng bạn có thể đặt mật khẩu mới chỉ trong một phút:</p>
-        <ol class="steps">
-          <li><span data-en="Message me with the email you signed up with. You will find how on the">Nhắn cho Mìn kèm email bạn đã đăng ký. Cách liên lạc nằm ở</span> <a href="about.html#lien-he" data-en="Contact section">phần Liên hệ</a>.</li>
-          <li data-en="I send you a reset link. It works once and expires after 24 hours.">Mìn gửi lại cho bạn một liên kết đặt lại mật khẩu. Liên kết dùng được một lần và hết hạn sau 24 giờ.</li>
-          <li data-en="Open the link, choose a new password, then log in.">Mở liên kết, chọn mật khẩu mới rồi đăng nhập.</li>
-        </ol>
-        <p class="hint" data-en="The site does not send emails by itself yet, so the link is sent by hand.">Trang chưa gửi email tự động nên liên kết được gửi thủ công.</p>
+      <form class="form" id="forgot-form" novalidate>
+        <p data-en="Passwords are stored encrypted, so nobody can read them back, not even me. Enter the email you signed up with and, if it has an account, we will send a reset link to it:">Mật khẩu được lưu dưới dạng mã hóa nên không ai xem lại được, kể cả Mìn. Hãy nhập email bạn đã đăng ký — nếu email đó có tài khoản, một liên kết đặt lại mật khẩu sẽ được gửi tới đó:</p>
+        <div class="field">
+          <label for="forgot-email" data-en="Email">Email</label>
+          <input id="forgot-email" name="email" type="email" autocomplete="username" required maxlength="254">
+        </div>
+        <p id="form-msg" class="notice" role="alert" hidden></p>
+        <button class="btn btn--primary" type="submit" data-en="Send reset link">Gửi liên kết đặt lại</button>
         <p class="form-alt"><span data-en="Already have a link or a recovery code?">Đã có liên kết hoặc mã khôi phục?</span> <a href="dat-lai-mat-khau.html" data-en="Set a new password">Đặt mật khẩu mới</a></p>
         <p class="form-alt"><a href="dang-nhap.html" data-en="Back to log in">Về trang đăng nhập</a></p>
+      </form>
+      <div class="form" id="forgot-done" hidden>
+        <h2 data-en="Check your inbox">Hãy kiểm tra hộp thư</h2>
+        <p data-en="If that email has an account, a reset link is on its way (check spam too). It works once and expires after 24 hours.">Nếu email đó có tài khoản, một liên kết đặt lại mật khẩu đang được gửi tới (nhớ xem cả thư mục spam). Liên kết dùng được một lần và hết hạn sau 24 giờ.</p>
+        <p><span data-en="Still nothing after a few minutes? You can also message me directly — see the">Vài phút vẫn chưa thấy? Bạn có thể nhắn trực tiếp cho Mìn — xem</span> <a href="about.html#lien-he" data-en="Contact section">phần Liên hệ</a>.</p>
+        <p><a class="btn btn--primary" href="dang-nhap.html" data-en="Back to log in">Về trang đăng nhập</a></p>
       </div>
+      <noscript><p class="notice notice--error" data-en="JavaScript is needed to request a reset link.">Cần bật JavaScript để gửi yêu cầu đặt lại mật khẩu.</p></noscript>
     </div>
   </main>
   <footer class="site-footer">
@@ -73,5 +80,6 @@
     </div>
   </footer>
   <script src="js/ui.js" defer></script>
+  <script src="js/auth.js" defer></script>
 </body>
 </html>

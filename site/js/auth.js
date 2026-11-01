@@ -49,6 +49,20 @@
     });
   }
 
+  // Quên mật khẩu: nhập email, máy chủ tự gửi liên kết nếu email đó có tài khoản (không bao giờ
+  // tiết lộ qua phản hồi liệu email có tồn tại hay không, nên luôn hiện cùng một kết quả).
+  var fgt = document.getElementById('forgot-form');
+  if (fgt) {
+    wire(fgt, function (finish) {
+      M.api('POST', '/api/auth/forgot', { email: fgt.email.value }).then(function (res) {
+        if (!res.ok) { M.show(note, M.msgOf(res), 'error'); finish(); return; }
+        fgt.hidden = true;
+        var done = document.getElementById('forgot-done');
+        if (done) done.hidden = false;
+      });
+    });
+  }
+
   // Đặt mật khẩu mới: mã nằm sau dấu # của liên kết (không gửi lên máy chủ khi mở trang).
   // Không có mã trong liên kết thì hiện ô nhập email và mã khôi phục.
   var rst = document.getElementById('reset-form');
