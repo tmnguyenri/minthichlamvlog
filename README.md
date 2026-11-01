@@ -177,7 +177,7 @@ Tab **Thống kê** trong `/quan-ly` cho chủ trang xem nhanh: tổng lượt x
 
 ### Góc cộng đồng ở trang chủ
 
-Ngay dưới dải ảnh đầu trang chủ (mục `#cong-dong`, trước phần "Nhật ký") là một góc nhỏ **công khai cho mọi khách**, không cần đăng nhập: ai đang online ngay lúc này, và top 5 thành viên hoạt động nhiều nhất. Mỗi người online hiện như một thẻ bo tròn với chữ cái đầu tên làm "ảnh đại diện"; top hoạt động hiện như những con dấu tròn lệch kiểu tem hộ chiếu, đánh số 1-5.
+Ở cuối trang chủ (mục `#cong-dong`, sau phần "Bản đồ", ngay trước chân trang) là một góc nhỏ **công khai cho mọi khách**, không cần đăng nhập: ai đang online ngay lúc này, và top 5 thành viên hoạt động nhiều nhất. Mỗi người online hiện như một thẻ bo tròn với chữ cái đầu tên làm "ảnh đại diện"; top hoạt động hiện như những con dấu tròn lệch kiểu tem hộ chiếu, đánh số 1-5.
 
 - Lấy dữ liệu từ **`/api/community`** — một điểm cuối riêng, khác `/api/admin/stats` của khu quản lý — chỉ trả **tên hiển thị** (và số bài/bình luận cho top hoạt động), không email, không vai trò, không ID: vì đây là điểm công khai, không yêu cầu đăng nhập.
 - Hai hàm `onlineMembers()`/`topActiveMembers()` trong `functions/_lib/stats.js` dùng chung cho cả tab Thống kê (đầy đủ) và góc cộng đồng (rút gọn), để không lặp lại cùng một câu SQL ở hai nơi.

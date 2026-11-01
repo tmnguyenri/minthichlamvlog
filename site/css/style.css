@@ -260,7 +260,7 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.15; letter-spacing: -.0
 
 /* ---------- Chân trang ---------- */
 .site-footer { margin-top: clamp(3rem, 7vw, 5rem); border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
-.band + .site-footer { margin-top: 0; }
+.band + .site-footer, .community + .site-footer { margin-top: 0; }
 .site-footer__inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 2rem; padding-block: 1.5rem; }
 .site-footer p { margin: 0; }
 .footer-nav { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; margin: 0; padding: 0; list-style: none; }
