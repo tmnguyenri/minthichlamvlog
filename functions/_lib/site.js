@@ -4,7 +4,6 @@
 export const SITE_URL = 'https://minthichlamvlog.pages.dev';
 export const SITE_NAME = 'Mìn Thích Làm Vlog';
 export const SITE_DESC = 'Nhật ký du lịch cá nhân: ảnh, vlog và những chuyện kể từ mỗi chuyến đi.';
-export const SOCIALS = ['https://www.youtube.com/@MinThichLamVlog', 'https://www.instagram.com/minthichlamvlog/'];
 export const DEFAULT_IMAGE = '/images/og-cover.jpg';
 
 export const siteUrl = (env) => String(env?.SITE_URL || SITE_URL).replace(/\/+$/, '');

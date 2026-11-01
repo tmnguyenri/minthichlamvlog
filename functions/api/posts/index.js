@@ -8,7 +8,10 @@ export async function onRequestGet({ request, env, data }) {
   const url = new URL(request.url);
   const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '20', 10) || 20, 1), 50);
   const all = url.searchParams.get('all') === '1';
-  if (all && requireAdmin(data)) return requireAdmin(data);
+  if (all) {
+    const denied = requireAdmin(data);
+    if (denied) return denied;
+  }
   // image_id: một ảnh ngẫu nhiên trong các ảnh đã tải lên cho bài (NULL nếu chưa có).
   const cols = `id, slug, title, title_en, excerpt, excerpt_en, country, city, trip_date, days, cover, video, status, published_at, updated_at,
     (SELECT i.id FROM images i WHERE i.post_id = posts.id ORDER BY RANDOM() LIMIT 1) AS image_id,
