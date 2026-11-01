@@ -38,7 +38,7 @@ export function youtubeId(input) {
 
 export const URL_OK = /^(?:https:\/\/[^\s"'<>]+|\/(?!\/)[^\s"'<>]*)$/;
 
-const text = (v, max) => String(v ?? '').replace(/\r\n?/g, '\n').trim().slice(0, max);
+export const text = (v, max) => String(v ?? '').replace(/\r\n?/g, '\n').trim().slice(0, max);
 
 /** Trả về { value } hoặc { error: { code, vi, en } }. */
 export function cleanPost(b) {

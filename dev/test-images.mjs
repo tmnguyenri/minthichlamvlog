@@ -107,6 +107,13 @@ ok(r.cacheControl && r.cacheControl.startsWith('public'), 'ảnh đầu trang ch
 db.raw.prepare("DELETE FROM settings WHERE key = 'hero_photo_1'").run();
 r = await call('GET', `/api/images/${jpegId}`);
 ok(r.status === 404, 'bỏ khỏi thiết lập trang chủ thì ảnh lại không công khai nữa', r.status);
+// Cùng quy tắc với ảnh chân dung ở trang giới thiệu (thiết lập about_photo).
+db.raw.prepare("INSERT INTO settings (key, value, updated_at) VALUES ('about_photo', ?, ?)").run(`/api/images/${jpegId}`, now());
+r = await call('GET', `/api/images/${jpegId}`);
+ok(r.status === 200 && r.type === 'image/jpeg', 'ảnh chân dung trang giới thiệu (chưa gắn bài nào) cũng công khai nếu đang dùng trong thiết lập', r.status);
+db.raw.prepare("DELETE FROM settings WHERE key = 'about_photo'").run();
+r = await call('GET', `/api/images/${jpegId}`);
+ok(r.status === 404, 'bỏ khỏi thiết lập trang giới thiệu thì ảnh lại không công khai nữa', r.status);
 r = await call('GET', '/api/images', { cookie: adminCookie });
 ok(r.status === 200 && r.json.images.length === 3, 'chủ trang thấy danh sách 3 ảnh', JSON.stringify(r.json));
 ok(r.json && r.json.images.every((i) => !('data' in i)), 'danh sách không kèm dữ liệu ảnh');

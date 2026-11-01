@@ -1,11 +1,11 @@
 // Xem và xóa một ảnh. Xem công khai khi ảnh gắn với một bài đã đăng, HOẶC đang được một thiết lập
-// trang chủ dùng (vd. ảnh ở đầu trang, tab "Trang chủ" trong khu quản lý — ảnh này không gắn bài
+// dùng (vd. ảnh ở đầu trang chủ hay ảnh chân dung ở trang giới thiệu — các ảnh này không gắn bài
 // nào nên không có post_status). Ảnh của bài còn là nháp, chưa gắn vào bài nào và chưa dùng ở đâu
 // công khai (mới tải lên, đang soạn) chỉ chủ trang xem được, để không lộ ảnh trước khi đăng.
 // Xóa chỉ dành cho chủ trang.
 import { requireAdmin } from '../../_lib/auth.js';
 import { fail } from '../../_lib/http.js';
-import { HERO_PHOTO_KEYS } from '../../_lib/settings.js';
+import { IMAGE_SETTING_KEYS } from '../../_lib/settings.js';
 
 const notFound = () => fail(404, 'not_found', 'Không tìm thấy ảnh.', 'Image not found.');
 const idOf = (params) => (/^\d{1,12}$/.test(params.id) ? Number(params.id) : null);
@@ -27,14 +27,14 @@ export async function onRequestGet({ params, env, data }) {
   if (!row) return notFound();
   let isPublic = row.post_status === 'published';
   if (!isPublic) {
-    const placeholders = HERO_PHOTO_KEYS.map(() => '?').join(',');
+    const placeholders = IMAGE_SETTING_KEYS.map(() => '?').join(',');
     const used = await env.DB.prepare(
       `SELECT 1 FROM settings WHERE key IN (${placeholders}) AND value = ?`,
-    ).bind(...HERO_PHOTO_KEYS, `/api/images/${id}`).first();
+    ).bind(...IMAGE_SETTING_KEYS, `/api/images/${id}`).first();
     isPublic = !!used;
   }
   // post_status NULL (chưa gắn vào bài nào), khác 'published' (còn là nháp), và chưa được thiết lập
-  // trang chủ nào dùng: chỉ chủ trang xem được.
+  // nào dùng: chỉ chủ trang xem được.
   if (!isPublic && data.user?.role !== 'admin') return notFound();
   const bytes = toBytes(row.data);
   if (!bytes) {

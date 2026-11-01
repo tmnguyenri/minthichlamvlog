@@ -559,6 +559,84 @@ console.log('9f. Thiết lập trang chủ (/api/settings): ảnh ở đầu tra
   ok(!db.raw.prepare('SELECT 1 FROM settings WHERE key = ?').get('hero_photo_1'), 'hàng trong cơ sở dữ liệu bị xóa thật');
 }
 
+console.log('9g. Trang giới thiệu (/api/settings): ảnh, giới thiệu bản thân và liên hệ chỉnh được từ khu quản lý');
+{
+  r = await anon.req('GET', '/api/settings');
+  ok(r.status === 200 && !r.json.settings.about_body && !r.json.about_body_html, 'khách xem được, chưa chỉnh gì thì không có nội dung giới thiệu riêng', JSON.stringify(r.json));
+
+  r = await anon.req('PUT', '/api/settings', { about_email: 'a@b.com' });
+  ok(r.status === 401, 'chưa đăng nhập không sửa được trang giới thiệu');
+
+  const aboutMember = new Client('10.0.9.10');
+  await aboutMember.req('POST', '/api/auth/register', { email: 'gioithieu@example.com', name: 'Người thường', password: PW });
+  const aboutMemberId = (await admin.req('GET', '/api/admin/users')).json.users.find((u) => u.email === 'gioithieu@example.com').id;
+  await admin.req('PATCH', `/api/admin/users/${aboutMemberId}`, { status: 'approved' });
+  await aboutMember.req('POST', '/api/auth/login', { email: 'gioithieu@example.com', password: PW });
+  r = await aboutMember.req('PUT', '/api/settings', { about_email: 'a@b.com' });
+  ok(r.status === 403, 'thành viên thường không sửa được trang giới thiệu');
+
+  r = await admin.req('PUT', '/api/settings', { about_photo: 'javascript:alert(1)' });
+  ok(r.status === 400 && r.json.error === 'bad_value', 'ảnh chân dung không hợp lệ bị từ chối', JSON.stringify(r.json));
+
+  r = await admin.req('PUT', '/api/settings', { about_youtube: 'not-a-link' });
+  ok(r.status === 400 && r.json.error === 'bad_value', 'liên kết YouTube không hợp lệ bị từ chối', JSON.stringify(r.json));
+
+  r = await admin.req('PUT', '/api/settings', { about_instagram: 'ftp://x' });
+  ok(r.status === 400 && r.json.error === 'bad_value', 'liên kết Instagram không hợp lệ bị từ chối', JSON.stringify(r.json));
+
+  r = await admin.req('PUT', '/api/settings', { about_email: 'không-phải-email' });
+  ok(r.status === 400 && r.json.error === 'bad_value', 'email không hợp lệ bị từ chối', JSON.stringify(r.json));
+
+  r = await admin.req('PUT', '/api/settings', {
+    about_photo: '/api/images/42', about_email: 'moi@example.com',
+    about_youtube: 'https://www.youtube.com/@thu', about_instagram: 'https://www.instagram.com/thu/',
+  });
+  ok(r.status === 200 && r.json.settings.about_photo === '/api/images/42' && r.json.settings.about_email === 'moi@example.com'
+    && r.json.settings.about_youtube === 'https://www.youtube.com/@thu' && r.json.settings.about_instagram === 'https://www.instagram.com/thu/',
+    'quản trị đổi được ảnh, email và liên kết mạng xã hội', JSON.stringify(r.json));
+
+  r = await anon.req('GET', '/api/settings');
+  ok(r.json.settings.about_email === 'moi@example.com', 'khách thấy đúng thông tin liên hệ đã đổi');
+
+  // Giới thiệu bản thân: Markdown rút gọn, tự dịch sang tiếng Anh — không có AI trong bản chạy thử
+  // nên bản dịch để trống, giống hệt cách bài viết xử lý khi dịch máy không chạy được (mục 5b).
+  r = await admin.req('PUT', '/api/settings', { about_body: 'Đoạn một.\n\nĐoạn hai.' });
+  ok(r.status === 200 && r.json.settings.about_body === 'Đoạn một.\n\nĐoạn hai.' && !r.json.settings.about_body_en,
+    'lưu được giới thiệu bản thân, chưa có bản tiếng Anh (không có AI trong bản chạy thử)', JSON.stringify(r.json.settings));
+  ok(r.json.about_body_html === renderMarkdown('Đoạn một.\n\nĐoạn hai.'), 'máy chủ dựng sẵn HTML cho giới thiệu bản thân', r.json.about_body_html);
+  ok(!('about_body_en_html' in r.json), 'chưa có bản tiếng Anh thì không có HTML tiếng Anh');
+
+  // Gửi kèm bản tiếng Anh tự viết -> được giữ nguyên.
+  r = await admin.req('PUT', '/api/settings', { about_body: 'Đoạn một.\n\nĐoạn hai.', about_body_en: 'Paragraph one.\n\nParagraph two.' });
+  ok(r.status === 200 && r.json.settings.about_body_en === 'Paragraph one.\n\nParagraph two.', 'bản tiếng Anh gửi kèm được giữ nguyên', JSON.stringify(r.json.settings));
+  ok(r.json.about_body_en_html === renderMarkdown('Paragraph one.\n\nParagraph two.'), 'máy chủ dựng sẵn HTML cho bản tiếng Anh');
+
+  // Lưu lại tiếng Việt y nguyên, không gửi tiếng Anh -> giữ bản tiếng Anh cũ.
+  r = await admin.req('PUT', '/api/settings', { about_body: 'Đoạn một.\n\nĐoạn hai.' });
+  ok(r.status === 200 && r.json.settings.about_body_en === 'Paragraph one.\n\nParagraph two.', 'lưu lại tiếng Việt không đổi thì giữ bản tiếng Anh viết tay', JSON.stringify(r.json.settings));
+
+  // Đổi tiếng Việt mà không gửi tiếng Anh -> mất bản tiếng Anh cũ (không có AI để dịch lại trong bản chạy thử).
+  r = await admin.req('PUT', '/api/settings', { about_body: 'Đoạn một đã sửa.' });
+  ok(r.status === 200 && r.json.settings.about_body === 'Đoạn một đã sửa.' && !r.json.settings.about_body_en,
+    'đổi tiếng Việt thì bản tiếng Anh của phần đã đổi bị bỏ', JSON.stringify(r.json.settings));
+
+  // Chuỗi rỗng xóa cả hai, quay lại chữ mặc định.
+  r = await admin.req('PUT', '/api/settings', { about_body: '' });
+  ok(r.status === 200 && !('about_body' in r.json.settings) && !('about_body_en' in r.json.settings) && !r.json.about_body_html,
+    'chuỗi rỗng xóa giới thiệu bản thân, quay lại chữ mặc định', JSON.stringify(r.json));
+  ok(!db.raw.prepare('SELECT 1 FROM settings WHERE key = ?').get('about_body') && !db.raw.prepare('SELECT 1 FROM settings WHERE key = ?').get('about_body_en'),
+    'hàng trong cơ sở dữ liệu bị xóa thật');
+
+  r = await admin.req('PUT', '/api/settings', { about_email: '', about_youtube: '', about_instagram: '', about_photo: '' });
+  ok(r.status === 200 && !('about_email' in r.json.settings) && !('about_youtube' in r.json.settings)
+    && !('about_instagram' in r.json.settings) && !('about_photo' in r.json.settings),
+    'chuỗi rỗng xóa email/liên kết/ảnh, quay lại mặc định', JSON.stringify(r.json.settings));
+
+  r = await admin.req('PUT', '/api/settings', { about_body: 'x', ignored_key: 'y' });
+  ok(!db.raw.prepare('SELECT 1 FROM settings WHERE key = ?').get('ignored_key'), 'khóa lạ không được lưu vào cơ sở dữ liệu');
+  await admin.req('PUT', '/api/settings', { about_body: '' }); // dọn lại
+}
+
 console.log('10. Hàm tiện ích');
 ok(slugify('Đà Lạt mộng mơ!') === 'da-lat-mong-mo', 'slugify tiếng Việt');
 ok(youtubeId('dQw4w9WgXcQ') === 'dQw4w9WgXcQ' && youtubeId('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=5') === 'dQw4w9WgXcQ' && youtubeId('https://youtube.com/shorts/dQw4w9WgXcQ') === 'dQw4w9WgXcQ' && youtubeId('') === '' && youtubeId('nope') === null && youtubeId('https://evil.com/watch?v=dQw4w9WgXcQ') === null, 'youtubeId');

@@ -4,7 +4,7 @@
   var M = window.MTLV, h = M.h, tx = M.tx, t = M.t;
   var panel = document.getElementById('admin-root');
   var note = document.getElementById('admin-msg');
-  var tabs = { posts: document.getElementById('tab-posts'), home: document.getElementById('tab-home'), media: document.getElementById('tab-media'), users: document.getElementById('tab-users'), stats: document.getElementById('tab-stats') };
+  var tabs = { posts: document.getElementById('tab-posts'), home: document.getElementById('tab-home'), about: document.getElementById('tab-about'), media: document.getElementById('tab-media'), users: document.getElementById('tab-users'), stats: document.getElementById('tab-stats') };
   var tabBtns = document.querySelectorAll('[data-tab]');
 
   function slugify(s) {
@@ -271,16 +271,23 @@
     });
   }
 
-  // ------------------------------------------------------------ Ảnh ở đầu trang chủ
-  // Ba ảnh xếp chồng trong khối .stack ở đầu trang chủ (xem site/css/style.css). Chưa chỉnh gì thì
-  // trang chủ dùng ảnh mặc định có sẵn trong HTML (fallback dưới đây), không gọi /api/settings đổi gì.
+  // ------------------------------------------------------------ Trang chủ & trang giới thiệu
+  // Cả hai tab lưu vào cùng bảng thiết lập (xem _lib/settings.js), nên dùng chung một lần gọi
+  // GET /api/settings và nạp lại cả hai sau mỗi lần sửa, đơn giản hơn là theo dõi tab nào đang mở.
+
+  // Ba ảnh xếp chồng trong khối .stack ở đầu trang chủ (xem site/css/style.css).
   var HERO_SLOTS = [
     { key: 'hero_photo_1', label: 'Ảnh thứ nhất (to nhất, bên trái)', labelEn: 'First photo (largest, on the left)', fallback: '/images/min.jpg' },
     { key: 'hero_photo_2', label: 'Ảnh thứ hai (trên, bên phải)', labelEn: 'Second photo (top right)', fallback: '/images/scene-dalat-wide.svg' },
     { key: 'hero_photo_3', label: 'Ảnh thứ ba (dưới, bên phải)', labelEn: 'Third photo (bottom right)', fallback: '/images/scene-kyoto-wide.svg' },
   ];
+  // Ảnh chân dung ở trang giới thiệu.
+  var ABOUT_PHOTO_SLOTS = [
+    { key: 'about_photo', label: 'Ảnh chân dung', labelEn: 'Portrait photo', fallback: '/images/min.jpg' },
+  ];
 
-  function uploadHeroPhoto(slot, file, status) {
+  // Chưa chỉnh gì thì trang dùng nội dung mặc định có sẵn trong HTML, không gọi /api/settings đổi gì.
+  function uploadPhotoSlot(slot, file, status) {
     status.textContent = t('Đang tải lên…', 'Uploading…');
     status.hidden = false;
     return window.mtlvPhoto.compress(file).then(function (blob) {
@@ -292,54 +299,92 @@
       var body = {}; body[slot.key] = res.json.url;
       return M.api('PUT', '/api/settings', body).then(function (r2) {
         if (!r2.ok) { status.textContent = M.msgOf(r2); return; }
-        say(t('Đã cập nhật ảnh trang chủ.', 'Homepage photo updated.'), 'success');
-        loadHeroPhotos();
+        say(t('Đã cập nhật ảnh.', 'Photo updated.'), 'success');
+        loadSettingsPanel();
       });
     }).catch(function () { status.textContent = t('Tải ảnh lỗi.', 'Upload failed.'); });
   }
 
-  function revertHeroPhoto(slot) {
+  function revertPhotoSlot(slot) {
     var body = {}; body[slot.key] = '';
     M.api('PUT', '/api/settings', body).then(function (res) {
       if (!res.ok) { say(M.msgOf(res), 'error'); return; }
       say(t('Đã quay lại ảnh mặc định.', 'Reverted to the default photo.'), 'success');
-      loadHeroPhotos();
+      loadSettingsPanel();
     });
   }
 
-  function renderHeroPhotos(settings) {
-    var list = document.getElementById('hero-photos');
-    clear(list);
-    HERO_SLOTS.forEach(function (slot) {
-      var custom = settings[slot.key];
-      var fileId = 'hero-file-' + slot.key;
-      var status = h('p', { class: 'muted', role: 'status', hidden: true });
-      var file = h('input', { id: fileId, type: 'file', accept: 'image/jpeg,image/png,image/webp' });
-      var revert = tx('button', 'Dùng ảnh mặc định', 'Use the default photo', { type: 'button', class: 'btn btn--ghost btn--xs' });
-      if (!custom) revert.disabled = true;
-      revert.addEventListener('click', function () { revertHeroPhoto(slot); });
-      file.addEventListener('change', function () {
-        var f = file.files && file.files[0];
-        file.value = '';
-        if (f) uploadHeroPhoto(slot, f, status);
-      });
-      list.appendChild(h('li', { class: 'media-card' },
-        h('img', { src: custom || slot.fallback, alt: '', width: 240, height: 180, loading: 'lazy' }),
-        h('div', { class: 'media-card__body' },
-          tx('p', slot.label, slot.labelEn, { class: 'media-card__caption' }),
-          custom ? tx('span', 'Ảnh riêng', 'Custom photo', { class: 'media-card__post' })
-            : tx('span', 'Ảnh mặc định', 'Default photo', { class: 'media-card__post media-card__post--none' }),
-          h('div', { class: 'field' }, tx('label', 'Đổi ảnh', 'Change photo', { for: fileId }), file),
-          status,
-          h('div', { class: 'media-card__actions' }, revert))));
+  function photoSlotCard(slot, custom) {
+    var fileId = 'photo-file-' + slot.key;
+    var status = h('p', { class: 'muted', role: 'status', hidden: true });
+    var file = h('input', { id: fileId, type: 'file', accept: 'image/jpeg,image/png,image/webp' });
+    var revert = tx('button', 'Dùng ảnh mặc định', 'Use the default photo', { type: 'button', class: 'btn btn--ghost btn--xs' });
+    if (!custom) revert.disabled = true;
+    revert.addEventListener('click', function () { revertPhotoSlot(slot); });
+    file.addEventListener('change', function () {
+      var f = file.files && file.files[0];
+      file.value = '';
+      if (f) uploadPhotoSlot(slot, f, status);
     });
-    M.refresh();
+    return h('li', { class: 'media-card' },
+      h('img', { src: custom || slot.fallback, alt: '', width: 240, height: 180, loading: 'lazy' }),
+      h('div', { class: 'media-card__body' },
+        tx('p', slot.label, slot.labelEn, { class: 'media-card__caption' }),
+        custom ? tx('span', 'Ảnh riêng', 'Custom photo', { class: 'media-card__post' })
+          : tx('span', 'Ảnh mặc định', 'Default photo', { class: 'media-card__post media-card__post--none' }),
+        h('div', { class: 'field' }, tx('label', 'Đổi ảnh', 'Change photo', { for: fileId }), file),
+        status,
+        h('div', { class: 'media-card__actions' }, revert)));
   }
 
-  function loadHeroPhotos() {
+  function renderPhotoSlots(listEl, slots, settings) {
+    clear(listEl);
+    slots.forEach(function (slot) { listEl.appendChild(photoSlotCard(slot, settings[slot.key])); });
+  }
+
+  // ------------------------------------------------------------ Trang giới thiệu: chữ và liên kết
+  var aboutForm = document.getElementById('about-form');
+
+  function fillAboutForm(settings) {
+    var f = aboutForm.elements;
+    f.about_body.value = settings.about_body || '';
+    f.about_email.value = settings.about_email || '';
+    f.about_youtube.value = settings.about_youtube || '';
+    f.about_instagram.value = settings.about_instagram || '';
+  }
+
+  aboutForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = aboutForm.elements, btn = aboutForm.querySelector('button[type=submit]');
+    var body = {
+      about_body: f.about_body.value, about_email: f.about_email.value,
+      about_youtube: f.about_youtube.value, about_instagram: f.about_instagram.value,
+    };
+    btn.disabled = true;
+    M.api('PUT', '/api/settings', body).then(function (res) {
+      btn.disabled = false;
+      if (!res.ok) { say(M.msgOf(res), 'error'); return; }
+      say(t('Đã lưu trang giới thiệu.', 'About page saved.'), 'success');
+      fillAboutForm(res.json.settings || {});
+    });
+  });
+
+  document.getElementById('about-revert').addEventListener('click', function () {
+    M.api('PUT', '/api/settings', { about_body: '', about_email: '', about_youtube: '', about_instagram: '' }).then(function (res) {
+      if (!res.ok) { say(M.msgOf(res), 'error'); return; }
+      say(t('Đã quay lại chữ mặc định.', 'Reverted to the default text.'), 'success');
+      fillAboutForm(res.json.settings || {});
+    });
+  });
+
+  function loadSettingsPanel() {
     return M.api('GET', '/api/settings').then(function (res) {
       if (!res.ok) { say(M.msgOf(res), 'error'); return; }
-      renderHeroPhotos(res.json.settings || {});
+      var settings = res.json.settings || {};
+      renderPhotoSlots(document.getElementById('hero-photos'), HERO_SLOTS, settings);
+      renderPhotoSlots(document.getElementById('about-photo'), ABOUT_PHOTO_SLOTS, settings);
+      fillAboutForm(settings);
+      M.refresh();
     });
   }
 
@@ -445,7 +490,7 @@
     Object.keys(tabs).forEach(function (k) { tabs[k].hidden = k !== name; });
     tabBtns.forEach(function (b) { b.setAttribute('aria-selected', String(b.getAttribute('data-tab') === name)); });
     say('');
-    if (name === 'home') loadHeroPhotos();
+    if (name === 'home' || name === 'about') loadSettingsPanel();
     if (name === 'media') loadMedia();
     if (name === 'stats') loadStats();
   }

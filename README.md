@@ -189,9 +189,20 @@ Tab **Thống kê** trong `/quan-ly` cho chủ trang xem nhanh: tổng lượt x
 Ba tấm ảnh xếp chồng nghiêng ở đầu trang chủ (lớp CSS `.stack`) đổi được ngay từ tab **Trang chủ** trong `/quan-ly`, không cần sửa mã nguồn: chọn một ảnh mới cho từng vị trí (to nhất/bên trái, trên/bên phải, dưới/bên phải), hoặc bấm "Dùng ảnh mặc định" để quay lại ảnh có sẵn (`site/images/min.jpg`, `scene-dalat-wide.svg`, `scene-kyoto-wide.svg`). Ảnh tải lên được nén nhỏ lại ngay trên trình duyệt trước khi gửi, giống cách nén ảnh bìa bài viết.
 
 - Lưu trong bảng **`settings`** dạng khóa/giá trị (`hero_photo_1`, `hero_photo_2`, `hero_photo_3`) — thiếu khóa nào thì dùng ảnh mặc định có sẵn trong HTML cho vị trí đó. Đọc công khai qua **`GET /api/settings`**, ghi (chỉ chủ trang) qua **`PUT /api/settings`**.
-- Ảnh tải lên lưu trong cùng bảng `images` như ảnh bài viết, nhưng không gắn vào bài nào (`post_id` rỗng) — đúng khái niệm ảnh "thư viện" đã có ở tab **Ảnh**. Vì vậy `functions/api/images/[id].js` xem một ảnh là công khai khi nó gắn với bài đã đăng **hoặc** đang được một thiết lập trang chủ dùng tới.
+- Ảnh tải lên lưu trong cùng bảng `images` như ảnh bài viết, nhưng không gắn vào bài nào (`post_id` rỗng) — đúng khái niệm ảnh "thư viện" đã có ở tab **Ảnh**. Vì vậy `functions/api/images/[id].js` xem một ảnh là công khai khi nó gắn với bài đã đăng **hoặc** đang được một thiết lập (trang chủ hoặc trang giới thiệu, xem mục dưới) dùng tới.
 - Trang chủ (`site/js/hero-settings.js`) gọi `/api/settings` một lần khi tải trang; nếu chủ trang chưa đổi gì thì giữ nguyên ảnh có sẵn trong HTML, không gọi thêm.
 - **Kiểm thử:** mục 9f của `dev/test-api.mjs` (đọc/ghi thiết lập, phân quyền, dữ liệu không hợp lệ, tự nâng cấp cơ sở dữ liệu cũ) và mục 3 của `dev/test-images.mjs` (ảnh không gắn bài nào vẫn công khai khi đang dùng ở thiết lập trang chủ, hết công khai khi bỏ dùng).
+
+## Trang giới thiệu
+
+Nội dung trang Giới thiệu (`/about`) — ảnh chân dung, phần giới thiệu bản thân và các liên kết liên hệ — đổi được ngay từ tab **Giới thiệu** trong `/quan-ly`, không cần sửa mã nguồn: ảnh đổi ngay khi chọn tệp mới (giống hệt ảnh trang chủ ở trên); phần chữ (giới thiệu bản thân, email, liên kết YouTube/Instagram) gộp vào một biểu mẫu có nút **Lưu** riêng, và nút **"Dùng chữ mặc định"** quay lại chữ có sẵn trong trang cho cả bốn ô cùng lúc (ảnh có nút quay lại mặc định riêng).
+
+- Cùng cơ chế thiết lập khóa/giá trị như ảnh trang chủ: `about_photo`, `about_body`, `about_body_en`, `about_email`, `about_youtube`, `about_instagram` (xem `functions/_lib/settings.js`). Thiếu khóa nào thì trang dùng đúng nội dung đã viết sẵn trong `site/about.html`.
+- **Giới thiệu bản thân** viết bằng Markdown rút gọn giống nội dung bài viết (cùng bộ định dạng `functions/_lib/md.js`: `##` tiêu đề, `**đậm**`, liên kết, trích dẫn, gạch đầu dòng) và **tự dịch sang tiếng Anh** bằng cơ chế y hệt bài viết (`functions/_lib/translate.js`): bản dịch chỉ làm lại khi tiếng Việt thay đổi, gửi kèm bản tiếng Anh tự viết thì giữ nguyên như đã gửi. `GET /api/settings` trả kèm `about_body_html`/`about_body_en_html` đã dựng sẵn (an toàn, qua `renderMarkdown`) để `site/js/about-settings.js` chèn thẳng vào trang bằng `innerHTML` mà không cần dựng Markdown ở trình duyệt.
+- Có bản tiếng Anh thì trang hiện hai khối `data-only="vi"`/`data-only="en"` (giống cách trang một bài viết làm, CSS ẩn/hiện theo `html[data-lang]`); chưa có bản tiếng Anh thì chỉ một khối tiếng Việt, hiện luôn dù đang xem bản tiếng Anh — giống hệt cách bài viết xử lý khi chưa dịch.
+- Email và hai liên kết mạng xã hội chỉ đổi phần `href`/chữ hiển thị của các liên kết có sẵn (`#about-email-link`, `#about-youtube-link`, `#about-instagram-link`); phần chữ tĩnh xung quanh ("Gửi thư cho mình tại", "Hoặc theo dõi mình...") không đổi.
+- Thẻ mô tả SEO và dữ liệu có cấu trúc (`<meta>`, JSON-LD) của trang không tự cập nhật theo nội dung đã chỉnh — vẫn giữ bản mặc định viết trong HTML; muốn đổi thì sửa trực tiếp trong `site/about.html`.
+- **Kiểm thử:** mục 9g của `dev/test-api.mjs` (đọc/ghi từng loại thiết lập, phân quyền, dữ liệu không hợp lệ, cơ chế dịch/giữ bản tiếng Anh) và mục 3 của `dev/test-images.mjs` (ảnh chân dung công khai/riêng tư đúng theo có đang dùng trong thiết lập hay không).
 
 ## Bảo mật
 

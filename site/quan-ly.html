@@ -53,6 +53,7 @@
         <div class="tabs" role="tablist">
           <button type="button" role="tab" class="tab" data-tab="posts" aria-selected="true"><span data-en="Posts">Bài viết</span></button>
           <button type="button" role="tab" class="tab" data-tab="home" aria-selected="false"><span data-en="Homepage">Trang chủ</span></button>
+          <button type="button" role="tab" class="tab" data-tab="about" aria-selected="false"><span data-en="About page">Giới thiệu</span></button>
           <button type="button" role="tab" class="tab" data-tab="users" aria-selected="false"><span data-en="Members">Thành viên</span><span id="pending-count" class="count" hidden></span></button>
           <button type="button" role="tab" class="tab" data-tab="media" aria-selected="false"><span data-en="Photos">Ảnh</span></button>
           <button type="button" role="tab" class="tab" data-tab="stats" aria-selected="false"><span data-en="Stats">Thống kê</span></button>
@@ -155,6 +156,48 @@
           <div class="admin__head"><h2 data-en="Homepage photos">Ảnh ở đầu trang chủ</h2></div>
           <p class="muted" data-en="The three stacked photos at the top of the homepage. Upload a new photo for each spot, or use the default photo again.">Ba tấm ảnh xếp chồng ở đầu trang chủ. Tải ảnh mới cho từng vị trí, hoặc dùng lại ảnh mặc định.</p>
           <ul id="hero-photos" class="media-grid"></ul>
+        </section>
+
+        <section id="tab-about" hidden>
+          <div class="admin__head"><h2 data-en="About page">Trang giới thiệu</h2></div>
+          <p class="muted" data-en="Content shown on the About page: portrait photo, bio and contact links. Leave a field empty to use the default text already written into the page.">Nội dung hiện ở trang Giới thiệu: ảnh chân dung, phần giới thiệu bản thân và các liên kết liên hệ. Để trống một ô để dùng lại chữ mặc định có sẵn trong trang.</p>
+          <div class="field">
+            <label data-en="Portrait photo">Ảnh chân dung</label>
+            <ul id="about-photo" class="media-grid"></ul>
+          </div>
+          <form id="about-form" class="form form--wide" novalidate>
+            <div class="field">
+              <label for="ab-body" data-en="About text">Giới thiệu bản thân</label>
+              <textarea id="ab-body" name="about_body" rows="12" maxlength="8000" placeholder="Để trống để dùng chữ mặc định có sẵn trong trang."></textarea>
+              <p class="hint" data-en="Written in Vietnamese, translated to English automatically. The translation is redone whenever this text changes.">Viết bằng tiếng Việt, tự dịch sang tiếng Anh. Bản dịch được làm lại mỗi khi chữ này thay đổi.</p>
+            </div>
+            <details class="help">
+              <summary data-en="Formatting help">Cách định dạng</summary>
+              <ul>
+                <li><code>## Tiêu đề lớn</code> <span data-en="heading">tiêu đề</span></li>
+                <li><code>**đậm**</code> · <code>*nghiêng*</code></li>
+                <li><code>[chữ hiển thị](https://liên-kết)</code></li>
+                <li><code>&gt; trích dẫn</code> · <code>- gạch đầu dòng</code></li>
+                <li data-en="Leave a blank line between paragraphs.">Cách một dòng trống giữa các đoạn.</li>
+              </ul>
+            </details>
+            <div class="field">
+              <label for="ab-email" data-en="Contact email">Email liên hệ</label>
+              <input id="ab-email" name="about_email" type="email" maxlength="254" placeholder="minthichlamvlog@gmail.com">
+            </div>
+            <div class="field">
+              <label for="ab-youtube" data-en="YouTube channel link">Liên kết kênh YouTube</label>
+              <input id="ab-youtube" name="about_youtube" type="text" maxlength="500" placeholder="https://www.youtube.com/@...">
+            </div>
+            <div class="field">
+              <label for="ab-instagram" data-en="Instagram link">Liên kết Instagram</label>
+              <input id="ab-instagram" name="about_instagram" type="text" maxlength="500" placeholder="https://www.instagram.com/...">
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn--primary" data-en="Save">Lưu</button>
+              <button type="button" id="about-revert" class="btn btn--ghost" data-en="Use the default text">Dùng chữ mặc định</button>
+            </div>
+          </form>
         </section>
 
         <section id="tab-media" hidden>
