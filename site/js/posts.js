@@ -70,13 +70,20 @@
     return ids.slice(0, 10).map(function (id) { return '/api/images/' + id; });
   }
 
+  function flagPill(p) {
+    var f = flagOf(p.country);
+    if (!f && !p.country) return null;
+    return h('span', { class: 'tl-card__flag' }, f ? flagImg(f[0]) : null, countryEl(p.country, p.city));
+  }
+
   function timelineCard(p) {
     var srcs = photoIds(p);
     if (!srcs.length) srcs = [M.postImage(p) || '/images/cover-default.svg'];
     return h('article', { class: 'tl-card' },
-      h('div', { class: 'tl-card__body' }, meta(p, true),
+      h('div', { class: 'tl-card__body' }, flagPill(p), meta(p, false),
         h('h3', { class: 'card-title' }, titleLink(p)),
-        p.excerpt ? en(h('p', { class: 'card__text', text: p.excerpt }), p.excerpt_en) : null),
+        p.excerpt ? en(h('p', { class: 'card__text', text: p.excerpt }), p.excerpt_en) : null,
+        en(h('a', { class: 'card-foot', href: link(p), text: 'Đọc tiếp' }), 'Continue reading')),
       h('a', { class: 'tl-card__photos', href: link(p), tabindex: '-1', 'aria-hidden': 'true' },
         srcs.map(function (src) { return h('img', { src: src, alt: '', width: 240, height: 240, loading: 'lazy' }); })));
   }
@@ -115,11 +122,21 @@
         ? h('span', { class: 'country__cities', text: g.cities.slice(0, MAX_CITIES).join(', ') + (more > 0 ? ' +' + more : '') })
         : null;
       return h('a', { class: 'country', href: link(g.posts[0]) },
-        f ? flagImg(f[0]) : null,
+        f ? h('span', { class: 'atlas-flag' }, flagImg(f[0])) : null,
         h('span', {}, en(h('span', { class: 'country__name', text: g.name }), f && f[1]),
           en(h('span', { class: 'country__count', text: n + ' bài viết' }), n + (n === 1 ? ' post' : ' posts')),
           cities));
     });
+  }
+
+  // Bài mới nhất được tách riêng thành banner "nổi bật" ở đầu mục Nhật ký (khung #featured-post
+  // trong index.html); các bài còn lại xếp vào dòng thời gian như trước.
+  function featured(p) {
+    return h('a', { class: 'featured', href: link(p) },
+      h('img', { src: M.postImage(p) || '/images/cover-default.svg', alt: '' }),
+      h('div', { class: 'featured__inner' }, meta(p, true),
+        en(h('h3', { class: 'featured__title', text: p.title }), p.title_en),
+        p.excerpt ? en(h('p', { class: 'featured__text', text: p.excerpt }), p.excerpt_en) : null));
   }
 
   // Cho js/slider.js dùng lại các hàm dựng cờ, tên nước và liên kết bài.
@@ -133,10 +150,13 @@
       var posts = (d && d.posts) || [];
       if (!posts.length) return;
 
+      var slot = document.getElementById('featured-post');
+      if (slot) replaceChildren(slot, [featured(posts[0])]);
+
       var cards = document.querySelector('#nhat-ky .cards');
       if (cards) {
         cards.classList.add('is-timeline');
-        replaceChildren(cards, timeline(posts.slice(0, 12)));
+        replaceChildren(cards, timeline(posts.slice(1, 13)));
       }
 
       var places = document.querySelector('#ban-do .atlas');
