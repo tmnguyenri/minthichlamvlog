@@ -47,7 +47,7 @@ Trang luôn được viết sẵn bằng tiếng Việt trong HTML, và đó cũ
 - Dòng nào không có `data-en` sẽ giữ nguyên tiếng Việt khi người xem chọn EN. Bài viết chỉ có tiếng Việt vẫn chạy bình thường.
 - `data-en` chỉ chứa chữ thuần, và phần tử đó không được chứa thẻ con.
 - Còn bốn thuộc tính tương tự cho phần không phải chữ hiển thị: `data-en-alt` (mô tả ảnh), `data-en-aria-label`, `data-en-title` và `data-en-content` (thẻ `<meta>`).
-- Lựa chọn của người xem được nhớ trong trình duyệt. Có thể gửi liên kết ép ngôn ngữ, ví dụ `https://minthichlamvlog.pages.dev/?lang=en`.
+- Lựa chọn của người xem được nhớ trong trình duyệt. Có thể gửi liên kết ép ngôn ngữ, ví dụ `https://minthichlamvlog.com/?lang=en`.
 - Nếu người xem tắt JavaScript, trang vẫn đọc được bằng tiếng Việt và nút chuyển ngôn ngữ tự ẩn đi.
 
 ## Thêm một bài viết mới
@@ -231,7 +231,7 @@ Máy chủ Cloudflare Pages **chưa tự gửi được email tới người l�
 Để bật gửi email thật:
 
 1. Tạo tài khoản tại [resend.com](https://resend.com) (miễn phí).
-2. Vào **Domains**, thêm một tên miền bạn có toàn quyền chỉnh DNS (không nhất thiết là tên miền của trang này — `minthichlamvlog.pages.dev` do Cloudflare cấp, bạn không chỉnh DNS được nên không dùng để xác minh ở đây), rồi thêm các bản ghi DNS (SPF/DKIM) Resend đưa ra và chờ xác minh xong (thường vài phút tới vài giờ).
+2. Vào **Domains**, thêm một tên miền bạn có toàn quyền chỉnh DNS (không nhất thiết là tên miền của trang này — `minthichlamvlog.pages.dev` do Cloudflare cấp, bạn không chỉnh DNS được nên không dùng để xác minh ở đây), rồi thêm các bản ghi DNS (SPF/DKIM) Resend đưa ra và chờ xác minh xong (thường vài phút tới vài giờ). Trang này đã dùng `minthichlamvlog.com` (mua qua Cloudflare Registrar, DNS cũng nằm ở Cloudflare) và đã xác minh xong.
 3. Tạo một **API key** trong Resend.
 4. Trong Cloudflare Pages: **Settings → Environment variables**, thêm:
    - `RESEND_API_KEY` — dán API key, **chọn kiểu Secret** (không hiện lại chữ, không nằm trong `wrangler.jsonc`).
@@ -253,7 +253,7 @@ Trang đã có sẵn những thứ công cụ tìm kiếm và mạng xã hội c
 
 **Xác minh quyền sở hữu** (Google Search Console, Bing Webmaster Tools): dán thẻ `<meta name="google-site-verification" ...>` hoặc `<meta name="msvalidate.01" ...>` vào `<head>` của `site/index.html`, hoặc đặt tệp xác minh họ đưa (ví dụ `googleXXXX.html`, `BingSiteAuth.xml`) vào thư mục `site/`.
 
-**Đổi sang tên miền riêng:** đặt biến `SITE_URL` trong `wrangler.jsonc` (cho sitemap, RSS, bài viết), rồi thay chuỗi `https://minthichlamvlog.pages.dev` trong `site/index.html`, `site/about.html`, `site/rieng-tu.html` và `site/robots.txt`, và đổi `host` tương ứng khi khai báo IndexNow.
+**Tên miền riêng:** trang đã chuyển sang `https://minthichlamvlog.com` — hằng số `SITE_URL` trong `functions/_lib/site.js` và các chuỗi địa chỉ trong `site/index.html`, `site/about.html`, `site/rieng-tu.html`, `site/robots.txt` đều đã trỏ sang tên miền này (`minthichlamvlog.pages.dev` của Cloudflare vẫn còn hoạt động song song, nhưng sitemap/RSS/thẻ chia sẻ/IndexNow đều dùng tên miền riêng). Nếu sau này đổi sang tên miền khác: sửa `SITE_URL` (hoặc đặt biến môi trường `SITE_URL` trong Cloudflare Pages để ghi đè mà không cần sửa code), rồi thay chuỗi địa chỉ cũ trong 4 tệp tĩnh kể trên — `host` khai báo với IndexNow tự theo `SITE_URL`, không cần sửa riêng.
 
 ## Font chữ
 

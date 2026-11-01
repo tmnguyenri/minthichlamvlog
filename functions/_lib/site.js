@@ -1,7 +1,7 @@
 // Thông tin chung của trang, dùng cho sitemap, RSS, thẻ chia sẻ và dữ liệu có cấu trúc.
 // Đổi tên miền: đặt biến SITE_URL trong wrangler.jsonc (hoặc sửa hằng số bên dưới), và đổi chuỗi
-// https://minthichlamvlog.pages.dev trong các tệp site/*.html, site/robots.txt.
-export const SITE_URL = 'https://minthichlamvlog.pages.dev';
+// https://minthichlamvlog.com trong các tệp site/*.html, site/robots.txt.
+export const SITE_URL = 'https://minthichlamvlog.com';
 export const SITE_NAME = 'Mìn Thích Làm Vlog';
 export const SITE_DESC = 'Nhật ký du lịch cá nhân: ảnh, vlog và những chuyện kể từ mỗi chuyến đi.';
 export const DEFAULT_IMAGE = '/images/og-cover.jpg';

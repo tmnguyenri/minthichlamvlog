@@ -230,7 +230,7 @@ ok(db.raw.prepare('SELECT COUNT(*) c FROM comments WHERE post_id = ?').get(postI
 
 console.log('9b. SEO: robots, sitemap, RSS, thẻ chia sẻ, IndexNow');
 {
-  const BASE = 'https://minthichlamvlog.pages.dev';
+  const BASE = 'https://minthichlamvlog.com';
   r = await anon.req('GET', '/robots.txt');
   ok(r.status === 200 && /^User-agent: \*/m.test(r.text) && r.text.includes(`Sitemap: ${BASE}/sitemap.xml`), 'robots.txt có sitemap');
   ok(!/^Disallow:\s*\/\s*$/m.test(r.text), 'robots.txt không chặn cả trang');
@@ -307,7 +307,7 @@ console.log('9b. SEO: robots, sitemap, RSS, thẻ chia sẻ, IndexNow');
     notifyIndexNow({ env: { INDEXNOW_KEY: key }, waitUntil: () => { waited++; } }, ['/bai/a', '/']);
     ok(sent.length === 1 && sent[0].u === 'https://api.indexnow.org/indexnow' && waited === 1, 'có khóa thì gửi một yêu cầu và giao cho waitUntil');
     const body = JSON.parse(sent[0]?.o?.body || '{}');
-    ok(body.host === 'minthichlamvlog.pages.dev' && body.key === key && body.keyLocation === `${BASE}/${key}.txt` && body.urlList?.join() === `${BASE}/bai/a,${BASE}/`, 'gói tin IndexNow đúng host, khóa, vị trí khóa và danh sách địa chỉ', JSON.stringify(body));
+    ok(body.host === 'minthichlamvlog.com' && body.key === key && body.keyLocation === `${BASE}/${key}.txt` && body.urlList?.join() === `${BASE}/bai/a,${BASE}/`, 'gói tin IndexNow đúng host, khóa, vị trí khóa và danh sách địa chỉ', JSON.stringify(body));
   } finally { globalThis.fetch = realFetch; }
 
   // dọn để không ảnh hưởng các mục sau

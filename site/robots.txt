@@ -4,4 +4,4 @@ Allow: /
 Disallow: /api/auth/
 Disallow: /api/admin/
 
-Sitemap: https://minthichlamvlog.pages.dev/sitemap.xml
+Sitemap: https://minthichlamvlog.com/sitemap.xml

@@ -5,7 +5,7 @@ import { SITE_NAME, jsonLd as ldJson } from './site.js';
 const attr = (vi, en) => (en ? ` data-en="${esc(en)}"` : '');
 
 // seo (không bắt buộc): { base, path, image, robots, jsonLd, published, modified }
-//   base    địa chỉ gốc của trang, ví dụ https://minthichlamvlog.pages.dev
+//   base    địa chỉ gốc của trang, ví dụ https://minthichlamvlog.com
 //   path    đường dẫn chuẩn của trang này, ví dụ /bai/kyoto
 //   image   địa chỉ đầy đủ của ảnh khi chia sẻ
 //   robots  ví dụ 'noindex' cho bản nháp và trang không tìm thấy
