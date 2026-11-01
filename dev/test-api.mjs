@@ -477,7 +477,8 @@ console.log('9d. Thống kê: đang online, hoạt động nhiều nhất, lư�
   let oldSchema2 = fs.readFileSync(path.join(root, 'db/schema.sql'), 'utf8');
   oldSchema2 = oldSchema2.replace(/^\s*last_seen_at\s+INTEGER.*\n/m, '').replace(/,(\s*\n\);)/, '$1');
   oldSchema2 = oldSchema2.replace(/CREATE TABLE IF NOT EXISTS page_views[\s\S]*?\);\n/, '').replace(/CREATE INDEX IF NOT EXISTS idx_page_views[^\n]*\n/g, '');
-  ok(!/last_seen_at/.test(oldSchema2) && !/page_views/.test(oldSchema2), 'giả lập: cơ sở dữ liệu cũ chưa có cột/bảng mới');
+  oldSchema2 = oldSchema2.replace(/CREATE TABLE IF NOT EXISTS settings[\s\S]*?\);\n/, '');
+  ok(!/last_seen_at/.test(oldSchema2) && !/page_views/.test(oldSchema2) && !/CREATE TABLE IF NOT EXISTS settings/.test(oldSchema2), 'giả lập: cơ sở dữ liệu cũ chưa có cột/bảng mới');
   const oldDb2 = createD1();
   oldDb2.exec(oldSchema2);
   const INVITE2 = 'ma-moi-cu-456';
@@ -495,6 +496,9 @@ console.log('9d. Thống kê: đang online, hoạt động nhiều nhất, lư�
   ok(statsRes.status === 200, 'tab Thống kê vẫn chạy được trên cơ sở dữ liệu cũ nhờ tự nâng cấp', await statsRes.text());
   ok(oldDb2.raw.prepare('PRAGMA table_info(users)').all().some((c) => c.name === 'last_seen_at'), 'cột last_seen_at được tự thêm');
   ok(!!oldDb2.raw.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='page_views'").get(), 'bảng page_views được tự tạo');
+  const settingsRes = await fetch(u2b + '/api/settings');
+  ok(settingsRes.status === 200, 'tab Trang chủ vẫn chạy được trên cơ sở dữ liệu cũ nhờ tự nâng cấp', await settingsRes.text());
+  ok(!!oldDb2.raw.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='settings'").get(), 'bảng settings được tự tạo');
   s2b.close();
   resetSchemaCheck();
 }
@@ -520,6 +524,39 @@ console.log('9e. Góc cộng đồng công khai ở trang chủ (/api/community)
 
   // Thành viên bị chặn (An Nguyễn, anId) không hiện trong góc cộng đồng dù có hoạt động cũ.
   ok(!c.online.some((u) => u.display_name === 'An Nguyễn'), 'thành viên bị chặn không hiện trong danh sách đang online công khai');
+}
+
+console.log('9f. Thiết lập trang chủ (/api/settings): ảnh ở đầu trang chủ chỉnh được từ khu quản lý');
+{
+  r = await anon.req('GET', '/api/settings');
+  ok(r.status === 200 && JSON.stringify(r.json.settings) === '{}', 'khách xem được, chưa chỉnh gì thì rỗng', JSON.stringify(r.json));
+
+  r = await anon.req('PUT', '/api/settings', { hero_photo_1: '/images/x.jpg' });
+  ok(r.status === 401, 'chưa đăng nhập không sửa được');
+
+  const setter = new Client('10.0.9.9');
+  await setter.req('POST', '/api/auth/register', { email: 'trangchu@example.com', name: 'Người thường', password: PW });
+  const setterId = (await admin.req('GET', '/api/admin/users')).json.users.find((u) => u.email === 'trangchu@example.com').id;
+  await admin.req('PATCH', `/api/admin/users/${setterId}`, { status: 'approved' });
+  await setter.req('POST', '/api/auth/login', { email: 'trangchu@example.com', password: PW });
+  r = await setter.req('PUT', '/api/settings', { hero_photo_1: '/images/x.jpg' });
+  ok(r.status === 403, 'thành viên thường không sửa được ảnh trang chủ');
+
+  r = await admin.req('PUT', '/api/settings', { hero_photo_2: 'javascript:alert(1)' });
+  ok(r.status === 400 && r.json.error === 'bad_value', 'giá trị không phải https:// hay /đường-dẫn bị từ chối', JSON.stringify(r.json));
+
+  r = await admin.req('PUT', '/api/settings', { hero_photo_1: '/api/images/7', hero_photo_3: 'https://cdn.example.com/a.jpg', ignored_key: 'x' });
+  ok(r.status === 200 && r.json.settings.hero_photo_1 === '/api/images/7' && r.json.settings.hero_photo_3 === 'https://cdn.example.com/a.jpg',
+    'quản trị đổi được ảnh 1 và 3, khóa lạ bị bỏ qua', JSON.stringify(r.json));
+  ok(!('hero_photo_2' in r.json.settings), 'ảnh 2 chưa từng chỉnh vẫn vắng mặt (dùng ảnh mặc định)');
+  ok(!db.raw.prepare('SELECT 1 FROM settings WHERE key = ?').get('ignored_key'), 'khóa lạ không được lưu vào cơ sở dữ liệu');
+
+  r = await anon.req('GET', '/api/settings');
+  ok(r.json.settings.hero_photo_1 === '/api/images/7' && r.json.settings.hero_photo_3 === 'https://cdn.example.com/a.jpg', 'khách thấy đúng ảnh đã đổi');
+
+  r = await admin.req('PUT', '/api/settings', { hero_photo_1: '' });
+  ok(r.status === 200 && !('hero_photo_1' in r.json.settings), 'chuỗi rỗng xóa thiết lập, quay lại ảnh mặc định');
+  ok(!db.raw.prepare('SELECT 1 FROM settings WHERE key = ?').get('hero_photo_1'), 'hàng trong cơ sở dữ liệu bị xóa thật');
 }
 
 console.log('10. Hàm tiện ích');

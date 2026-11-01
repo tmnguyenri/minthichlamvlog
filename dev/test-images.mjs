@@ -98,6 +98,15 @@ r = await call('GET', `/api/images/${jpegId}`, { cookie: adminCookie });
 ok(r.status === 200, 'chủ trang vẫn xem được ảnh của bài nháp', r.status);
 ok((r.cacheControl || '').includes('no-store'), 'ảnh chưa công khai không bị cache công khai', r.cacheControl);
 db.raw.prepare('UPDATE images SET post_id = NULL WHERE id = ?').run(jpegId);
+// Ảnh dùng làm ảnh đầu trang chủ (tab "Trang chủ" trong khu quản lý): không gắn bài nào (post_id
+// NULL) nhưng đang được một thiết lập trang chủ tham chiếu tới thì vẫn công khai.
+db.raw.prepare("INSERT INTO settings (key, value, updated_at) VALUES ('hero_photo_1', ?, ?)").run(`/api/images/${jpegId}`, now());
+r = await call('GET', `/api/images/${jpegId}`);
+ok(r.status === 200 && r.type === 'image/jpeg', 'ảnh đầu trang chủ (chưa gắn bài nào) vẫn công khai nếu đang dùng trong thiết lập', r.status);
+ok(r.cacheControl && r.cacheControl.startsWith('public'), 'ảnh đầu trang chủ được cache công khai', r.cacheControl);
+db.raw.prepare("DELETE FROM settings WHERE key = 'hero_photo_1'").run();
+r = await call('GET', `/api/images/${jpegId}`);
+ok(r.status === 404, 'bỏ khỏi thiết lập trang chủ thì ảnh lại không công khai nữa', r.status);
 r = await call('GET', '/api/images', { cookie: adminCookie });
 ok(r.status === 200 && r.json.images.length === 3, 'chủ trang thấy danh sách 3 ảnh', JSON.stringify(r.json));
 ok(r.json && r.json.images.every((i) => !('data' in i)), 'danh sách không kèm dữ liệu ảnh');

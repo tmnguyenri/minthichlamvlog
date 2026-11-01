@@ -90,3 +90,12 @@ CREATE TABLE IF NOT EXISTS page_views (
 );
 CREATE INDEX IF NOT EXISTS idx_page_views_created ON page_views(created_at);
 CREATE INDEX IF NOT EXISTS idx_page_views_visitor ON page_views(visitor_id);
+
+-- Vài thiết lập chỉnh được ngay từ khu quản lý mà không cần sửa mã nguồn (ví dụ ảnh ở đầu trang
+-- chủ, tab "Trang chủ"). Dạng khóa/giá trị để sau này thêm thiết lập mới không cần đổi cấu trúc
+-- bảng. Thiếu một khóa nghĩa là dùng giá trị mặc định có sẵn trong HTML.
+CREATE TABLE IF NOT EXISTS settings (
+  key        TEXT PRIMARY KEY,
+  value      TEXT NOT NULL,
+  updated_at INTEGER NOT NULL
+);

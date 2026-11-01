@@ -184,6 +184,15 @@ Tab **Thống kê** trong `/quan-ly` cho chủ trang xem nhanh: tổng lượt x
 - Không có JavaScript hoặc gọi API lỗi: giữ nguyên hai dòng thông báo trống có sẵn trong `site/index.html` ("Hiện chưa có ai online." / "Chưa có hoạt động nào.").
 - **Kiểm thử:** mục 9e của `dev/test-api.mjs` — xác nhận dữ liệu khớp với tab Thống kê và không lộ email/vai trò/ID.
 
+## Ảnh ở đầu trang chủ
+
+Ba tấm ảnh xếp chồng nghiêng ở đầu trang chủ (lớp CSS `.stack`) đổi được ngay từ tab **Trang chủ** trong `/quan-ly`, không cần sửa mã nguồn: chọn một ảnh mới cho từng vị trí (to nhất/bên trái, trên/bên phải, dưới/bên phải), hoặc bấm "Dùng ảnh mặc định" để quay lại ảnh có sẵn (`site/images/min.jpg`, `scene-dalat-wide.svg`, `scene-kyoto-wide.svg`). Ảnh tải lên được nén nhỏ lại ngay trên trình duyệt trước khi gửi, giống cách nén ảnh bìa bài viết.
+
+- Lưu trong bảng **`settings`** dạng khóa/giá trị (`hero_photo_1`, `hero_photo_2`, `hero_photo_3`) — thiếu khóa nào thì dùng ảnh mặc định có sẵn trong HTML cho vị trí đó. Đọc công khai qua **`GET /api/settings`**, ghi (chỉ chủ trang) qua **`PUT /api/settings`**.
+- Ảnh tải lên lưu trong cùng bảng `images` như ảnh bài viết, nhưng không gắn vào bài nào (`post_id` rỗng) — đúng khái niệm ảnh "thư viện" đã có ở tab **Ảnh**. Vì vậy `functions/api/images/[id].js` xem một ảnh là công khai khi nó gắn với bài đã đăng **hoặc** đang được một thiết lập trang chủ dùng tới.
+- Trang chủ (`site/js/hero-settings.js`) gọi `/api/settings` một lần khi tải trang; nếu chủ trang chưa đổi gì thì giữ nguyên ảnh có sẵn trong HTML, không gọi thêm.
+- **Kiểm thử:** mục 9f của `dev/test-api.mjs` (đọc/ghi thiết lập, phân quyền, dữ liệu không hợp lệ, tự nâng cấp cơ sở dữ liệu cũ) và mục 3 của `dev/test-images.mjs` (ảnh không gắn bài nào vẫn công khai khi đang dùng ở thiết lập trang chủ, hết công khai khi bỏ dùng).
+
 ## Bảo mật
 
 `dev/test-security.mjs` đóng vai kẻ tấn công trên bản chạy thử (không bao giờ đụng tới trang thật) và thử nhiều kiểu tấn công phổ biến, mỗi lần đều kiểm tra là bị chặn:

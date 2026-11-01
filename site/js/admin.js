@@ -4,7 +4,7 @@
   var M = window.MTLV, h = M.h, tx = M.tx, t = M.t;
   var panel = document.getElementById('admin-root');
   var note = document.getElementById('admin-msg');
-  var tabs = { posts: document.getElementById('tab-posts'), media: document.getElementById('tab-media'), users: document.getElementById('tab-users'), stats: document.getElementById('tab-stats') };
+  var tabs = { posts: document.getElementById('tab-posts'), home: document.getElementById('tab-home'), media: document.getElementById('tab-media'), users: document.getElementById('tab-users'), stats: document.getElementById('tab-stats') };
   var tabBtns = document.querySelectorAll('[data-tab]');
 
   function slugify(s) {
@@ -271,6 +271,78 @@
     });
   }
 
+  // ------------------------------------------------------------ Ảnh ở đầu trang chủ
+  // Ba ảnh xếp chồng trong khối .stack ở đầu trang chủ (xem site/css/style.css). Chưa chỉnh gì thì
+  // trang chủ dùng ảnh mặc định có sẵn trong HTML (fallback dưới đây), không gọi /api/settings đổi gì.
+  var HERO_SLOTS = [
+    { key: 'hero_photo_1', label: 'Ảnh thứ nhất (to nhất, bên trái)', labelEn: 'First photo (largest, on the left)', fallback: '/images/min.jpg' },
+    { key: 'hero_photo_2', label: 'Ảnh thứ hai (trên, bên phải)', labelEn: 'Second photo (top right)', fallback: '/images/scene-dalat-wide.svg' },
+    { key: 'hero_photo_3', label: 'Ảnh thứ ba (dưới, bên phải)', labelEn: 'Third photo (bottom right)', fallback: '/images/scene-kyoto-wide.svg' },
+  ];
+
+  function uploadHeroPhoto(slot, file, status) {
+    status.textContent = t('Đang tải lên…', 'Uploading…');
+    status.hidden = false;
+    return window.mtlvPhoto.compress(file).then(function (blob) {
+      return fetch('/api/images', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'image/jpeg' }, body: blob });
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, json: j }; });
+    }).then(function (res) {
+      if (!res.ok) { status.textContent = t('Tải ảnh lỗi.', 'Upload failed.'); return; }
+      var body = {}; body[slot.key] = res.json.url;
+      return M.api('PUT', '/api/settings', body).then(function (r2) {
+        if (!r2.ok) { status.textContent = M.msgOf(r2); return; }
+        say(t('Đã cập nhật ảnh trang chủ.', 'Homepage photo updated.'), 'success');
+        loadHeroPhotos();
+      });
+    }).catch(function () { status.textContent = t('Tải ảnh lỗi.', 'Upload failed.'); });
+  }
+
+  function revertHeroPhoto(slot) {
+    var body = {}; body[slot.key] = '';
+    M.api('PUT', '/api/settings', body).then(function (res) {
+      if (!res.ok) { say(M.msgOf(res), 'error'); return; }
+      say(t('Đã quay lại ảnh mặc định.', 'Reverted to the default photo.'), 'success');
+      loadHeroPhotos();
+    });
+  }
+
+  function renderHeroPhotos(settings) {
+    var list = document.getElementById('hero-photos');
+    clear(list);
+    HERO_SLOTS.forEach(function (slot) {
+      var custom = settings[slot.key];
+      var fileId = 'hero-file-' + slot.key;
+      var status = h('p', { class: 'muted', role: 'status', hidden: true });
+      var file = h('input', { id: fileId, type: 'file', accept: 'image/jpeg,image/png,image/webp' });
+      var revert = tx('button', 'Dùng ảnh mặc định', 'Use the default photo', { type: 'button', class: 'btn btn--ghost btn--xs' });
+      if (!custom) revert.disabled = true;
+      revert.addEventListener('click', function () { revertHeroPhoto(slot); });
+      file.addEventListener('change', function () {
+        var f = file.files && file.files[0];
+        file.value = '';
+        if (f) uploadHeroPhoto(slot, f, status);
+      });
+      list.appendChild(h('li', { class: 'media-card' },
+        h('img', { src: custom || slot.fallback, alt: '', width: 240, height: 180, loading: 'lazy' }),
+        h('div', { class: 'media-card__body' },
+          tx('p', slot.label, slot.labelEn, { class: 'media-card__caption' }),
+          custom ? tx('span', 'Ảnh riêng', 'Custom photo', { class: 'media-card__post' })
+            : tx('span', 'Ảnh mặc định', 'Default photo', { class: 'media-card__post media-card__post--none' }),
+          h('div', { class: 'field' }, tx('label', 'Đổi ảnh', 'Change photo', { for: fileId }), file),
+          status,
+          h('div', { class: 'media-card__actions' }, revert))));
+    });
+    M.refresh();
+  }
+
+  function loadHeroPhotos() {
+    return M.api('GET', '/api/settings').then(function (res) {
+      if (!res.ok) { say(M.msgOf(res), 'error'); return; }
+      renderHeroPhotos(res.json.settings || {});
+    });
+  }
+
   // ------------------------------------------------------------ Tất cả ảnh
   function loadMedia() {
     var list = document.getElementById('media-list');
@@ -373,6 +445,7 @@
     Object.keys(tabs).forEach(function (k) { tabs[k].hidden = k !== name; });
     tabBtns.forEach(function (b) { b.setAttribute('aria-selected', String(b.getAttribute('data-tab') === name)); });
     say('');
+    if (name === 'home') loadHeroPhotos();
     if (name === 'media') loadMedia();
     if (name === 'stats') loadStats();
   }

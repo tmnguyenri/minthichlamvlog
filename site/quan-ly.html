@@ -52,6 +52,7 @@
       <div id="admin-root" hidden>
         <div class="tabs" role="tablist">
           <button type="button" role="tab" class="tab" data-tab="posts" aria-selected="true"><span data-en="Posts">Bài viết</span></button>
+          <button type="button" role="tab" class="tab" data-tab="home" aria-selected="false"><span data-en="Homepage">Trang chủ</span></button>
           <button type="button" role="tab" class="tab" data-tab="users" aria-selected="false"><span data-en="Members">Thành viên</span><span id="pending-count" class="count" hidden></span></button>
           <button type="button" role="tab" class="tab" data-tab="media" aria-selected="false"><span data-en="Photos">Ảnh</span></button>
           <button type="button" role="tab" class="tab" data-tab="stats" aria-selected="false"><span data-en="Stats">Thống kê</span></button>
@@ -148,6 +149,12 @@
           </div>
             </form>
           </div>
+        </section>
+
+        <section id="tab-home" hidden>
+          <div class="admin__head"><h2 data-en="Homepage photos">Ảnh ở đầu trang chủ</h2></div>
+          <p class="muted" data-en="The three stacked photos at the top of the homepage. Upload a new photo for each spot, or use the default photo again.">Ba tấm ảnh xếp chồng ở đầu trang chủ. Tải ảnh mới cho từng vị trí, hoặc dùng lại ảnh mặc định.</p>
+          <ul id="hero-photos" class="media-grid"></ul>
         </section>
 
         <section id="tab-media" hidden>

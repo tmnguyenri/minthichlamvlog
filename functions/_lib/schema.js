@@ -20,6 +20,11 @@ const TABLES = [
   )`,
   'CREATE INDEX IF NOT EXISTS idx_page_views_created ON page_views(created_at)',
   'CREATE INDEX IF NOT EXISTS idx_page_views_visitor ON page_views(visitor_id)',
+  `CREATE TABLE IF NOT EXISTS settings (
+    key        TEXT PRIMARY KEY,
+    value      TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+  )`,
 ];
 
 let ready = null;
