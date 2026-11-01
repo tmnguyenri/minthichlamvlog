@@ -419,15 +419,14 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.12; letter-spacing: -.0
 .facts dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 
 .post-body { padding-top: clamp(2rem, 5vw, 3rem); }
-.post-body > .video, .post-body > .prose, .post-body > .hops, .post-body > .comments { width: min(100%, var(--read)); margin-inline: auto; }
+.post-body > .video, .post-body > .prose, .post-body > .comments { width: min(100%, var(--read)); margin-inline: auto; }
 .prose { width: min(100%, var(--read)); margin-inline: auto; font-size: 1.0625rem; line-height: 1.85; color: #3f3555; }
 .prose p { margin: 0 0 1.25em; }
 /* Chữ cái đầu của đoạn mở bài vuốt to, đúng kiểu "drop cap" trong bài viết Wanderlust — áp dụng cho
-   đoạn văn thật đầu tiên, bỏ qua khung ".sample-note" (ghi chú bài mẫu) nếu có đứng trước nó. Chỉ áp
-   dụng cho nội dung kể chuyện (bài viết, trang giới thiệu) — các trang tiện ích ngắn (404, quyền
-   riêng tư) dùng lớp .prose--plain để giữ đoạn văn bình thường, không có chữ to đầu dòng. */
-.prose:not(.prose--plain) > p:first-of-type:not(.sample-note)::first-letter,
-.prose:not(.prose--plain) > p.sample-note + p::first-letter {
+   đoạn văn thật đầu tiên. Chỉ áp dụng cho nội dung kể chuyện (bài viết, trang giới thiệu) — các
+   trang tiện ích ngắn (404, quyền riêng tư) dùng lớp .prose--plain để giữ đoạn văn bình thường,
+   không có chữ to đầu dòng. */
+.prose:not(.prose--plain) > p:first-of-type::first-letter {
   float: left; font-family: var(--font-display); font-weight: 800; font-size: 3.6rem; line-height: .76;
   padding: .12em .14em 0 0; color: var(--pink);
 }
@@ -437,10 +436,7 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.12; letter-spacing: -.0
 .prose img { height: auto; border-radius: var(--radius); }
 .prose blockquote { margin: 1.8em 0; padding: .1em 0 .1em 1.25rem; border-left: 4px solid var(--pink); font-size: 1.15em; font-weight: 500; line-height: 1.55; }
 .prose blockquote p { margin: 0; }
-.sample-note { margin: 0 0 1.75em; padding: .8rem 1rem; border-radius: 1rem; background: var(--gold-tint); color: var(--ink); font-size: .92rem; line-height: 1.6; }
 .photo { margin: 2.25em 0; }
-.photo__frame { display: grid; place-items: center; aspect-ratio: 2 / 1; padding: 1.5rem; border: 2px dashed var(--line-2); border-radius: var(--radius); background: var(--paper); color: var(--muted); font-size: .95rem; text-align: center; }
-.photo__frame p { max-width: 24rem; margin: 0; }
 .photo img {
   width: 100%; height: auto; border: 6px solid #fff; border-radius: .75rem;
   box-shadow: 0 1px 2px rgba(27, 18, 48, .1), 0 10px 20px -8px rgba(27, 18, 48, .4);
@@ -451,21 +447,6 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.12; letter-spacing: -.0
 .photo figcaption { margin-top: .9rem; color: var(--muted); font-size: .875rem; text-align: center; }
 .video { position: relative; aspect-ratio: 16 / 9; margin: 2em auto; overflow: hidden; border-radius: var(--radius); background: #000; }
 .video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.video--empty { aspect-ratio: 2 / 1; display: grid; place-items: center; padding: 1.5rem; border: 2px dashed var(--line-2); background: var(--paper); color: var(--muted); font-size: .95rem; text-align: center; }
-.video--empty p { max-width: 22rem; margin: 0; }
-.play { width: 3.5rem; height: 3.5rem; margin: 0 auto 1rem; display: grid; place-items: center; border-radius: 50%; background-image: var(--grad-cta); box-shadow: 0 10px 24px -10px rgba(255, 77, 126, .55); }
-.play::before { content: ""; margin-left: .25rem; border-top: .6rem solid transparent; border-bottom: .6rem solid transparent; border-left: .95rem solid #fff; }
-
-.hops { display: grid; gap: .75rem; margin-top: 3.5rem; }
-.hop { display: flex; flex-direction: column; gap: .15rem; padding: 1rem 1.25rem; border: 1px solid var(--line); border-radius: var(--radius); text-decoration: none; transition: border-color .25s, transform .25s var(--ease); background: #fff; }
-.hop:hover { border-color: var(--pink); transform: translateY(-2px); }
-.hop__dir { color: var(--muted); font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-.hop__name { font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; letter-spacing: -.01em; }
-@media (min-width: 40rem) {
-  .hops { grid-template-columns: 1fr 1fr; }
-  .hop--later { text-align: right; }
-  .hop--later:only-child { grid-column: 2; }
-}
 
 /* ---------- Giới thiệu, đăng ký/đăng nhập, 404... ---------- */
 .page-hero { padding-block: clamp(2.25rem, 6vw, 3.5rem); margin-bottom: clamp(1.75rem, 4vw, 2.5rem); position: relative; overflow: hidden; }

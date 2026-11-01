@@ -10,8 +10,7 @@ site/                  <- mọi thứ trong thư mục này sẽ được đưa 
   index.html           trang chủ: dải ảnh chạy, phần mở đầu, danh sách bài, bản đồ
   about.html           trang giới thiệu, có mục Liên hệ
   404.html             hiện ra khi không tìm thấy trang
-  posts/               mỗi chuyến đi một tệp HTML
-  images/              ảnh. scene-*.svg là ảnh minh họa mẫu, flags/ là cờ các nước
+  images/              ảnh. scene-*.svg là ảnh minh họa mẫu (dải ảnh chạy và các thẻ trước khi có bài thật), flags/ là cờ các nước
   css/style.css        toàn bộ màu sắc, font và bố cục
   js/lang.js           nút chuyển tiếng Việt / tiếng Anh
   js/ui.js, session.js, auth.js, admin.js, comments.js, posts.js, slider.js   đăng nhập, khu quản lý, bình luận, bài viết và dải ảnh chạy ở trang chủ
@@ -24,7 +23,6 @@ functions/             mã chạy trên máy chủ Cloudflare (API, trang bài v
 db/schema.sql          cấu trúc cơ sở dữ liệu
 dev/                   chạy thử trên máy và bộ kiểm tra tự động
 wrangler.jsonc         nối cơ sở dữ liệu D1 (tên DB) vào dự án Pages
-post-template.html     bài viết trống để sao chép khi viết bài mới (KHÔNG đưa lên mạng)
 README.md              tệp này
 ```
 
@@ -32,7 +30,7 @@ README.md              tệp này
 
 1. Tên trang là **Mìn Thích Làm Vlog**. Muốn đổi, hãy tìm tên đó trong tất cả các tệp và thay bằng tên mới.
 2. Trang Giới thiệu (`site/about.html`) đã có phần giới thiệu của Mìn, ảnh chân dung và email minthichlamvlog@gmail.com. Muốn đổi chữ, sửa trong tệp đó, nhớ sửa cả bản tiếng Việt lẫn bản `data-en` tiếng Anh. Muốn đổi ảnh, thay tệp `site/images/min.jpg` (ảnh dọc tỉ lệ 4:5, khoảng 800×1000 px, dưới 400 KB).
-3. Bốn bài viết mẫu (Oaxaca, Kyoto, Lisbon, Hà Giang) và các ảnh minh họa chỉ là chỗ giữ chỗ, đều có nhãn **Mẫu**. Khi có bài thật, hãy xóa tệp của chúng trong `site/posts/`, xóa các khối tương ứng trong `site/index.html`, và xóa các tệp `scene-*.svg` không còn dùng.
+3. Dải ảnh, banner nổi bật, các thẻ bài và bản đồ ở trang chủ đang hiện nội dung giữ chỗ (nhãn **Mẫu**, ảnh `scene-*.svg`). Không cần xóa tay: ngay khi bạn đăng bài đầu tiên trong khu quản lý (`/quan-ly`), JavaScript (`site/js/posts.js`, `site/js/slider.js`) tự thay toàn bộ bằng bài thật. Muốn tự dọn sớm, xóa các khối tương ứng trong `site/index.html` và các tệp `scene-*.svg` không còn dùng.
 4. Màu sắc và font nằm ở đầu tệp `site/css/style.css`, trong khối `:root` — dựng lại đúng theo hệ thống thiết kế thật của Wanderlust (đọc từ mã nguồn, không chỉ đoán qua ảnh chụp màn hình). Nền trang là kem ấm (`--bg`) với lưới chấm mờ phủ nhẹ phía sau (`body::before`), chữ tím than đậm (`--ink`). Font chính là Outfit, font tiêu đề lớn là Bricolage Grotesque (đổi ở biến `--font` / `--font-display`, nhớ sửa cả dòng `<link>` Google Fonts trong `<head>` mỗi trang và trong `functions/_lib/layout.js`). Màu nhấn gồm `--gold`, `--pink`, `--violet` cho mảng gradient thương hiệu (`--grad-brand`, dùng ở banner bài nổi bật, dải lời mời cuối trang...) và các màu phụ `--amber`, `--mint` (chấm "đang hoạt động"), `--sky` (viền khi focus ô nhập); nút hành động chính dùng gradient `--grad-cta` (hồng sang cam). Bo góc lớn dùng chung một biến `--radius` (26px), đổ bóng dùng chung `--shadow`, và các chuyển động mượt dùng chung đường cong `--ease`. Các mảng trang trí đặc trưng của Wanderlust — khối gradient mờ trôi nhẹ phía sau tiêu đề (`.aurora`), ảnh xếp lớp nghiêng ở đầu trang (`.stack`), dải tên địa danh chạy ngang (`.ticker`), nhãn viên thuốc có chấm màu (`.eyebrow`) và chữ cái đầu đoạn mở bài vuốt to (drop cap, chỉ ở bài viết và trang giới thiệu, không ở các trang tiện ích như 404/quyền riêng tư) — đều nằm trong `site/css/style.css`, tìm theo tên lớp CSS tương ứng để chỉnh hoặc tắt.
 5. Trang chủ tự lấy bài thật từ cơ sở dữ liệu. Khi đã có bài đăng trong khu quản lý (`/quan-ly`), các thẻ mẫu và danh sách quốc gia tự được thay bằng bài thật, không phải sửa tay.
 6. Dải ảnh chạy ở đầu trang chủ lấy **ảnh bìa** của các bài đã đăng (nhập ở ô "Ảnh bìa" trong khu quản lý), xáo ngẫu nhiên mỗi lần mở trang và lấy tối đa 8 ảnh. Bấm vào ảnh sẽ mở bài viết có ảnh đó. Bài nháp hoặc bài chưa có ảnh bìa không xuất hiện ở đây; nếu chưa bài nào có ảnh bìa thì cả dải ảnh tự ẩn. Muốn đổi tốc độ hay số ảnh, sửa `INTERVAL` (mili giây) và `MAX` ở đầu `site/js/slider.js`. Dải ảnh tự dừng khi rê chuột vào hoặc khi người xem bật "giảm chuyển động" trong thiết bị.
@@ -54,15 +52,16 @@ Trang luôn được viết sẵn bằng tiếng Việt trong HTML, và đó cũ
 
 ## Thêm một bài viết mới
 
-Cách nhanh nhất: đăng nhập tài khoản quản trị và đăng bài ở `/quan-ly`. Phần dưới đây là cách làm thủ công bằng tệp HTML, dùng khi cần một trang bài hoàn toàn tự chọn.
+Đăng nhập tài khoản quản trị và vào `/quan-ly`, mục **Bài viết**:
 
-1. Sao chép `post-template.html` vào `site/posts/` và đổi tên, ví dụ `bangkok.html`.
-2. Mở tệp và thay mọi chỗ ghi Tên địa điểm, Quốc gia, Tháng 1/2026, X ngày. Sửa cả tiếng Việt lẫn `data-en`.
-3. Đổi ảnh bìa ở đầu bài (thẻ `<img class="post-hero__img" ...>`) sang ảnh của bạn.
-4. Mở `site/index.html`, sao chép một khối `<article class="card">` rồi dán lên **đầu** danh sách `.cards`. Sửa nội dung và liên kết của nó trỏ tới tệp bài mới.
-5. Mục **Bản đồ** của trang chủ: thêm một khối `<a class="country">` cho nước mới, hoặc đổi "1 bài viết" thành "2 bài viết" nếu nước đó đã có. Cờ là tệp 36×24 trong `site/images/flags/` (ví dụ `th.svg`).
-6. Ở cuối bài mới, sửa các liên kết "Chuyến đi trước" và "Chuyến đi sau". Xóa một liên kết nếu không có bài kề bên. Làm tương tự với bài kề bên để liên kết sang bài mới hiện ra ở đó.
-7. Xóa nhãn **Mẫu** (thẻ `<span class="badge">`) và khung ghi chú `sample-note` khi bài đã là bài thật.
+1. Điền **Tiêu đề** (bắt buộc); **Đường dẫn** tự tạo từ tiêu đề (bài sẽ ở `/bai/đường-dẫn`), có thể sửa tay.
+2. **Tóm tắt** (hiện trên thẻ bài ở trang chủ), **Nội dung** (Markdown rút gọn: `## tiêu đề`, `**đậm**`, `*nghiêng*`, liên kết, trích dẫn, gạch đầu dòng — xem khung "Cách định dạng" ngay dưới ô này).
+3. **Thành phố**, **Quốc gia**, **Thời gian** (tháng/năm chuyến đi), **Số ngày**, **Video YouTube** (dán liên kết) — tất cả không bắt buộc.
+4. Mục **Ảnh của bài**: chọn nhiều ảnh cùng lúc, ảnh tự nén và thu nhỏ trong trình duyệt trước khi tải lên; mỗi lần mở trang, bài hiện ngẫu nhiên một trong các ảnh này. **Ảnh bìa** (nhập đường dẫn) chỉ dùng khi bài chưa có ảnh nào tải lên kiểu đó.
+5. Chọn trạng thái **Đăng công khai** hoặc **Nháp**, rồi **Lưu**.
+6. Phần tiếng Anh (`title_en`, `excerpt_en`, nội dung) tự dịch máy khi để trống và có bật Workers AI; viết tay nếu muốn bản dịch chính xác hơn.
+
+Trang chủ (dải ảnh, banner nổi bật, danh sách bài, bản đồ quốc gia) tự lấy bài thật từ cơ sở dữ liệu, không cần sửa `site/index.html` tay.
 
 ## Ảnh của bài viết
 
@@ -231,7 +230,7 @@ Trang đã có sẵn những thứ công cụ tìm kiếm và mạng xã hội c
 - `/sitemap.xml` (hàm `functions/sitemap.xml.js`) liệt kê trang chủ, Giới thiệu, Quyền riêng tư và mọi bài đã đăng. Bài nháp, bài mẫu và trang tài khoản không có trong đó.
 - `/rss.xml` là nguồn cấp 30 bài mới nhất, dùng cho trình đọc tin và công cụ tự động đăng lên mạng xã hội.
 - Mỗi trang có địa chỉ chuẩn (`canonical`), thẻ Open Graph và Twitter Card để chia sẻ link ra đẹp, cùng dữ liệu có cấu trúc schema.org (WebSite, Person, ProfilePage, BlogPosting). Ảnh xem trước mặc định là `site/images/og-cover.jpg` (1200×630); bài nào có ảnh bìa JPG hoặc PNG thì dùng ảnh bìa đó.
-- Bài mẫu (`site/posts/*.html`) và các trang đăng nhập, đăng ký, quản lý mang thẻ `noindex` nên không lên Google. Bài thật đăng trong `/quan-ly` thì được lập chỉ mục.
+- Các trang đăng nhập, đăng ký, quản lý và bài còn là nháp mang thẻ `noindex` nên không lên Google. Bài thật đăng trong `/quan-ly` thì được lập chỉ mục.
 - **IndexNow:** khi bạn đăng, sửa hoặc xóa một bài công khai, máy chủ tự báo cho Bing, Yandex, Naver, Seznam, Yep. Khóa nằm ở `INDEXNOW_KEY` trong `wrangler.jsonc` và ở tệp `site/<khóa>.txt`; hai nơi phải khớp nhau. Google không dùng IndexNow, hãy gửi sơ đồ trang trong Google Search Console.
 
 **Xác minh quyền sở hữu** (Google Search Console, Bing Webmaster Tools): dán thẻ `<meta name="google-site-verification" ...>` hoặc `<meta name="msvalidate.01" ...>` vào `<head>` của `site/index.html`, hoặc đặt tệp xác minh họ đưa (ví dụ `googleXXXX.html`, `BingSiteAuth.xml`) vào thư mục `site/`.

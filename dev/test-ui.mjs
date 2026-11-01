@@ -56,7 +56,10 @@ try {
   // ---------- 1b. Dải ảnh chạy ở đầu trang chủ (ảnh mẫu) ----------
   {
     const ctx = await newCtx();
-    const activeHref = (pg) => pg.locator('#showcase .slide.is-active .slide__link').getAttribute('href');
+    // Các ảnh mẫu chưa có bài riêng để mở (xem mục "Biến nó thành của bạn" trong README) nên đều
+    // trỏ về cùng #nhat-ky; nhận diện ảnh đang hiện bằng src của ảnh (vẫn mỗi ảnh một tấm khác nhau)
+    // thay vì bằng href.
+    const activeImg = (pg) => pg.locator('#showcase .slide.is-active .slide__img').getAttribute('src');
     const idx = async (pg) => parseInt((await pg.locator('#showcase .slide.is-active').getAttribute('aria-label')).split('/')[0], 10);
 
     // thứ tự ngẫu nhiên: mở nhiều lần thì ảnh đầu tiên phải khác nhau
@@ -64,7 +67,7 @@ try {
     for (let i = 0; i < 12; i++) {
       const pg = await ctx.newPage(); watch(pg, 'showcase-random');
       await pg.goto(url + '/', { waitUntil: 'networkidle' });
-      firsts.add(await activeHref(pg));
+      firsts.add(await activeImg(pg));
       await pg.close();
     }
     ok(firsts.size >= 2, 'ảnh đầu tiên của dải ảnh thay đổi ngẫu nhiên giữa các lần mở trang', [...firsts].join(', '));
@@ -75,15 +78,17 @@ try {
     ok((await pg.locator('#showcase .slide').count()) === 4, 'dải ảnh mẫu có 4 ảnh');
     ok((await pg.locator('#showcase .slide.is-active').count()) === 1, 'mỗi lúc chỉ một ảnh hiện');
     ok(await pg.locator('#showcase .showcase__controls').isVisible(), 'nút điều khiển hiện khi có từ 2 ảnh');
+    const srcs = await pg.locator('#showcase .slide__img').evaluateAll((a) => a.map((x) => x.getAttribute('src')));
     const hrefs = await pg.locator('#showcase .slide__link').evaluateAll((a) => a.map((x) => x.getAttribute('href')));
-    ok(hrefs.every((h) => /^posts\/[a-z-]+\.html$/.test(h)) && new Set(hrefs).size === 4, 'mỗi ảnh là một liên kết riêng tới bài của nó', hrefs.join(', '));
+    ok(new Set(srcs).size === 4, 'mỗi ảnh mẫu là một ảnh khác nhau', srcs.join(', '));
+    ok(hrefs.every((h) => h === '#nhat-ky'), 'ảnh mẫu dẫn về mục Nhật ký (chưa có bài thật để mở riêng)', hrefs.join(', '));
     ok((await pg.locator('#showcase .slide:not(.is-active) .slide__link').first().isVisible()) === false, 'ảnh không hiện thì không nhận Tab');
 
     // tự chuyển
     await pg.mouse.move(5, 780);
-    const a0 = await activeHref(pg);
+    const a0 = await activeImg(pg);
     await pg.clock.runFor(6000);
-    ok((await activeHref(pg)) !== a0, 'dải ảnh tự chuyển sang ảnh khác');
+    ok((await activeImg(pg)) !== a0, 'dải ảnh tự chuyển sang ảnh khác');
 
     // nút sau / trước, phím mũi tên
     let i0 = await idx(pg);
@@ -125,15 +130,13 @@ try {
     await pg.click('[data-set-lang=vi]');
     await pg.close();
 
-    // bấm vào ảnh thì mở đúng bài có ảnh đó
+    // bấm vào ảnh mẫu (chưa có bài thật để mở riêng) chỉ đưa về mục Nhật ký trên cùng trang
     const pg2 = await ctx.newPage(); watch(pg2, 'showcase-click');
     await pg2.goto(url + '/', { waitUntil: 'networkidle' });
     await pg2.mouse.move(5, 780);
-    const want = await activeHref(pg2);
-    const wantTitle = (await pg2.locator('#showcase .slide.is-active .slide__title').textContent()).trim();
-    await Promise.all([pg2.waitForURL(/\/posts\/[a-z-]+\.html$/), pg2.click('#showcase .slide.is-active .slide__link')]);
-    ok(pg2.url().endsWith('/' + want), 'bấm vào ảnh mở đúng liên kết của ảnh đó', pg2.url() + ' vs ' + want);
-    ok((await pg2.locator('h1').first().textContent()).trim() === wantTitle, 'trang mở ra đúng là bài có tiêu đề ghi trên ảnh', wantTitle);
+    await pg2.click('#showcase .slide.is-active .slide__link');
+    await pg2.waitForURL(/#nhat-ky$/);
+    ok(pg2.url().endsWith('#nhat-ky'), 'bấm vào ảnh mẫu đưa về mục Nhật ký', pg2.url());
     await pg2.close();
 
     // người dùng chọn "giảm chuyển động": không tự chạy
