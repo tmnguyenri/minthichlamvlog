@@ -41,12 +41,12 @@ export function page({ title, titleEn = '', desc = '', descEn = '', ogType = 'we
   <title${attr(title, titleEn)}>${esc(title)}</title>${metaDesc}
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:type" content="${ogType}">
-  <meta name="theme-color" content="#ffffff">${seoHead}
+  <meta name="theme-color" content="#fff8ec">${seoHead}
   <link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="/css/style.css">
   <script src="/js/lang.js"></script>
   <script src="/js/session.js" defer></script>
