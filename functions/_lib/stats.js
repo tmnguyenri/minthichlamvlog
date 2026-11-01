@@ -49,3 +49,29 @@ export function touchLastSeen(env, userId, waitUntil) {
   if (!env.DB) return;
   waitUntil(env.DB.prepare('UPDATE users SET last_seen_at = ? WHERE id = ?').bind(now(), userId).run().catch(() => {}));
 }
+
+// Coi là "đang online" nếu có hoạt động trong khoảng này (giây) trở lại đây.
+export const ONLINE_SECONDS = 5 * 60;
+
+// Thành viên đã duyệt, còn hoạt động gần đây — dùng chung cho tab Thống kê (khu quản lý, đầy đủ)
+// và góc cộng đồng ở trang chủ (công khai, chỉ lấy display_name).
+export async function onlineMembers(env, windowSeconds = ONLINE_SECONDS) {
+  const { results } = await env.DB.prepare(
+    `SELECT id, display_name, role, last_seen_at FROM users
+      WHERE status = 'approved' AND last_seen_at >= ?
+      ORDER BY last_seen_at DESC LIMIT 50`,
+  ).bind(now() - windowSeconds).all();
+  return results || [];
+}
+
+// Thành viên hoạt động nhiều nhất (tổng bài viết + bình luận), bỏ thành viên bị khóa và người chưa có hoạt động nào.
+export async function topActiveMembers(env, limit = 5) {
+  const { results } = await env.DB.prepare(
+    `SELECT u.id, u.display_name,
+            (SELECT COUNT(*) FROM posts p WHERE p.author_id = u.id) AS posts,
+            (SELECT COUNT(*) FROM comments c WHERE c.user_id = u.id) AS comments
+       FROM users u WHERE u.status != 'blocked'
+      ORDER BY (posts + comments) DESC, u.created_at ASC LIMIT ?`,
+  ).bind(limit).all();
+  return (results || []).filter((u) => u.posts + u.comments > 0);
+}

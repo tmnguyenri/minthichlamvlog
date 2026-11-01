@@ -175,6 +175,15 @@ Tab **Thống kê** trong `/quan-ly` cho chủ trang xem nhanh: tổng lượt x
 - **Cơ sở dữ liệu cũ tự được nâng cấp:** bảng `page_views` và cột `users.last_seen_at` được tự tạo/thêm ở lần truy cập đầu tiên (`functions/_lib/schema.js`), bạn không cần vào D1 Console chạy tay.
 - **Kiểm thử:** mục 9d của `dev/test-api.mjs`.
 
+### Góc cộng đồng ở trang chủ
+
+Ngay dưới dải ảnh đầu trang chủ (mục `#cong-dong`, trước phần "Nhật ký") là một góc nhỏ **công khai cho mọi khách**, không cần đăng nhập: ai đang online ngay lúc này, và top 5 thành viên hoạt động nhiều nhất. Mỗi người online hiện như một thẻ bo tròn với chữ cái đầu tên làm "ảnh đại diện"; top hoạt động hiện như những con dấu tròn lệch kiểu tem hộ chiếu, đánh số 1-5.
+
+- Lấy dữ liệu từ **`/api/community`** — một điểm cuối riêng, khác `/api/admin/stats` của khu quản lý — chỉ trả **tên hiển thị** (và số bài/bình luận cho top hoạt động), không email, không vai trò, không ID: vì đây là điểm công khai, không yêu cầu đăng nhập.
+- Hai hàm `onlineMembers()`/`topActiveMembers()` trong `functions/_lib/stats.js` dùng chung cho cả tab Thống kê (đầy đủ) và góc cộng đồng (rút gọn), để không lặp lại cùng một câu SQL ở hai nơi.
+- Không có JavaScript hoặc gọi API lỗi: giữ nguyên hai dòng thông báo trống có sẵn trong `site/index.html` ("Hiện chưa có ai online." / "Chưa có hoạt động nào.").
+- **Kiểm thử:** mục 9e của `dev/test-api.mjs` — xác nhận dữ liệu khớp với tab Thống kê và không lộ email/vai trò/ID.
+
 ## Bảo mật
 
 `dev/test-security.mjs` đóng vai kẻ tấn công trên bản chạy thử (không bao giờ đụng tới trang thật) và thử nhiều kiểu tấn công phổ biến, mỗi lần đều kiểm tra là bị chặn:

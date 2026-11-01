@@ -211,6 +211,53 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.15; letter-spacing: -.0
 .country__count { color: var(--muted); font-size: .85rem; }
 .country__cities { flex-basis: 100%; max-width: 20rem; color: var(--muted); font-size: .85rem; line-height: 1.35; }
 
+/* ---------- Góc cộng đồng (trang chủ, công khai): đang online & hoạt động nhiều nhất ---------- */
+.community {
+  margin-top: clamp(2.5rem, 6vw, 4rem); padding-block: clamp(2rem, 5vw, 3rem);
+  background: var(--lime-tint); border-top: 1.5px dashed var(--lime-deep); border-bottom: 1.5px dashed var(--lime-deep);
+}
+.community__grid { display: grid; gap: clamp(1.5rem, 4vw, 2.5rem); grid-template-columns: 1fr; margin-top: 1.5rem; }
+@media (min-width: 40rem) { .community__grid { grid-template-columns: 1fr 1fr; } }
+.community__title { display: flex; align-items: center; gap: .55rem; margin: 0 0 1rem; font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--ink); }
+.community__icon { width: 1.15rem; height: 1.15rem; fill: none; stroke: var(--sun-deep); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.community__empty { margin: 0; color: var(--muted); font-size: .9rem; }
+
+/* Chấm xanh nhấp nháy báo "đang online" */
+.dot--live { display: inline-block; width: .55rem; height: .55rem; flex: none; border-radius: 50%; background: #3fae57; }
+@media (prefers-reduced-motion: no-preference) { .dot--live { animation: mtlv-pulse 1.8s infinite; } }
+@keyframes mtlv-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(63, 174, 87, .5); }
+  70% { box-shadow: 0 0 0 .45rem rgba(63, 174, 87, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(63, 174, 87, 0); }
+}
+
+/* Danh sách đang online: mỗi người một thẻ nhỏ bo tròn, viền đứt như .country, chữ cái đầu tên làm "ảnh đại diện" */
+.online-list { display: flex; flex-wrap: wrap; gap: .55rem; margin: 0; padding: 0; list-style: none; }
+.online-list__item { display: inline-flex; align-items: center; gap: .55rem; padding: .35rem .9rem .35rem .35rem; border: 1.5px dashed var(--line-2); border-radius: 2rem; background: #fff; }
+.online-list__avatar {
+  display: inline-grid; place-items: center; width: 1.7rem; height: 1.7rem; flex: none; border-radius: 50%;
+  font-family: var(--font-display); font-size: .78rem; font-weight: 700; color: var(--ink); background: var(--sun-tint);
+}
+.online-list__item:nth-child(3n+2) .online-list__avatar { background: var(--lime-tint); }
+.online-list__item:nth-child(3n+3) .online-list__avatar { background: var(--coral-tint); }
+.online-list__name { font-weight: 600; font-size: .9rem; color: var(--ink); }
+
+/* Bảng hoạt động nhiều nhất: mỗi hạng một con dấu tròn lệch, như tem hộ chiếu đóng vội */
+.top-list { display: grid; gap: .6rem; margin: 0; padding: 0; list-style: none; }
+.top-list__item { display: flex; align-items: center; gap: .85rem; padding: .55rem .9rem; border-radius: 1.1rem; background: #fff; box-shadow: 0 1px 2px rgba(30, 43, 82, .06); }
+.top-list__rank {
+  display: inline-grid; place-items: center; width: 2.1rem; height: 2.1rem; flex: none; border-radius: 50%;
+  border: 1.5px dashed var(--ink); font-family: var(--font-display); font-weight: 700; color: var(--ink);
+  background: var(--sun); transform: rotate(-4deg);
+}
+.top-list__item:nth-child(2) .top-list__rank { background: var(--lime); transform: rotate(3deg); }
+.top-list__item:nth-child(3) .top-list__rank { background: var(--coral-tint); transform: rotate(-3deg); }
+.top-list__item:nth-child(4) .top-list__rank { background: var(--sun-tint); transform: rotate(2deg); }
+.top-list__item:nth-child(5) .top-list__rank { background: var(--lime-tint); transform: rotate(-2deg); }
+.top-list__body { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
+.top-list__name { font-weight: 600; color: var(--ink); }
+.top-list__meta { font-size: .8rem; color: var(--muted); }
+
 /* ---------- Chân trang ---------- */
 .site-footer { margin-top: clamp(3rem, 7vw, 5rem); border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
 .band + .site-footer { margin-top: 0; }
@@ -381,6 +428,7 @@ details.help .field { margin-top: 1rem; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   * { transition: none !important; }
+  .dot--live { animation: none; }
 }
 
 /* ---------- Ảnh của bài (khu quản lý) ---------- */

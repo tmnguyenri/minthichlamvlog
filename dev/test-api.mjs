@@ -499,6 +499,29 @@ console.log('9d. Thống kê: đang online, hoạt động nhiều nhất, lư�
   resetSchemaCheck();
 }
 
+console.log('9e. Góc cộng đồng công khai ở trang chủ (/api/community): khớp số liệu nhưng không lộ thông tin nhạy cảm');
+{
+  r = await anon.req('GET', '/api/community'); ok(r.status === 200, 'khách chưa đăng nhập xem được góc cộng đồng', r.status);
+  const c = r.json;
+  ok(Array.isArray(c.online) && Array.isArray(c.top_active), 'có đủ hai danh sách online và top_active', JSON.stringify(c));
+
+  const adminStats = (await admin.req('GET', '/api/admin/stats')).json;
+  ok(c.online.length === adminStats.online.count, 'số người online khớp với tab Thống kê', JSON.stringify([c.online.length, adminStats.online.count]));
+  ok(c.online.every((u) => Object.keys(u).join(',') === 'display_name'),
+    'mỗi người online chỉ có display_name, không email/vai trò/id/lần hoạt động', JSON.stringify(c.online));
+  ok(JSON.stringify(c.online.map((u) => u.display_name).sort()) === JSON.stringify(adminStats.online.users.map((u) => u.display_name).sort()),
+    'tên người online khớp với tab Thống kê');
+
+  ok(c.top_active.length === adminStats.top_active.length, 'số người trong top hoạt động khớp với tab Thống kê');
+  ok(c.top_active.every((u) => Object.keys(u).sort().join(',') === 'comments,display_name,posts'),
+    'mỗi người trong top hoạt động chỉ có display_name/posts/comments, không id', JSON.stringify(c.top_active));
+  ok(JSON.stringify(c.top_active) === JSON.stringify(adminStats.top_active.map((u) => ({ display_name: u.display_name, posts: u.posts, comments: u.comments }))),
+    'nội dung top hoạt động khớp với tab Thống kê (chỉ khác việc ẩn id)');
+
+  // Thành viên bị chặn (An Nguyễn, anId) không hiện trong góc cộng đồng dù có hoạt động cũ.
+  ok(!c.online.some((u) => u.display_name === 'An Nguyễn'), 'thành viên bị chặn không hiện trong danh sách đang online công khai');
+}
+
 console.log('10. Hàm tiện ích');
 ok(slugify('Đà Lạt mộng mơ!') === 'da-lat-mong-mo', 'slugify tiếng Việt');
 ok(youtubeId('dQw4w9WgXcQ') === 'dQw4w9WgXcQ' && youtubeId('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=5') === 'dQw4w9WgXcQ' && youtubeId('https://youtube.com/shorts/dQw4w9WgXcQ') === 'dQw4w9WgXcQ' && youtubeId('') === '' && youtubeId('nope') === null && youtubeId('https://evil.com/watch?v=dQw4w9WgXcQ') === null, 'youtubeId');

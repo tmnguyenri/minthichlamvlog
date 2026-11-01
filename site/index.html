@@ -134,6 +134,38 @@
       </div>
     </section>
 
+    <!--
+      Góc cộng đồng: ai đang online và 5 người hoạt động nhiều nhất, công khai cho mọi khách.
+      js/community.js lấy dữ liệu từ /api/community (chỉ tên hiển thị, không email/vai trò) và điền vào hai danh sách rỗng dưới đây.
+      Không có JS hoặc chưa ai online/hoạt động: giữ nguyên hai dòng thông báo trống.
+    -->
+    <section class="community" id="cong-dong" aria-labelledby="cong-dong-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 class="h2" id="cong-dong-title" data-en="Who's around">Góc cộng đồng</h2>
+          <p class="section-head__text" data-en="Members online right now, and the five who show up the most.">Thành viên đang online ngay lúc này, và 5 người hay ghé nhất.</p>
+        </div>
+        <div class="community__grid">
+          <div class="community__panel">
+            <h3 class="community__title">
+              <span class="dot dot--live" aria-hidden="true"></span>
+              <span data-en="Online now">Đang online</span>
+            </h3>
+            <ul class="online-list" id="online-list"></ul>
+            <p class="community__empty" id="online-empty" data-en="No one online right now.">Hiện chưa có ai online.</p>
+          </div>
+          <div class="community__panel">
+            <h3 class="community__title">
+              <svg class="community__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3l2.1 5.4L19.5 10l-5.4 2.1L12 17.5l-2.1-5.4L4.5 10l5.4-2.1z"/></svg>
+              <span data-en="Most active">Hoạt động nhiều nhất</span>
+            </h3>
+            <ol class="top-list" id="top-list"></ol>
+            <p class="community__empty" id="top-empty" data-en="No activity yet.">Chưa có hoạt động nào.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="section wrap" id="nhat-ky" aria-labelledby="nhat-ky-title">
       <div class="section-head">
         <h2 class="h2" id="nhat-ky-title" data-en="Journal">Nhật ký</h2>
@@ -232,5 +264,6 @@
   <script src="js/ui.js" defer></script>
   <script src="js/slider.js" defer></script>
   <script src="js/posts.js" defer></script>
+  <script src="js/community.js" defer></script>
 </body>
 </html>
