@@ -607,6 +607,10 @@ console.log('9e. Góc cộng đồng công khai ở trang chủ (/api/community)
 
   // Thành viên bị chặn (An Nguyễn, anId) không hiện trong góc cộng đồng dù có hoạt động cũ.
   ok(!c.online.some((u) => u.display_name === 'An Nguyễn'), 'thành viên bị chặn không hiện trong danh sách đang online công khai');
+
+  ok(Number.isInteger(c.views_total) && c.views_total >= 0, 'có tổng lượt xem, là số nguyên không âm', c.views_total);
+  ok(c.views_total === adminStats.visits.total, 'tổng lượt xem khớp với tab Thống kê', JSON.stringify([c.views_total, adminStats.visits.total]));
+  ok(Object.keys(c).sort().join(',') === 'online,top_active,views_total', 'góc cộng đồng chỉ trả đúng ba trường, không lộ gì thêm', JSON.stringify(Object.keys(c)));
 }
 
 console.log('9f. Thiết lập trang chủ (/api/settings): ảnh ở đầu trang chủ chỉnh được từ khu quản lý');

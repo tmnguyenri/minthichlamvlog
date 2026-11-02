@@ -361,6 +361,12 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.12; letter-spacing: -.0
 .community__title { display: flex; align-items: center; gap: .55rem; margin: 0 0 1rem; font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--ink); }
 .community__icon { width: 1.15rem; height: 1.15rem; fill: none; stroke: var(--pink-deep); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .community__empty { margin: 0; color: var(--muted); font-size: .9rem; }
+.community__views {
+  display: inline-flex; align-items: center; gap: .45rem; margin: 1rem 0 0; padding: .4rem .85rem;
+  border-radius: 99px; background: #fff; box-shadow: 0 1px 2px rgba(27, 18, 48, .08); font-size: .85rem; color: var(--muted);
+}
+.community__views strong { color: var(--ink); font-weight: 800; font-variant-numeric: tabular-nums; }
+.community__views .community__icon { stroke: var(--gold); }
 
 .dot--live { display: inline-block; width: .55rem; height: .55rem; flex: none; border-radius: 50%; background: var(--mint); }
 @media (prefers-reduced-motion: no-preference) { .dot--live { animation: mtlv-pulse 1.8s infinite; } }

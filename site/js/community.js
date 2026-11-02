@@ -25,6 +25,9 @@
 
   function replaceChildren(el, nodes) { while (el.firstChild) el.removeChild(el.firstChild); nodes.forEach(function (n) { el.appendChild(n); }); }
 
+  // Số lớn hiện gọn hơn với dấu chấm ngăn nghìn kiểu Việt Nam (vd. 12.345), không đổi theo ngôn ngữ trang.
+  function formatCount(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+
   var onlineList = document.getElementById('online-list');
   var topList = document.getElementById('top-list');
   if (!onlineList || !topList) return;
@@ -34,6 +37,7 @@
     .then(function (d) {
       var online = (d && d.online) || [];
       var top = (d && d.top_active) || [];
+      var viewsTotal = (d && d.views_total) || 0;
 
       replaceChildren(onlineList, online.map(onlineItem));
       document.getElementById('online-empty').hidden = online.length > 0;
@@ -41,7 +45,13 @@
       replaceChildren(topList, top.map(topItem));
       document.getElementById('top-empty').hidden = top.length > 0;
 
+      var views = document.getElementById('community-views');
+      if (views && viewsTotal > 0) {
+        document.getElementById('community-views-count').textContent = formatCount(viewsTotal);
+        views.hidden = false;
+      }
+
       M.refresh();
     })
-    .catch(function () { /* giữ nguyên hai thông báo trống mặc định */ });
+    .catch(function () { /* giữ nguyên hai thông báo trống mặc định, không hiện dòng lượt xem */ });
 })();
