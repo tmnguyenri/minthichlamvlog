@@ -49,6 +49,23 @@ export async function onRequestGet({ params, env, data }) {
     ? `<div class="prose" data-only="vi">${bodyVi}</div>\n        <div class="prose" data-only="en">${bodyEn}</div>`
     : `<div class="prose">${bodyVi}</div>`;
 
+  // Ảnh tải lên cho bài nhưng chưa được chèn tay vào nội dung (qua nút "Chèn vào nội dung" trong
+  // /quan-ly) vẫn không nên biến mất — tự động gộp thành một dải ảnh ở cuối bài, để người đọc xem
+  // được hết ảnh của chuyến đi dù người viết không chèn từng tấm vào giữa bài.
+  const { results: photos } = await env.DB.prepare('SELECT id, caption FROM images WHERE post_id = ? ORDER BY id').bind(post.id).all();
+  const usedIds = new Set();
+  for (const m of `${post.body}\n${post.body_en || ''}`.matchAll(/\/api\/images\/(\d+)/g)) usedIds.add(Number(m[1]));
+  const leftoverPhotos = photos.filter((img) => !usedIds.has(img.id));
+  const gallery = leftoverPhotos.length
+    ? `<section class="post-gallery">
+          <h2 data-en="More photos">Thêm ảnh</h2>
+          <div class="post-gallery__grid">
+            ${leftoverPhotos.map((img) => `<a class="post-gallery__item" href="/api/images/${img.id}" target="_blank" rel="noopener noreferrer">
+              <img src="/api/images/${img.id}" alt="${esc(img.caption || '')}" width="400" height="300" loading="lazy"></a>`).join('')}
+          </div>
+        </section>`
+    : '';
+
   const canDelete = (c) => user && (user.role === 'admin' || user.id === c.user_id);
   const list = comments.length
     ? `<ol class="comment-list">${comments.map((c) => `
@@ -83,6 +100,7 @@ export async function onRequestGet({ params, env, data }) {
       <div class="wrap post-body">
         ${video}
         ${prose}
+        ${gallery}
         <section class="comments" id="binh-luan" aria-labelledby="cm-title">
           <h2 id="cm-title" data-en="Comments">Bình luận</h2>
           ${list}

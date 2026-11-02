@@ -173,6 +173,25 @@ const heroMatch = /post-hero__img" src="\/api\/images\/(\d+)"/.exec(r.text);
 ok(r.status === 200 && heroMatch && [photoA, photoB].includes(Number(heroMatch[1])), 'trang bài hiện một ảnh của chính bài đó', heroMatch && heroMatch[0]);
 r = await call('GET', '/bai/bai-khong-anh');
 ok(r.status === 200 && r.text.includes('/images/cover-default.svg'), 'bài không ảnh dùng ảnh mặc định');
+
+console.log('5b. Ảnh đã tải lên nhưng chưa chèn tay vào nội dung tự hiện ở cuối bài');
+r = await call('GET', '/bai/bai-co-anh');
+ok(r.status === 200 && r.text.includes('post-gallery') && r.text.includes(`/api/images/${photoA}`) && r.text.includes(`/api/images/${photoB}`),
+  'bài chưa chèn ảnh nào vào nội dung thì cả hai ảnh hiện ở dải ảnh cuối bài');
+r = await call('GET', '/bai/bai-khong-anh');
+ok(r.status === 200 && !r.text.includes('post-gallery'), 'bài không có ảnh nào thì không có dải ảnh cuối bài');
+const withOneInserted = db.raw.prepare(`INSERT INTO posts (slug, title, title_en, excerpt, excerpt_en, body, body_en, country, trip_date, days, cover, video, status, author_id, created_at, updated_at, published_at)
+  VALUES ('bai-mot-anh-da-chen', 'Bài một ảnh đã chèn', '', '', '', '', '', '', '', NULL, '', '', 'published', ?, ?, ?, ?)`).run(adminId, t0, t0, t0).lastInsertRowid;
+r = await call('POST', `/api/images?post_id=${withOneInserted}&caption=da-chen`, { cookie: adminCookie, body: JPEG, type: 'image/jpeg' });
+const photoInserted = r.json.id;
+r = await call('POST', `/api/images?post_id=${withOneInserted}&caption=chua-chen`, { cookie: adminCookie, body: PNG, type: 'image/png' });
+const photoNotInserted = r.json.id;
+db.raw.prepare('UPDATE posts SET body = ? WHERE id = ?').run(`Đoạn mở bài.\n\n![da-chen](/api/images/${photoInserted})\n\nĐoạn kết.`, withOneInserted);
+r = await call('GET', '/bai/bai-mot-anh-da-chen');
+const galleryItem = (id) => `post-gallery__item" href="/api/images/${id}"`;
+ok(r.status === 200 && r.text.includes(galleryItem(photoNotInserted)), 'ảnh chưa chèn vẫn hiện ở dải ảnh cuối bài');
+ok(!r.text.includes(galleryItem(photoInserted)), 'ảnh đã chèn tay vào nội dung thì không lặp lại ở dải ảnh cuối bài');
+
 r = await call('GET', '/api/images', { cookie: adminCookie });
 const mine = r.json && r.json.images.find((i) => i.id === photoA);
 ok(mine && mine.post_title === 'Bài có ảnh' && mine.post_id === withPhotos, 'danh sách ảnh cho biết ảnh thuộc bài nào', JSON.stringify(mine));
