@@ -1,14 +1,17 @@
 // Kiểm thử tự dịch bài viết: chạy bằng  node --no-warnings dev/test-translate.mjs
 // Dùng một AI giả lập để kiểm tra logic, không gọi Workers AI thật.
-import { translateMarkdown, translateText, fillEnglish, chunkText } from '../functions/_lib/translate.js';
+import { translateMarkdown, translateText, fillEnglish, chunkText, MODEL, MAX_CHARS } from '../functions/_lib/translate.js';
 
 let pass = 0; const failures = [];
 function ok(cond, name, extra = '') { if (cond) pass++; else { failures.push(name); console.log('  FAIL', name, extra); } }
 
 const calls = [];
-const fakeAI = { run: async (model, { text, source_lang, target_lang }) => {
-  calls.push({ model, text, source_lang, target_lang });
-  return { translated_text: `[EN ${text}]` };
+const fakeAI = { run: async (model, { messages, max_tokens }) => {
+  const system = messages.find((m) => m.role === 'system');
+  const user = messages.find((m) => m.role === 'user');
+  const text = user && user.content;
+  calls.push({ model, text, hasSystem: !!system, max_tokens });
+  return { response: `[EN ${text}]` };
 } };
 const noAI = {};
 
@@ -21,7 +24,7 @@ console.log('2. Dịch tiêu đề và tóm tắt');
 const p1 = await fillEnglish({ AI: fakeAI }, { title: 'Hà Giang', title_en: '', excerpt: 'Đèo Mã Pí Lèng', excerpt_en: '' , body: '', body_en: '' });
 ok(p1.title_en === '[EN Hà Giang]', 'tiêu đề được dịch', p1.title_en);
 ok(p1.excerpt_en === '[EN Đèo Mã Pí Lèng]', 'tóm tắt được dịch', p1.excerpt_en);
-ok(calls.every((c) => c.model === '@cf/meta/m2m100-1.2b' && c.source_lang === 'vi' && c.target_lang === 'en'), 'dùng đúng mô hình và chiều vi -> en');
+ok(calls.every((c) => c.model === MODEL && c.hasSystem), 'dùng đúng mô hình và có kèm lời nhắc (prompt) giữ giọng văn');
 
 console.log('3. Không ghi đè bản tiếng Anh đã có');
 calls.length = 0;
@@ -52,9 +55,9 @@ ok(blocks[4] === '- [EN Món đầu tiên]\n1. [EN Bước một]', 'danh sách 
 ok(!calls.some((c) => c.text.includes('/api/images')), 'không gửi đường dẫn ảnh đi dịch');
 
 console.log('5. Đoạn dài và giới hạn số lần gọi');
-const long = Array.from({ length: 40 }, (_, i) => `Câu số ${i} của một đoạn khá dài để kiểm tra việc tách.`).join(' ');
+const long = Array.from({ length: 100 }, (_, i) => `Câu số ${i} của một đoạn khá dài để kiểm tra việc tách.`).join(' ');
 const pieces = chunkText(long);
-ok(pieces.length > 1 && pieces.every((x) => x.length <= 1500), 'đoạn dài được tách dưới 1500 ký tự', String(pieces.length));
+ok(pieces.length > 1 && pieces.every((x) => x.length <= MAX_CHARS), `đoạn dài được tách dưới ${MAX_CHARS} ký tự`, String(pieces.length));
 ok(pieces.join(' ').replace(/\s+/g, ' ').trim() === long.replace(/\s+/g, ' ').trim(), 'tách đoạn không làm mất chữ');
 const manyLines = Array.from({ length: 200 }, (_, i) => `Dòng ${i}`).join('\n\n');
 calls.length = 0;

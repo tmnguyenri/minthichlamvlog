@@ -1,18 +1,44 @@
-// Tự dịch bài viết tiếng Việt sang tiếng Anh bằng Workers AI (mô hình m2m100) khi phần tiếng Anh còn trống.
+// Tự dịch bài viết tiếng Việt sang tiếng Anh bằng Workers AI khi phần tiếng Anh còn trống.
 // Nếu chưa bật binding AI, hoặc dịch lỗi, bài vẫn được lưu bình thường và phần tiếng Anh để trống.
+//
+// Dùng một mô hình tạo sinh (GLM-4.7-Flash) thay cho mô hình dịch chuyên dụng m2m100 trước đây:
+// m2m100 dịch đúng nghĩa nhưng khá cứng, dễ mất giọng văn cá nhân/hài hước của blog du lịch.
+// Một mô hình tạo sinh được nhắc (prompt) đúng cách sẽ dịch tự nhiên hơn và giữ được giọng văn
+// hơn, bù lại tốn chi phí/thời gian hơn một chút cho mỗi lần gọi.
 
-const MODEL = '@cf/meta/m2m100-1.2b';
+export const MODEL = '@cf/zai-org/glm-4.7-flash';
 const MAX_CALLS = 60;          // giới hạn số lần gọi mô hình cho mỗi lần lưu
-const MAX_CHARS = 1500;        // độ dài tối đa của mỗi lần gửi đi
+export const MAX_CHARS = 4000; // mô hình tạo sinh xử lý đoạn dài tốt hơn m2m100 nên ít phải tách nhỏ hơn
 
 const IMAGE_LINE = /^!\[[^\]]*\]\([^)]*\)$/;
 const PREFIX = /^(#{1,6}\s+|>\s?|[-*]\s+|\d+\.\s+)/;
 
+// Nhắc mô hình dịch như một người viết blog du lịch, không như một cái máy dịch từng từ.
+const SYSTEM_PROMPT = [
+  'You translate short passages from a personal Vietnamese travel blog into English.',
+  'Translate naturally and fluently, the way a native English speaker would write it, keeping the',
+  "writer's own voice: warm, personal, a little playful, written for friends and family following",
+  'along on a trip — not a stiff, literal, word-for-word translation.',
+  'Keep Vietnamese place, dish and proper names as they are commonly written in English (for example',
+  'Hoi An, Da Nang, Hanoi); if there is no common English form, keep the Vietnamese spelling with its',
+  'diacritics rather than inventing one.',
+  'Preserve any Markdown syntax, links or inline code in the text exactly as given; translate only the',
+  'surrounding prose.',
+  'Reply with the English translation only — no notes, no quotation marks around it, no preamble.',
+].join(' ');
+
 async function translateOne(env, text) {
   const clean = String(text || '').trim();
   if (!clean) return '';
-  const out = await env.AI.run(MODEL, { text: clean, source_lang: 'vi', target_lang: 'en' });
-  return String((out && out.translated_text) || '').trim();
+  const out = await env.AI.run(MODEL, {
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: clean },
+    ],
+    max_tokens: 2048,   // đủ rộng để không bị cắt cụt bản dịch của một đoạn dài tới MAX_CHARS
+    temperature: 0.3,   // dịch cần sát nghĩa, không cần sáng tạo nhiều như văn tự do
+  });
+  return String((out && out.response) || '').trim();
 }
 
 // Tách đoạn dài thành các câu ghép lại dưới MAX_CHARS, để không bị cắt giữa chừng.

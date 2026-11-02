@@ -80,7 +80,7 @@ Trang chủ (dải ảnh, banner nổi bật, danh sách bài, bản đồ quố
 
 ## Tự dịch bài viết sang tiếng Anh
 
-- Khi lưu bài, các phần tiếng Anh còn trống (tiêu đề, tóm tắt, nội dung) được tự dịch từ tiếng Việt bằng **Workers AI** (mô hình `m2m100`). Phần đã có chữ tiếng Anh thì giữ nguyên, không bị ghi đè.
+- Khi lưu bài, các phần tiếng Anh còn trống (tiêu đề, tóm tắt, nội dung) được tự dịch từ tiếng Việt bằng **Workers AI** (mô hình tạo sinh `glm-4.7-flash`, có kèm lời nhắc để giữ giọng văn cá nhân của blog thay vì dịch cứng từng từ như mô hình dịch chuyên dụng cũ). Phần đã có chữ tiếng Anh thì giữ nguyên, không bị ghi đè.
 - Muốn dịch lại một bài: xóa phần tiếng Anh của bài đó rồi lưu.
 - Bản dịch máy có thể chưa chuẩn. Nên đọc lại và sửa trực tiếp trong ô tiếng Anh; sau khi sửa, lần lưu sau sẽ không dịch đè.
 - Cần bật Workers AI trong tài khoản Cloudflare (binding `AI` đã có trong `wrangler.jsonc`). Nếu chưa bật, bài vẫn lưu bình thường, chỉ phần tiếng Anh để trống.
