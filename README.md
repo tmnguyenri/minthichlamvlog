@@ -253,7 +253,9 @@ Trang đã có sẵn những thứ công cụ tìm kiếm và mạng xã hội c
 
 **Xác minh quyền sở hữu** (Google Search Console, Bing Webmaster Tools): dán thẻ `<meta name="google-site-verification" ...>` hoặc `<meta name="msvalidate.01" ...>` vào `<head>` của `site/index.html`, hoặc đặt tệp xác minh họ đưa (ví dụ `googleXXXX.html`, `BingSiteAuth.xml`) vào thư mục `site/`.
 
-**Tên miền riêng:** trang đã chuyển sang `https://minthichlamvlog.com` — hằng số `SITE_URL` trong `functions/_lib/site.js` và các chuỗi địa chỉ trong `site/index.html`, `site/about.html`, `site/rieng-tu.html`, `site/robots.txt` đều đã trỏ sang tên miền này (`minthichlamvlog.pages.dev` của Cloudflare vẫn còn hoạt động song song, nhưng sitemap/RSS/thẻ chia sẻ/IndexNow đều dùng tên miền riêng). Nếu sau này đổi sang tên miền khác: sửa `SITE_URL` (hoặc đặt biến môi trường `SITE_URL` trong Cloudflare Pages để ghi đè mà không cần sửa code), rồi thay chuỗi địa chỉ cũ trong 4 tệp tĩnh kể trên — `host` khai báo với IndexNow tự theo `SITE_URL`, không cần sửa riêng.
+**Tên miền riêng:** trang đã chuyển sang `https://minthichlamvlog.com` — hằng số `SITE_URL` trong `functions/_lib/site.js` và các chuỗi địa chỉ trong `site/index.html`, `site/about.html`, `site/rieng-tu.html`, `site/robots.txt` đều đã trỏ sang tên miền này. Nếu sau này đổi sang tên miền khác: sửa `SITE_URL` (hoặc đặt biến môi trường `SITE_URL` trong Cloudflare Pages để ghi đè mà không cần sửa code), rồi thay chuỗi địa chỉ cũ trong 4 tệp tĩnh kể trên và `LEGACY_HOST` trong `functions/_middleware.js` (xem mục ngay dưới) — `host` khai báo với IndexNow tự theo `SITE_URL`, không cần sửa riêng.
+
+**Tên miền pages.dev mặc định:** Cloudflare Pages không cho tắt hẳn tên miền `*.pages.dev` được cấp sẵn (bản xem trước theo nhánh vẫn cần nó). Thay vào đó, `functions/_middleware.js` tự chuyển hướng vĩnh viễn (301) mọi yêu cầu tới đúng tên miền sản phẩm `minthichlamvlog.pages.dev` sang `minthichlamvlog.com`, giữ nguyên đường dẫn và tham số — khách và công cụ tìm kiếm chỉ còn thấy tên miền riêng. Các bản xem trước (`<mã-nhánh>.minthichlamvlog.pages.dev`) không bị ảnh hưởng.
 
 ## Font chữ
 

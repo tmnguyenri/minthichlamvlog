@@ -1,5 +1,6 @@
 // Kiểm thử phần máy chủ: chạy bằng  node dev/test-api.mjs
 import fs from 'node:fs';
+import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createD1 } from './d1.mjs';
@@ -335,6 +336,29 @@ console.log('9b2. Cơ sở dữ liệu cũ thiếu cột thành phố được t
   ok(res.status === 200, 'kiểm tra lại khi cột đã có không gây lỗi', res.status);
   s2.close();
   resetSchemaCheck();
+}
+
+console.log('9b3. Tên miền pages.dev cũ tự chuyển hẳn sang tên miền chính');
+{
+  // fetch() luôn tự đặt lại tiêu đề Host theo địa chỉ kết nối thật, nên phải dùng http.request
+  // thẳng để giả lập khách ghé bằng một tên miền khác (giống việc nhiều tên miền trỏ cùng một máy chủ).
+  const u = new URL(url);
+  const getHost = (host, p = '/') => new Promise((resolve, reject) => {
+    const req = http.request({ hostname: u.hostname, port: u.port, path: p, headers: { host, 'cf-connecting-ip': '10.0.9.1' } }, (res) => {
+      const chunks = [];
+      res.on('data', (c) => chunks.push(c));
+      res.on('end', () => resolve({ status: res.statusCode, headers: res.headers }));
+    });
+    req.on('error', reject);
+    req.end();
+  });
+  let res = await getHost('minthichlamvlog.pages.dev', '/about.html?lang=en');
+  ok(res.status === 301, 'địa chỉ pages.dev sản phẩm bị chuyển hướng vĩnh viễn', res.status);
+  ok(res.headers.location === 'https://minthichlamvlog.com/about.html?lang=en', 'chuyển đúng sang tên miền chính, giữ nguyên đường dẫn và tham số', res.headers.location);
+  res = await getHost('xem-truoc-nhanh.minthichlamvlog.pages.dev');
+  ok(res.status === 200, 'bản xem trước theo nhánh (*.pages.dev) không bị chuyển hướng', res.status);
+  res = await getHost('minthichlamvlog.com');
+  ok(res.status === 200, 'tên miền chính không bị chuyển hướng', res.status);
 }
 
 console.log('9c. Quên mật khẩu: liên kết do chủ trang tạo, mã khôi phục khẩn cấp');
