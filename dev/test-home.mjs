@@ -56,7 +56,7 @@ ok(await page.locator('.tl-card:has-text("Phố cổ") .tl-card__photos img').co
 ok(errs.length === 0, 'không có lỗi script', errs.join(' | '));
 
 console.log('2c. Số liệu đầu trang và dải chữ chạy phải khớp đúng bài thật đã đăng');
-ok((await page.locator('.hero__stats .hero__stat strong').allTextContents()).join(',') === '3,2', 'số bài và số điểm đến đúng với 3 bài / 2 quốc gia (không còn là 5/4 mẫu)', await page.locator('.hero__stats .hero__stat strong').allTextContents());
+ok((await page.locator('.hero__stats .hero__stat strong').allTextContents()).join(',') === '3,3', 'số bài và số điểm đến (thành phố) đúng với 3 bài / 3 thành phố (không còn là 5/4 mẫu)', await page.locator('.hero__stats .hero__stat strong').allTextContents());
 {
   const labels = (await page.locator('.ticker__track span').allTextContents()).map((t) => t.trim());
   const half = labels.slice(0, labels.length / 2);

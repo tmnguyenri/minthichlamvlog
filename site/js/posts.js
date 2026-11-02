@@ -156,7 +156,8 @@
     return out;
   }
 
-  // "5 Bài viết · 4 Điểm đến" ở đầu trang: số bài và số quốc gia (cùng cách nhóm với mục Bản đồ bên dưới).
+  // "5 Bài viết · 4 Điểm đến" ở đầu trang: số bài và số thành phố/địa danh khác nhau đã đi qua
+  // (khớp với nhãn tiếng Anh "Cities" — không phải số quốc gia, mục đó là nhóm theo quốc gia ở Bản đồ bên dưới).
   function updateStats(postCount, placeCount) {
     var nums = document.querySelectorAll('.hero__stats .hero__stat strong');
     if (nums[0]) nums[0].textContent = String(postCount);
@@ -191,12 +192,13 @@
       }
 
       var countries = distinctBy(posts, 'country');
+      var cities = distinctBy(posts, 'city');
       var places = document.querySelector('#ban-do .atlas');
       var items = atlas(posts);
       if (places && items.length) replaceChildren(places, items);
 
-      updateStats(posts.length, countries.length);
-      updateTicker(countries.concat(distinctBy(posts, 'city')));
+      updateStats(posts.length, cities.length);
+      updateTicker(countries.concat(cities));
 
       M.refresh();
       // Báo cho dải ảnh ở đầu trang biết đã có bài thật để lấy ảnh bìa.
