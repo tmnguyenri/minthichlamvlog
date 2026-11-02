@@ -144,6 +144,37 @@
 
   function replaceChildren(el, nodes) { while (el.firstChild) el.removeChild(el.firstChild); nodes.forEach(function (n) { el.appendChild(n); }); }
 
+  // Tên không lặp lại, giữ nguyên chữ hoa/thường của lần gặp đầu tiên (so khớp không phân biệt hoa thường).
+  function distinctBy(posts, key) {
+    var seen = {}, out = [];
+    posts.forEach(function (p) {
+      var v = (p[key] || '').trim();
+      if (!v || seen[v.toLowerCase()]) return;
+      seen[v.toLowerCase()] = true;
+      out.push(v);
+    });
+    return out;
+  }
+
+  // "5 Bài viết · 4 Điểm đến" ở đầu trang: số bài và số quốc gia (cùng cách nhóm với mục Bản đồ bên dưới).
+  function updateStats(postCount, placeCount) {
+    var nums = document.querySelectorAll('.hero__stats .hero__stat strong');
+    if (nums[0]) nums[0].textContent = String(postCount);
+    if (nums[1]) nums[1].textContent = String(placeCount);
+  }
+
+  // Dải chữ chạy trang trí: tên các quốc gia rồi thành phố đã có bài, lặp hai lần để chạy liền mạch
+  // (xem @keyframes mtlv-marquee trong style.css: translateX(-50%) cần đúng hai bản giống hệt nhau).
+  // Chưa có địa danh nào (bài chưa điền quốc gia/thành phố) thì ẩn cả dải thay vì để trống trơ.
+  function updateTicker(labels) {
+    var track = document.querySelector('.ticker__track');
+    var section = track ? track.closest('.ticker') : null;
+    if (!track || !section) return;
+    section.hidden = !labels.length;
+    if (!labels.length) return;
+    replaceChildren(track, labels.concat(labels).map(function (t) { return h('span', { text: t }); }));
+  }
+
   fetch('/api/posts?limit=50', { credentials: 'same-origin' })
     .then(function (r) { return r.json(); })
     .then(function (d) {
@@ -159,9 +190,13 @@
         replaceChildren(cards, timeline(posts.slice(1, 13)));
       }
 
+      var countries = distinctBy(posts, 'country');
       var places = document.querySelector('#ban-do .atlas');
       var items = atlas(posts);
       if (places && items.length) replaceChildren(places, items);
+
+      updateStats(posts.length, countries.length);
+      updateTicker(countries.concat(distinctBy(posts, 'city')));
 
       M.refresh();
       // Báo cho dải ảnh ở đầu trang biết đã có bài thật để lấy ảnh bìa.

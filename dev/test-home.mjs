@@ -35,6 +35,9 @@ console.log('1. Chưa có bài thật: giữ bài mẫu');
 await page.goto(url + '/', { waitUntil: 'networkidle' });
 ok(await page.locator('.tl-card').count() === 0, 'chưa có bài thật thì không có thẻ dòng thời gian');
 ok(await page.locator('#nhat-ky .cards :text("Mẫu")').count() > 0, 'bài mẫu vẫn hiện');
+ok((await page.locator('.hero__stats .hero__stat strong').allTextContents()).join(',') === '5,4', 'số liệu đầu trang vẫn là số mẫu (5/4) khi chưa có bài thật');
+ok(await page.locator('.ticker').isHidden() === false, 'dải chữ chạy vẫn hiện khi chưa có bài thật');
+ok((await page.locator('.ticker__track span').first().textContent())?.trim() === 'Việt Nam', 'dải chữ chạy vẫn là danh sách mẫu khi chưa có bài thật');
 
 console.log('2. Có bài thật kèm nhiều ảnh');
 const p1 = addPost('che-le-duong', 'Chè lề đường', 'Việt Nam', 'Đà Nẵng', '2012-10');
@@ -44,11 +47,25 @@ const p3 = addPost('kyoto', 'Kyoto', 'Nhật Bản', 'Kyoto', '2014-11');
 addPhoto(p3);
 await page.goto(url + '/', { waitUntil: 'networkidle' });
 await page.waitForSelector('.tl-card');
-ok(await page.locator('.tl-card').count() === 3, 'cả ba bài thật hiện trong dòng thời gian', await page.locator('.tl-card').count());
+// Bài mới nhất (Kyoto) tách riêng thành banner nổi bật ở #featured-post, hai bài còn lại mới vào dòng thời gian.
+ok(await page.locator('#featured-post .featured:has-text("Kyoto")').count() === 1, 'bài mới nhất hiện ở banner nổi bật');
+ok(await page.locator('.tl-card').count() === 2, 'hai bài còn lại hiện trong dòng thời gian', await page.locator('.tl-card').count());
 ok(await page.locator('#nhat-ky .cards :text("Mẫu")').count() === 0, 'bài mẫu được thay hết');
 ok(await page.locator('.tl-card:has-text("Chè lề đường") .tl-card__photos img').count() === 2, 'bài có hai ảnh hiện hai ảnh thu nhỏ');
 ok(await page.locator('.tl-card:has-text("Phố cổ") .tl-card__photos img').count() === 1, 'bài không có ảnh hiện ảnh mặc định');
 ok(errs.length === 0, 'không có lỗi script', errs.join(' | '));
+
+console.log('2c. Số liệu đầu trang và dải chữ chạy phải khớp đúng bài thật đã đăng');
+ok((await page.locator('.hero__stats .hero__stat strong').allTextContents()).join(',') === '3,2', 'số bài và số điểm đến đúng với 3 bài / 2 quốc gia (không còn là 5/4 mẫu)', await page.locator('.hero__stats .hero__stat strong').allTextContents());
+{
+  const labels = (await page.locator('.ticker__track span').allTextContents()).map((t) => t.trim());
+  const half = labels.slice(0, labels.length / 2);
+  ok(labels.length === half.length * 2 && half.join('|') === labels.slice(half.length).join('|'), 'dải chữ lặp đúng hai bản giống nhau để chạy liền mạch', labels.join(', '));
+  const want = ['Việt Nam', 'Nhật Bản', 'Đà Nẵng', 'Hội An', 'Kyoto'];
+  ok(want.every((w) => half.includes(w)), 'dải chữ có đủ quốc gia và thành phố của bài thật', half.join(', '));
+  const sample = ['Bồ Đào Nha', 'Mexico', 'Đà Lạt', 'Hà Giang'];
+  ok(sample.every((s) => !half.includes(s)), 'dải chữ không còn tên mẫu', half.join(', '));
+}
 
 console.log('2b. Chữ trước, ảnh sau; ảnh vuông vức');
 for (const [label, size] of [['máy tính', { width: 1280, height: 800 }], ['điện thoại', { width: 390, height: 844 }]]) {
@@ -70,7 +87,7 @@ await page.goto(url + '/', { waitUntil: 'networkidle' });
 await page.waitForSelector('.tl-card');
 
 console.log('3. Thành phố và quốc gia');
-const card = page.locator('.tl-card:has-text("Chè lề đường") .meta__where');
+const card = page.locator('.tl-card:has-text("Chè lề đường") .tl-card__flag');
 ok((await card.textContent()).replace(/\s+/g, ' ').trim() === 'Đà Nẵng, Việt Nam', 'thẻ bài hiện "thành phố, quốc gia"', await card.textContent());
 const vn = page.locator('#ban-do .atlas .country:has-text("Việt Nam")');
 ok(await vn.count() === 1, 'mỗi quốc gia một ô trên bản đồ');
