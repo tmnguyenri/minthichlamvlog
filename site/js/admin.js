@@ -63,6 +63,16 @@
   var editingId = null;
   var slugTouched = false;
 
+  // Gợi ý tên quốc gia khi gõ (toàn bộ danh sách ở js/countries.js), để tránh gõ sai/thiếu dấu
+  // khiến bài không nhận ra cờ của nước đó.
+  (function () {
+    var list = document.getElementById('country-list');
+    if (!list || !M.COUNTRIES) return;
+    M.COUNTRIES.slice()
+      .sort(function (a, b) { return a.vi[0].localeCompare(b.vi[0], 'vi'); })
+      .forEach(function (c) { list.appendChild(h('option', { value: c.vi[0] })); });
+  })();
+
   function closeEditor() { editor.hidden = true; editingId = null; }
 
   function fill(p) {

@@ -261,7 +261,8 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.12; letter-spacing: -.0
 .meta__where { display: inline-flex; align-items: center; gap: .5rem; color: var(--ink); font-weight: 700; }
 .meta__sep { display: inline-block; width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .55; }
 .featured .meta__sep { background: var(--gold); opacity: 1; }
-.flag { width: 1.3rem; height: .87rem; flex: none; border-radius: 2px; object-fit: cover; box-shadow: 0 0 0 1px rgba(27, 18, 48, .15); }
+/* Cờ hiện bằng ký tự emoji (xem flagEmoji() trong js/posts.js), không phải ảnh, nên chỉ cần canh cỡ chữ. */
+.flag { font-size: 1.15rem; line-height: 1; flex: none; }
 /* Nhãn "Mẫu" và mọi nhãn nhỏ khác: viên thuốc trắng, chữ hoa cách đều, chấm gradient phía trước. */
 .badge { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .75rem .3rem .55rem; border-radius: 999px; background: #fff; color: var(--muted); font-size: .68rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; box-shadow: 0 1px 2px rgba(27, 18, 48, .1); }
 .badge::before { content: ""; width: .45rem; height: .45rem; border-radius: 50%; background-image: var(--grad-brand); }
@@ -334,7 +335,7 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.12; letter-spacing: -.0
 }
 .country:hover { transform: translateY(-5px) rotate(-.8deg); border-color: rgba(18, 214, 168, .5); box-shadow: 0 24px 40px -28px rgba(18, 214, 168, .7); }
 .atlas-flag { display: grid; place-items: center; width: 2.9rem; height: 2.9rem; flex: none; border-radius: .9rem; background: linear-gradient(135deg, #fff3d6, #ffe3ec); border: 1px solid var(--line); overflow: hidden; }
-.atlas-flag .flag { width: 1.6rem; height: 1.05rem; box-shadow: 0 0 0 1px rgba(27, 18, 48, .18); }
+.atlas-flag .flag { font-size: 1.7rem; }
 .country > span { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: .1rem .5rem; min-width: 0; }
 .country__name { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; letter-spacing: -.01em; }
 .country__count { color: var(--muted); font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }

@@ -3,19 +3,20 @@
 (function () {
   'use strict';
   var M = window.MTLV, h = M.h;
-  var FLAGS = {
-    'việt nam': ['vn', 'Vietnam'], 'vietnam': ['vn', 'Vietnam'],
-    'nhật bản': ['jp', 'Japan'], 'japan': ['jp', 'Japan'],
-    'bồ đào nha': ['pt', 'Portugal'], 'portugal': ['pt', 'Portugal'],
-    'mexico': ['mx', 'Mexico']
-  };
+  // Danh sách quốc gia/cờ đầy đủ (gần 250 nước) nằm ở js/countries.js, nạp trước tệp này.
+  var FLAGS = M.FLAGS || {};
   var MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   function link(p) { return '/bai/' + encodeURIComponent(p.slug); }
   function en(el, value) { if (value) el.setAttribute('data-en', value); return el; }
 
   function flagOf(country) { return FLAGS[(country || '').toLowerCase()] || null; }
-  function flagImg(code) { return h('img', { class: 'flag', src: '/images/flags/' + code + '.svg', alt: '', width: 36, height: 24 }); }
+  // Cờ hiện bằng ký tự emoji cờ Unicode (hai ký tự "chữ cái chỉ vùng") suy thẳng từ mã ISO hai chữ của
+  // nước đó — không cần tải ảnh, nên nước nào trong js/countries.js cũng có cờ sẵn, không riêng vài nước.
+  function flagChars(code) {
+    return String(code).toUpperCase().replace(/./g, function (c) { return String.fromCodePoint(127397 + c.charCodeAt(0)); });
+  }
+  function flagEmoji(code) { return h('span', { class: 'flag', 'aria-hidden': 'true', text: flagChars(code) }); }
 
   // "Thành phố, Quốc gia" (chỉ có một trong hai thì hiện một). Bản tiếng Anh dùng tên nước tiếng Anh nếu biết.
   function countryEl(country, city) {
@@ -28,7 +29,7 @@
     var parts = [];
     if (withCountry && (p.country || p.city)) {
       var f = flagOf(p.country);
-      parts.push(h('span', { class: 'meta__where' }, f ? flagImg(f[0]) : null, countryEl(p.country, p.city)));
+      parts.push(h('span', { class: 'meta__where' }, f ? flagEmoji(f[0]) : null, countryEl(p.country, p.city)));
     }
     var m = /^(\d{4})-(\d{2})$/.exec(p.trip_date || '');
     if (m) parts.push(en(h('time', { datetime: p.trip_date, text: 'Tháng ' + Number(m[2]) + '/' + m[1] }), MONTHS_EN[Number(m[2]) - 1] + ' ' + m[1]));
@@ -73,7 +74,7 @@
   function flagPill(p) {
     var f = flagOf(p.country);
     if (!f && !p.country) return null;
-    return h('span', { class: 'tl-card__flag' }, f ? flagImg(f[0]) : null, countryEl(p.country, p.city));
+    return h('span', { class: 'tl-card__flag' }, f ? flagEmoji(f[0]) : null, countryEl(p.country, p.city));
   }
 
   function timelineCard(p) {
@@ -122,7 +123,7 @@
         ? h('span', { class: 'country__cities', text: g.cities.slice(0, MAX_CITIES).join(', ') + (more > 0 ? ' +' + more : '') })
         : null;
       return h('a', { class: 'country', href: link(g.posts[0]) },
-        f ? h('span', { class: 'atlas-flag' }, flagImg(f[0])) : null,
+        f ? h('span', { class: 'atlas-flag' }, flagEmoji(f[0])) : null,
         h('span', {}, en(h('span', { class: 'country__name', text: g.name }), f && f[1]),
           en(h('span', { class: 'country__count', text: n + ' bài viết' }), n + (n === 1 ? ' post' : ' posts')),
           cities));
@@ -140,7 +141,7 @@
   }
 
   // Cho js/slider.js dùng lại các hàm dựng cờ, tên nước và liên kết bài.
-  M.kit = { link: link, flagOf: flagOf, flagImg: flagImg, countryEl: countryEl };
+  M.kit = { link: link, flagOf: flagOf, flagEmoji: flagEmoji, countryEl: countryEl };
 
   function replaceChildren(el, nodes) { while (el.firstChild) el.removeChild(el.firstChild); nodes.forEach(function (n) { el.appendChild(n); }); }
 

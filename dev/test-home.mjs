@@ -86,15 +86,25 @@ await page.setViewportSize({ width: 1280, height: 800 });
 await page.goto(url + '/', { waitUntil: 'networkidle' });
 await page.waitForSelector('.tl-card');
 
-console.log('3. Thành phố và quốc gia');
+console.log('3. Thành phố, quốc gia và cờ');
 const card = page.locator('.tl-card:has-text("Chè lề đường") .tl-card__flag');
-ok((await card.textContent()).replace(/\s+/g, ' ').trim() === 'Đà Nẵng, Việt Nam', 'thẻ bài hiện "thành phố, quốc gia"', await card.textContent());
+const cardText = (await card.textContent()).replace(/\s+/g, ' ').trim();
+ok(cardText === '🇻🇳Đà Nẵng, Việt Nam', 'thẻ bài hiện cờ kèm "thành phố, quốc gia"', cardText);
 const vn = page.locator('#ban-do .atlas .country:has-text("Việt Nam")');
 ok(await vn.count() === 1, 'mỗi quốc gia một ô trên bản đồ');
 const vnText = (await vn.textContent()).replace(/\s+/g, ' ');
-ok(vnText.includes('Đà Nẵng') && vnText.includes('Hội An') && vnText.includes('2 bài viết'), 'ô Việt Nam liệt kê các thành phố đã đi và số bài', vnText);
+ok(vnText.includes('🇻🇳') && vnText.includes('Đà Nẵng') && vnText.includes('Hội An') && vnText.includes('2 bài viết'), 'ô Việt Nam có cờ và liệt kê các thành phố đã đi và số bài', vnText);
 const jp = (await page.locator('#ban-do .atlas .country:has-text("Nhật Bản")').textContent()).replace(/\s+/g, ' ');
-ok(jp.includes('Kyoto') && jp.includes('1 bài viết'), 'ô Nhật Bản liệt kê Kyoto', jp);
+ok(jp.includes('🇯🇵') && jp.includes('Kyoto') && jp.includes('1 bài viết'), 'ô Nhật Bản có cờ và liệt kê Kyoto', jp);
+
+console.log('4. Cờ hiện cho MỌI nước trên thế giới, không chỉ vài nước có sẵn trước đây (vd. United States)');
+addPost('pizza-new-york', 'Pizza New York', 'United States', 'New York', '2011-05');
+await page.goto(url + '/', { waitUntil: 'networkidle' });
+await page.waitForSelector('.tl-card:has-text("Pizza New York")');
+const usAtlas = (await page.locator('#ban-do .atlas .country:has-text("United States")').textContent()).replace(/\s+/g, ' ');
+ok(usAtlas.includes('🇺🇸') && usAtlas.includes('New York'), 'nước mới thêm (United States) tự có ô riêng kèm đúng cờ trên bản đồ, không cần sửa code', usAtlas);
+const usCard = (await page.locator('.tl-card:has-text("Pizza New York") .tl-card__flag').textContent()).replace(/\s+/g, ' ').trim();
+ok(usCard === '🇺🇸New York, United States', 'thẻ bài của United States cũng tự có cờ', usCard);
 
 await browser.close(); server.close();
 console.log(`\n${pass} đạt, ${fail} lỗi.`);

@@ -105,7 +105,8 @@
         </div>
         <div class="field">
           <label for="f-country" data-en="Country">Quốc gia</label>
-          <input id="f-country" name="country" type="text" maxlength="60" placeholder="Việt Nam">
+          <input id="f-country" name="country" type="text" maxlength="60" placeholder="Việt Nam" list="country-list">
+          <datalist id="country-list"></datalist>
         </div>
         <div class="field">
           <label for="f-date" data-en="When">Thời gian</label>
@@ -250,6 +251,7 @@
     </div>
   </footer>
   <script src="js/ui.js" defer></script>
+  <script src="js/countries.js" defer></script>
   <script src="js/photo.js"></script>
   <script src="js/admin.js" defer></script>
 </body>
