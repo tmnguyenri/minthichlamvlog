@@ -3,7 +3,7 @@ import { esc } from './http.js';
 import { URL_OK } from './validate.js';
 
 // Địa chỉ đã escape nên không còn dấu " ' < >. Chỉ nhận https:// và đường dẫn bắt đầu bằng một dấu /.
-const okUrl = (u) => URL_OK.test(u) || /^http:\/\/[^\s"'<>]+$/.test(u);
+const okUrl = (u) => URL_OK.test(u);   // chỉ https:// hoặc đường dẫn nội bộ
 
 function inline(escaped) {
   let s = escaped.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, label, url) =>

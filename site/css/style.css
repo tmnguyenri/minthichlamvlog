@@ -67,7 +67,6 @@ a { color: inherit; }
 ::selection { background: var(--gold); color: #2a1100; }
 
 .wrap { width: min(100% - 2 * var(--gutter), var(--wrap)); margin-inline: auto; }
-.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .skip { position: absolute; left: 1rem; top: -4rem; z-index: 200; padding: .7rem 1.1rem; border-radius: .6rem; background: var(--pink); color: #fff; font-weight: 600; text-decoration: none; }
 .skip:focus { top: 1rem; }
 
@@ -80,7 +79,7 @@ html:not([data-lang="en"]) [data-only="en"], html[data-lang="en"] [data-only="vi
 /* ---------- Chữ ---------- */
 h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.12; letter-spacing: -.03em; text-wrap: balance; }
 .hero__title, .page-title, .post-hero h1, .h2, .notfound__code, .timeline__year, .brand__name, .featured__title,
-.cta-band__title, .panel-title { font-family: var(--font-display); }
+.cta-band__title { font-family: var(--font-display); }
 .h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); }
 .muted { color: var(--muted); }
 .hint { margin: .4rem 0 0; font-size: .875rem; line-height: 1.5; color: var(--muted); }
@@ -89,7 +88,6 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.12; letter-spacing: -.0
   text-decoration-thickness: 2px; text-underline-offset: .18em;
 }
 .hint a:hover, .form-alt a:hover, .muted a:hover, .prose a:hover { text-decoration-color: var(--pink-deep); }
-.timecode { font-variant-numeric: tabular-nums; letter-spacing: .02em; font-weight: 700; }
 
 /* Chữ có gradient thương hiệu cắt theo nét chữ — dùng tiết chế, một hai từ trong tiêu đề lớn. */
 .grad-text {
