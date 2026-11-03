@@ -269,7 +269,7 @@ console.log('9b. SEO: robots, sitemap, RSS, thẻ chia sẻ, IndexNow');
   ok(ldm && !/<\/script/i.test(ldm[1]) && !ldm[1].includes('<'), 'JSON-LD không thể thoát khỏi thẻ script');
   ok(/rel="alternate" type="application\/rss\+xml"/.test(pg), 'trang có liên kết RSS');
   r = await anon.req('GET', '/bai/seo-svg');
-  ok(r.text.includes(`<meta property="og:image" content="${BASE}/images/og-cover.jpg">`), 'ảnh bìa SVG thì dùng ảnh chia sẻ mặc định');
+  ok(r.text.includes(`<meta property="og:image" content="${BASE}/images/og-cover-2.jpg">`), 'ảnh bìa SVG thì dùng ảnh chia sẻ mặc định');
   r = await admin.req('GET', '/bai/seo-nhap');
   ok(r.status === 200 && /<meta name="robots" content="noindex">/.test(r.text), 'bản nháp (quản trị xem) có noindex');
   r = await anon.req('GET', '/bai/khong-co-bai-nay');
@@ -289,7 +289,7 @@ console.log('9b. SEO: robots, sitemap, RSS, thẻ chia sẻ, IndexNow');
   for (const f of ['oaxaca', 'kyoto', 'lisbon', 'ha-giang']) {
     r = await anon.req('GET', `/posts/${f}`); ok(/name="robots" content="noindex/.test(r.text), `bài mẫu ${f} có noindex`);
   }
-  const og = fs.statSync(path.join(root, 'site/images/og-cover.jpg')).size;
+  const og = fs.statSync(path.join(root, 'site/images/og-cover-2.jpg')).size;
   ok(og > 5000 && og < 600000, 'ảnh chia sẻ có kích thước hợp lý', og);
 
   // IndexNow: tệp khóa khớp biến cấu hình, và gói tin gửi đi đúng

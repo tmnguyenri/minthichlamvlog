@@ -247,7 +247,7 @@ Trang đã có sẵn những thứ công cụ tìm kiếm và mạng xã hội c
 - `site/robots.txt` cho phép mọi bot, kèm địa chỉ sơ đồ trang.
 - `/sitemap.xml` (hàm `functions/sitemap.xml.js`) liệt kê trang chủ, Giới thiệu, Quyền riêng tư và mọi bài đã đăng. Bài nháp, bài mẫu và trang tài khoản không có trong đó.
 - `/rss.xml` là nguồn cấp 30 bài mới nhất, dùng cho trình đọc tin và công cụ tự động đăng lên mạng xã hội.
-- Mỗi trang có địa chỉ chuẩn (`canonical`), thẻ Open Graph và Twitter Card để chia sẻ link ra đẹp, cùng dữ liệu có cấu trúc schema.org (WebSite, Person, ProfilePage, BlogPosting). Ảnh xem trước mặc định là `site/images/og-cover.jpg` (1200×630); bài nào có ảnh bìa JPG hoặc PNG thì dùng ảnh bìa đó.
+- Mỗi trang có địa chỉ chuẩn (`canonical`), thẻ Open Graph và Twitter Card để chia sẻ link ra đẹp, cùng dữ liệu có cấu trúc schema.org (WebSite, Person, ProfilePage, BlogPosting). Ảnh xem trước mặc định là `site/images/og-cover-2.jpg` (1200×630; đổi tên mỗi lần sửa ảnh để Facebook/Zalo không dùng bản cũ trong bộ nhớ đệm); bài nào có ảnh bìa JPG hoặc PNG thì dùng ảnh bìa đó.
 - Các trang đăng nhập, đăng ký, quản lý và bài còn là nháp mang thẻ `noindex` nên không lên Google. Bài thật đăng trong `/quan-ly` thì được lập chỉ mục.
 - **IndexNow:** khi bạn đăng, sửa hoặc xóa một bài công khai, máy chủ tự báo cho Bing, Yandex, Naver, Seznam, Yep. Khóa nằm ở `INDEXNOW_KEY` trong `wrangler.jsonc` và ở tệp `site/<khóa>.txt`; hai nơi phải khớp nhau. Google không dùng IndexNow, hãy gửi sơ đồ trang trong Google Search Console.
 
