@@ -122,11 +122,14 @@
       var cities = g.cities.length
         ? h('span', { class: 'country__cities', text: g.cities.slice(0, MAX_CITIES).join(', ') + (more > 0 ? ' +' + more : '') })
         : null;
-      return h('a', { class: 'country', href: link(g.posts[0]) },
+      var card = h('a', { class: 'country', href: '#nhat-ky', 'data-country': k },
         f ? h('span', { class: 'atlas-flag' }, flagEmoji(f[0])) : null,
         h('span', {}, en(h('span', { class: 'country__name', text: g.name }), f && f[1]),
           en(h('span', { class: 'country__count', text: n + ' bài viết' }), n + (n === 1 ? ' post' : ' posts')),
           cities));
+      // Bấm vào một nước: chỉ hiện bài của nước đó ở mục Nhật ký bên dưới.
+      card.addEventListener('click', function (e) { e.preventDefault(); selectCountry(k); });
+      return card;
     });
   }
 
@@ -177,33 +180,137 @@
     replaceChildren(track, labels.concat(labels).map(function (t) { return h('span', { text: t }); }));
   }
 
+  // --- Lọc Nhật ký theo quốc gia -------------------------------------------------
+  // Bấm một thẻ trong mục Bản đồ thì danh sách bên dưới chỉ còn bài của nước đó; thanh
+  // "Đang xem …" ở đầu mục Nhật ký hiện số bài và có nút Xem tất cả để bỏ lọc.
+  var ALL = [];
+  var filterKey = null;
+
+  function keyOf(country) { return String(country || '').trim().toLowerCase(); }
+
+  function visiblePosts() {
+    if (!filterKey) return ALL;
+    return ALL.filter(function (p) { return keyOf(p.country) === filterKey; });
+  }
+
+  function countryName(key) {
+    for (var i = 0; i < ALL.length; i += 1) if (keyOf(ALL[i].country) === key) return ALL[i].country;
+    return key;
+  }
+
+  // Thanh báo đang lọc, chèn ngay trên khung bài nổi bật (tạo một lần, sau đó chỉ cập nhật chữ).
+  function filterBar() {
+    var el = document.getElementById('country-filter');
+    if (!el) {
+      el = h('div', { class: 'country-filter', id: 'country-filter', hidden: true });
+      var anchor = document.getElementById('featured-post');
+      if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(el, anchor);
+    }
+    return el;
+  }
+
+  function paintBar() {
+    var el = filterBar();
+    if (!filterKey) { el.hidden = true; replaceChildren(el, []); return; }
+    var name = countryName(filterKey), f = flagOf(name), n = visiblePosts().length;
+    var reset = en(h('button', { class: 'country-filter__reset', type: 'button', text: 'Xem tất cả' }), 'Show all');
+    reset.addEventListener('click', function () { selectCountry(null); });
+    el.hidden = false;
+    replaceChildren(el, [
+      en(h('span', { class: 'country-filter__label', text: 'Đang xem' }), 'Showing'),
+      h('span', { class: 'country-filter__name' }, f ? flagEmoji(f[0]) : null, en(h('span', { text: name }), f && f[1])),
+      en(h('span', { class: 'country-filter__count', text: n + ' bài viết' }), n + (n === 1 ? ' post' : ' posts')),
+      reset,
+    ]);
+  }
+
+  function singleNote() {
+    return en(h('p', { class: 'cards__empty', text: 'Nước này mới có một bài — bài đó đang ở khung nổi bật phía trên.' }),
+      'Only one post from this country so far — it is the featured story above.');
+  }
+
+  // Nhật ký mở từng đợt 12 thẻ; còn bài chưa hiện thì cuối danh sách có nút "Xem thêm" mở đợt kế tiếp.
+  var PAGE = 12;
+  var shown = PAGE;
+
+  function moreButton() {
+    var el = en(h('button', { class: 'cards__more', type: 'button', text: 'Xem thêm' }), 'Show more');
+    el.addEventListener('click', function () { loadMore(); });
+    return el;
+  }
+
+  // Mở thêm một đợt rồi đưa tiêu điểm bàn phím xuống thẻ đầu tiên vừa hiện, không cuộn trang.
+  function loadMore() {
+    var first = shown;
+    shown += PAGE;
+    render();
+    var cards = document.querySelector('#nhat-ky .cards');
+    var links = cards ? cards.querySelectorAll('.tl-item .stretch') : [];
+    if (links[first] && links[first].focus) links[first].focus({ preventScroll: true });
+  }
+
+  function render() {
+    var posts = visiblePosts();
+
+    var slot = document.getElementById('featured-post');
+    if (slot) replaceChildren(slot, posts.length ? [featured(posts[0])] : []);
+
+    var cards = document.querySelector('#nhat-ky .cards');
+    if (cards) {
+      cards.classList.add('is-timeline');
+      // Bài đầu đã nằm ở khung nổi bật, nên dòng thời gian bắt đầu từ bài thứ hai.
+      var rest = posts.slice(1);
+      var open = rest.slice(0, shown);
+      if (open.length) {
+        var nodes = timeline(open);
+        if (rest.length > open.length) nodes.push(moreButton());
+        replaceChildren(cards, nodes);
+      } else {
+        replaceChildren(cards, filterKey ? [singleNote()] : []);
+      }
+    }
+
+    paintBar();
+
+    var places = document.querySelector('#ban-do .atlas');
+    if (places) Array.prototype.forEach.call(places.children, function (node) {
+      var on = !!filterKey && node.getAttribute('data-country') === filterKey;
+      node.classList.toggle('is-active', on);
+      if (on) node.setAttribute('aria-current', 'true'); else node.removeAttribute('aria-current');
+    });
+
+    M.refresh();
+  }
+
+  function selectCountry(key) {
+    filterKey = key;
+    shown = PAGE;   // đổi nước thì mở lại từ đợt đầu
+    render();
+    if (!key) return;
+    var section = document.getElementById('nhat-ky');
+    if (!section) return;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    section.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }
+
   fetch('/api/posts?limit=50', { credentials: 'same-origin' })
     .then(function (r) { return r.json(); })
     .then(function (d) {
-      var posts = (d && d.posts) || [];
-      if (!posts.length) return;
+      ALL = (d && d.posts) || [];
+      if (!ALL.length) return;
 
-      var slot = document.getElementById('featured-post');
-      if (slot) replaceChildren(slot, [featured(posts[0])]);
-
-      var cards = document.querySelector('#nhat-ky .cards');
-      if (cards) {
-        cards.classList.add('is-timeline');
-        replaceChildren(cards, timeline(posts.slice(1, 13)));
-      }
-
-      var countries = distinctBy(posts, 'country');
-      var cities = distinctBy(posts, 'city');
+      var countries = distinctBy(ALL, 'country');
+      var cities = distinctBy(ALL, 'city');
       var places = document.querySelector('#ban-do .atlas');
-      var items = atlas(posts);
+      var items = atlas(ALL);
       if (places && items.length) replaceChildren(places, items);
 
-      updateStats(posts.length, cities.length);
+      render();
+      updateStats(ALL.length, cities.length);
       updateTicker(countries.concat(cities));
 
-      M.refresh();
       // Báo cho dải ảnh ở đầu trang biết đã có bài thật để lấy ảnh bìa.
-      document.dispatchEvent(new CustomEvent('mtlv:posts', { detail: { posts: posts } }));
+      document.dispatchEvent(new CustomEvent('mtlv:posts', { detail: { posts: ALL } }));
     })
     .catch(function () { /* giữ nguyên bài mẫu */ });
 })();
