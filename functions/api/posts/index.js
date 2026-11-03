@@ -3,6 +3,7 @@ import { badRequest, fail, json, readJson } from '../../_lib/http.js';
 import { cleanPost } from '../../_lib/validate.js';
 import { notifyIndexNow } from '../../_lib/indexnow.js';
 import { fillEnglish } from '../../_lib/translate.js';
+import { postPaths } from '../../_lib/site.js';
 
 export async function onRequestGet({ request, env, data }) {
   const url = new URL(request.url);
@@ -38,7 +39,7 @@ export async function onRequestPost({ request, env, data, waitUntil }) {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).bind(p.slug, p.title, p.title_en, p.excerpt, p.excerpt_en, p.body, p.body_en, p.country, p.city, p.trip_date, p.days, p.cover, p.video,
       p.status, data.user.id, t, t, p.status === 'published' ? t : null).run();
-    if (p.status === 'published') notifyIndexNow({ env, waitUntil }, [`/bai/${encodeURIComponent(p.slug)}`, '/']);
+    if (p.status === 'published') notifyIndexNow({ env, waitUntil }, [...postPaths(p.slug), '/']);
     return json({ ok: true, id: res.meta.last_row_id, slug: p.slug }, 201);
   } catch {
     return fail(409, 'slug_taken', 'Đường dẫn này đã có bài khác dùng.', 'Another post already uses this slug.');
