@@ -59,6 +59,19 @@ export function esc(value) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+// Đệm ngắn trong bộ nhớ của isolate, cho những điểm công khai bị gọi nhiều (mỗi lượt tải trang chủ,
+// mỗi lượt bot quét) để không phải truy vấn D1 ở từng yêu cầu. Chỉ dùng cho dữ liệu giống nhau với
+// mọi khách và chấp nhận cũ vài chục giây — không dùng cho dữ liệu riêng của từng người.
+const memoStore = new Map();
+export async function memoize(key, ttlSeconds, load) {
+  const hit = memoStore.get(key);
+  if (hit && hit.until > Date.now()) return hit.value;
+  const value = await load();
+  if (memoStore.size > 64) memoStore.clear();
+  memoStore.set(key, { value, until: Date.now() + ttlSeconds * 1000 });
+  return value;
+}
+
 export function badRequest() {
   return fail(400, 'bad_request', 'Yêu cầu không hợp lệ.', 'Invalid request.');
 }

@@ -1,8 +1,13 @@
 import { requireAdmin, now } from '../../_lib/auth.js';
-import { badRequest, fail, json, readJson } from '../../_lib/http.js';
+import { badRequest, fail, json, memoize, readJson } from '../../_lib/http.js';
 import { cleanPost } from '../../_lib/validate.js';
 import { notifyIndexNow } from '../../_lib/indexnow.js';
 import { fillEnglish } from '../../_lib/translate.js';
+
+// Danh sách công khai: mỗi dòng kèm 2 truy vấn con (ảnh ngẫu nhiên + mảng ảnh) nên 50 dòng là ~100
+// truy vấn — giữ kết quả 30 giây để bot quét hay khách tải lại liên tục không đốt D1 reads.
+// Bản dành cho quản trị (all=1, có bài nháp) thì luôn đọc mới, không đệm.
+const PUBLIC_CACHE_SECONDS = 30;
 
 export async function onRequestGet({ request, env, data }) {
   const url = new URL(request.url);
@@ -19,6 +24,13 @@ export async function onRequestGet({ request, env, data }) {
   const sql = all
     ? `SELECT ${cols} FROM posts ORDER BY updated_at DESC LIMIT ?`
     : `SELECT ${cols} FROM posts WHERE status = 'published' ORDER BY COALESCE(trip_date, '') DESC, published_at DESC LIMIT ?`;
+  if (!all) {
+    const body = await memoize(`posts:${limit}`, PUBLIC_CACHE_SECONDS, async () => {
+      const { results } = await env.DB.prepare(sql).bind(limit).all();
+      return { posts: results };
+    });
+    return json(body, 200, { 'cache-control': `public, max-age=${PUBLIC_CACHE_SECONDS}` });
+  }
   const { results } = await env.DB.prepare(sql).bind(limit).all();
   return json({ posts: results });
 }
