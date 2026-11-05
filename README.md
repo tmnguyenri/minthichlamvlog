@@ -19,7 +19,7 @@ site/                  <- mọi thứ trong thư mục này sẽ được đưa 
   images/logo-96.png   logo tròn ở góc trên bên trái mọi trang (cắt từ ảnh đại diện kênh)
   favicon-48.png, favicon.ico   biểu tượng trên thẻ trình duyệt
   apple-touch-icon.png biểu tượng khi lưu trang ra màn hình chính điện thoại
-functions/             mã chạy trên máy chủ Cloudflare (API, trang bài viết /bai/<tên>)
+functions/             mã chạy trên máy chủ Cloudflare (API, trang bài viết /bai/<tên> và /en/bai/<tên>)
 db/schema.sql          cấu trúc cơ sở dữ liệu
 dev/                   chạy thử trên máy và bộ kiểm tra tự động
 wrangler.jsonc         nối cơ sở dữ liệu D1 (tên DB) vào dự án Pages
@@ -50,6 +50,18 @@ Trang luôn được viết sẵn bằng tiếng Việt trong HTML, và đó cũ
 - Lựa chọn của người xem được nhớ trong trình duyệt. Có thể gửi liên kết ép ngôn ngữ, ví dụ `https://minthichlamvlog.com/?lang=en`.
 - Nếu người xem tắt JavaScript, trang vẫn đọc được bằng tiếng Việt và nút chuyển ngôn ngữ tự ẩn đi.
 
+### Trang bài viết có hai địa chỉ riêng cho hai ngôn ngữ
+
+Mỗi bài đã có bản dịch tiếng Anh (`body_en` không trống) có hai địa chỉ: **`/bai/<tên>`** (chỉ tiếng Việt) và **`/en/bai/<tên>`** (chỉ tiếng Anh, `<html lang="en">`, tiêu đề, mô tả, menu, chân trang và dữ liệu có cấu trúc đều là tiếng Anh ngay từ máy chủ). Hai địa chỉ trỏ vào nhau bằng `<link rel="alternate" hreflang="vi|en|x-default">` và cùng có trong `sitemap.xml` (kèm `xhtml:link`), để Google hiện đúng bản theo ngôn ngữ người tìm kiếm.
+
+- Ở trang bài viết, nút **VI / EN** chuyển sang địa chỉ của ngôn ngữ kia thay vì đổi chữ tại chỗ (`site/js/lang.js` đọc `link[rel=alternate][hreflang]`). Người đang chọn EN mở `/bai/...` sẽ được đưa sang `/en/bai/...`; trang `/en/bai/...` đặt `data-fixed-lang="en"` nên không đổi chữ gì thêm và nhớ lựa chọn EN cho các trang sau.
+- Bài chưa có bản dịch thì **không** có trang tiếng Anh: `/en/bai/<tên>` chuyển (302) về `/bai/<tên>`, và sitemap không liệt kê địa chỉ tiếng Anh. Bản nháp cũng vậy (chỉ quản trị xem được, có `noindex`).
+- Phần dựng trang dùng chung cho hai ngôn ngữ nằm ở `functions/_lib/post-page.js`; `functions/bai/[slug].js` và `functions/en/bai/[slug].js` chỉ gọi nó. Khung trang (`functions/_lib/layout.js`) nhận `lang` và `alternates`.
+- Ảnh đầu bài có `alt` là tiêu đề bài (đúng ngôn ngữ của trang). Mỗi trang bài có hai khối JSON-LD: `BlogPosting` (với `inLanguage` đúng ngôn ngữ) và `BreadcrumbList`.
+- Tên quốc gia trên trang tiếng Anh lấy từ bảng `COUNTRY_EN` ở đầu `post-page.js` (nước nào chưa có trong bảng thì giữ nguyên tên tiếng Việt); thêm nước mới vào bảng đó.
+- Khi đăng hoặc sửa bài, IndexNow báo cho công cụ tìm kiếm cả hai địa chỉ.
+- **Kiểm thử:** `node --no-warnings dev/test-lang.mjs` (nút chuyển ngôn ngữ trong trình duyệt thật) và mục 9b của `dev/test-api.mjs`.
+
 ## Thêm một bài viết mới
 
 Đăng nhập tài khoản quản trị và vào `/quan-ly`, mục **Bài viết**:
@@ -59,7 +71,7 @@ Trang luôn được viết sẵn bằng tiếng Việt trong HTML, và đó cũ
 3. **Thành phố**, **Quốc gia**, **Thời gian** (tháng/năm chuyến đi), **Số ngày**, **Video YouTube** (dán liên kết) — tất cả không bắt buộc.
 4. Mục **Ảnh của bài**: chọn nhiều ảnh cùng lúc, ảnh tự nén và thu nhỏ trong trình duyệt trước khi tải lên; mỗi lần mở trang, bài hiện ngẫu nhiên một trong các ảnh này. **Ảnh bìa** (nhập đường dẫn) chỉ dùng khi bài chưa có ảnh nào tải lên kiểu đó.
 5. Chọn trạng thái **Đăng công khai** hoặc **Nháp**, rồi **Lưu**.
-6. Phần tiếng Anh (`title_en`, `excerpt_en`, nội dung) tự dịch máy khi để trống và có bật Workers AI; viết tay nếu muốn bản dịch chính xác hơn.
+6. Phần tiếng Anh (`title_en`, `excerpt_en`, nội dung) tự dịch máy khi để trống và có bật Workers AI; viết tay nếu muốn bản dịch chính xác hơn. Khi có bản dịch, bài tự có thêm địa chỉ tiếng Anh `/en/bai/đường-dẫn` (xem mục "Hai ngôn ngữ hoạt động thế nào").
 
 Trang chủ (dải ảnh, banner nổi bật, danh sách bài, bản đồ quốc gia) tự lấy bài thật từ cơ sở dữ liệu, không cần sửa `site/index.html` tay.
 

@@ -115,7 +115,7 @@ ok(!/href="javascript:/i.test(page) && !/src="javascript:/i.test(page), 'liên k
 ok(page.includes('href="https://example.com/a?x=1&amp;y=2"') && page.includes('<strong>đậm</strong>') && page.includes('<em>nghiêng</em>') && page.includes('<h2>Ngày một</h2>') && page.includes('<li>một</li>'), 'Markdown cơ bản hoạt động');
 ok(page.includes('src="/images/min.jpg"'), 'ảnh nội bộ được phép');
 ok(page.includes('youtube-nocookie.com/embed/dQw4w9WgXcQ'), 'video YouTube nhúng bằng nocookie');
-ok(page.includes('data-only="en"') && page.includes('data-en="Dalat &lt;i&gt;dreams&lt;/i&gt;"'), 'bản tiếng Anh nằm trong thuộc tính đã escape');
+ok(page.includes('data-en="Dalat &lt;i&gt;dreams&lt;/i&gt;"') && !page.includes('data-only="en"') && !page.includes('Day one.'), 'bản tiếng Anh nằm trong thuộc tính đã escape; trang tiếng Việt không lẫn nội dung tiếng Anh');
 ok(/content-security-policy/i.test([...r.headers.keys()].join(',')) && r.headers.get('x-frame-options') === 'DENY', 'trang có CSP và X-Frame-Options');
 ok(page.includes('Tháng 10/2026') && page.includes('3 ngày'), 'thời gian và số ngày hiển thị');
 ok(page.includes('/dang-nhap?next=%2Fbai%2F'), 'khách thấy lời mời đăng nhập để bình luận');
@@ -268,6 +268,54 @@ console.log('9b. SEO: robots, sitemap, RSS, thẻ chia sẻ, IndexNow');
   ok(ld && ld['@type'] === 'BlogPosting' && ld.headline === 'Kyoto & "lá đỏ" <đẹp>' && ld.url === `${BASE}/bai/seo-kyoto` && ld.author?.name === 'Mìn', 'dữ liệu có cấu trúc BlogPosting hợp lệ');
   ok(ldm && !/<\/script/i.test(ldm[1]) && !ldm[1].includes('<'), 'JSON-LD không thể thoát khỏi thẻ script');
   ok(/rel="alternate" type="application\/rss\+xml"/.test(pg), 'trang có liên kết RSS');
+  ok(/class="post-hero__img"[^>]*alt="Kyoto &amp; &quot;lá đỏ&quot; &lt;đẹp&gt;"/.test(pg), 'ảnh đầu bài có alt là tiêu đề bài');
+  ok(!/rel="alternate" hreflang/.test(pg) && !pg.includes('data-only="en"'), 'bài chưa có bản dịch thì không có liên kết ngôn ngữ');
+  r = await anon.req('GET', '/en/bai/seo-kyoto');
+  ok(r.status === 302 && r.headers.get('location') === '/bai/seo-kyoto', 'bài chưa có bản dịch: trang tiếng Anh chuyển về bản tiếng Việt', `${r.status} ${r.headers.get('location')}`);
+
+  // Bài có bản dịch tiếng Anh: hai địa chỉ riêng, nối nhau bằng hreflang
+  r = await admin.req('POST', '/api/posts', {
+    title: 'Hội An về đêm', title_en: 'Hội An At Night', excerpt: 'Đèn lồng & chùa Cầu', excerpt_en: 'Lanterns & the Japanese Covered Bridge',
+    body: '## Đèn lồng\n\nMình dạo phố cổ.', body_en: '## Lanterns\n\nI wandered the old town.', country: 'Việt Nam', city: 'Hội An', trip_date: '2026-03', days: 1,
+    status: 'published', slug: 'seo-hoi-an',
+  });
+  ok(r.status === 201, 'tạo bài có bản dịch tiếng Anh', r.status);
+  const viPg = (await anon.req('GET', '/bai/seo-hoi-an')).text;
+  const enRes = await anon.req('GET', '/en/bai/seo-hoi-an'); const enPg = enRes.text;
+  ok(enRes.status === 200 && /<html lang="en"[^>]*data-fixed-lang="en"/.test(enPg), 'trang tiếng Anh mở được, lang="en"');
+  ok(viPg.includes('<html lang="vi">') && !viPg.includes('data-fixed-lang'), 'trang tiếng Việt vẫn là lang="vi"');
+  ok(enPg.includes('<title>Hội An At Night – Mìn Thích Làm Vlog</title>') && enPg.includes('<h1><span>Hội An At Night</span></h1>'), 'tiêu đề trang và H1 tiếng Anh');
+  ok(enPg.includes('<h2>Lanterns</h2>') && enPg.includes('I wandered the old town.') && !enPg.includes('Mình dạo phố cổ') && !enPg.includes('data-only='), 'nội dung trang tiếng Anh chỉ có tiếng Anh');
+  ok(viPg.includes('<h2>Đèn lồng</h2>') && !viPg.includes('I wandered the old town.'), 'nội dung trang tiếng Việt chỉ có tiếng Việt');
+  ok(enPg.includes('<meta name="description" content="Lanterns &amp; the Japanese Covered Bridge">') && enPg.includes('property="og:locale" content="en_US"') && enPg.includes('property="og:locale:alternate" content="vi_VN"'), 'mô tả và og:locale tiếng Anh');
+  ok(enPg.includes(`<link rel="canonical" href="${BASE}/en/bai/seo-hoi-an">`) && enPg.includes(`<meta property="og:url" content="${BASE}/en/bai/seo-hoi-an">`), 'trang tiếng Anh có địa chỉ chuẩn riêng');
+  for (const [name, pageHtml] of [['tiếng Việt', viPg], ['tiếng Anh', enPg]]) {
+    ok(pageHtml.includes(`<link rel="alternate" hreflang="vi" href="${BASE}/bai/seo-hoi-an">`)
+      && pageHtml.includes(`<link rel="alternate" hreflang="en" href="${BASE}/en/bai/seo-hoi-an">`)
+      && pageHtml.includes(`<link rel="alternate" hreflang="x-default" href="${BASE}/bai/seo-hoi-an">`), `trang ${name} có đủ hreflang vi, en, x-default`);
+  }
+  ok(/Hội An, Vietnam/.test(enPg) && enPg.includes('<dt><span>When</span></dt>') && enPg.includes('March 2026') && enPg.includes('1 day'), 'thông tin chuyến đi bằng tiếng Anh (nơi, thời gian, thời lượng)');
+  ok(enPg.includes('<a class="skip" href="#main">Skip to content</a>') && enPg.includes('<a href="/about.html">About</a>') && !/data-en=/.test(enPg.replace(/<img[^>]*>/g, '')), 'khung trang (menu, chân trang) đã là tiếng Anh, không còn data-en');
+  ok(enPg.includes('/dang-nhap?next=%2Fen%2Fbai%2Fseo-hoi-an') && enPg.includes('to leave a comment.'), 'lời mời bình luận bằng tiếng Anh, quay lại đúng địa chỉ tiếng Anh sau khi đăng nhập');
+  const enLds = [...enPg.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs)].map((x) => JSON.parse(x[1]));
+  ok(enLds[0]?.['@type'] === 'BlogPosting' && enLds[0].inLanguage === 'en' && enLds[0].headline === 'Hội An At Night' && enLds[0].url === `${BASE}/en/bai/seo-hoi-an` && enLds[0].contentLocation?.address?.addressCountry === 'Vietnam', 'JSON-LD tiếng Anh: inLanguage, tiêu đề, địa chỉ, quốc gia');
+  ok(enLds[1]?.['@type'] === 'BreadcrumbList' && enLds[1].itemListElement?.length === 2 && enLds[1].itemListElement[1].item === `${BASE}/en/bai/seo-hoi-an`, 'có thêm BreadcrumbList');
+  const viLds = [...viPg.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs)].map((x) => JSON.parse(x[1]));
+  ok(viLds[0]?.inLanguage === 'vi' && viLds[0].headline === 'Hội An về đêm' && viLds[0].url === `${BASE}/bai/seo-hoi-an`, 'JSON-LD tiếng Việt: inLanguage vi');
+  ok(!/name="robots"/.test(enPg), 'trang tiếng Anh của bài đã đăng được phép lập chỉ mục');
+  r = await anon.req('GET', '/sitemap.xml');
+  ok(r.text.includes('xmlns:xhtml="http://www.w3.org/1999/xhtml"') && r.text.includes(`<loc>${BASE}/en/bai/seo-hoi-an</loc>`) && r.text.includes(`<loc>${BASE}/bai/seo-hoi-an</loc>`), 'sitemap có cả địa chỉ tiếng Anh');
+  ok((r.text.match(/<xhtml:link rel="alternate" hreflang="en" href="[^"]*\/en\/bai\/seo-hoi-an"\/>/g) || []).length === 2, 'mỗi địa chỉ trong sitemap kèm hreflang tới bản tiếng Anh');
+  ok(!r.text.includes(`${BASE}/en/bai/seo-kyoto`), 'sitemap không có địa chỉ tiếng Anh cho bài chưa có bản dịch');
+  r = await admin.req('POST', '/api/posts', { title: 'Bản nháp có dịch', body: 'Nội dung', body_en: 'Draft body', status: 'draft', slug: 'seo-nhap-en' });
+  ok(r.status === 201, 'tạo bản nháp có bản dịch', r.status);
+  r = await anon.req('GET', '/en/bai/seo-nhap-en'); ok(r.status === 404, 'nháp: trang tiếng Anh không mở được với khách');
+  r = await admin.req('GET', '/en/bai/seo-nhap-en');
+  ok(r.status === 200 && /<meta name="robots" content="noindex">/.test(r.text) && r.text.includes('Draft: only you can see this post.'), 'nháp: quản trị xem được trang tiếng Anh, có noindex');
+  r = await anon.req('GET', '/sitemap.xml'); ok(!r.text.includes('seo-nhap-en'), 'sitemap không lộ bản nháp tiếng Anh');
+  r = await anon.req('GET', '/en/bai/khong-co-bai-nay'); ok(r.status === 404 && /<meta name="robots" content="noindex">/.test(r.text), 'trang tiếng Anh không tìm thấy: 404 và noindex');
+  r = await anon.req('GET', '/en/bai/' + encodeURIComponent('../etc')); ok(r.status === 404, 'trang tiếng Anh: slug lạ -> 404');
+
   r = await anon.req('GET', '/bai/seo-svg');
   ok(r.text.includes(`<meta property="og:image" content="${BASE}/images/og-cover-2.jpg">`), 'ảnh bìa SVG thì dùng ảnh chia sẻ mặc định');
   r = await admin.req('GET', '/bai/seo-nhap');

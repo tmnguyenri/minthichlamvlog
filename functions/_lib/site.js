@@ -37,3 +37,6 @@ export function describe(post) {
   if (post.excerpt) return post.excerpt;
   return String(post.body || '').replace(/[#>*_`\[\]()!]|https?:\/\/\S+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
 }
+
+// Hai địa chỉ của một bài (tiếng Việt và tiếng Anh), dùng khi báo cho công cụ tìm kiếm biết bài vừa đổi.
+export const postPaths = (slug) => [`/bai/${encodeURIComponent(slug)}`, `/en/bai/${encodeURIComponent(slug)}`];

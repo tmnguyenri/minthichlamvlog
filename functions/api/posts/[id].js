@@ -3,8 +3,8 @@ import { badRequest, fail, json, readJson } from '../../_lib/http.js';
 import { cleanPost } from '../../_lib/validate.js';
 import { notifyIndexNow } from '../../_lib/indexnow.js';
 import { fillEnglish } from '../../_lib/translate.js';
+import { postPaths } from '../../_lib/site.js';
 
-const postPath = (slug) => `/bai/${encodeURIComponent(slug)}`;
 
 const notFound = () => fail(404, 'not_found', 'Không tìm thấy bài viết.', 'Post not found.');
 const idOf = (params) => (/^\d{1,12}$/.test(params.id) ? Number(params.id) : null);
@@ -50,8 +50,8 @@ export async function onRequestPut({ request, params, env, data, waitUntil }) {
       p.cover, p.video, p.status, t, publishedAt, id).run();
     // Báo cho Bing, Yandex... khi bài đang công khai được đăng hoặc sửa, hoặc vừa bị gỡ / đổi đường dẫn
     const paths = [];
-    if (p.status === 'published') paths.push(postPath(p.slug));
-    if (old.status === 'published' && (p.status !== 'published' || old.slug !== p.slug)) paths.push(postPath(old.slug));
+    if (p.status === 'published') paths.push(...postPaths(p.slug));
+    if (old.status === 'published' && (p.status !== 'published' || old.slug !== p.slug)) paths.push(...postPaths(old.slug));
     if (paths.length) notifyIndexNow({ env, waitUntil }, [...paths, '/']);
     return json({ ok: true, id, slug: p.slug });
   } catch {
@@ -66,6 +66,6 @@ export async function onRequestDelete({ params, env, data, waitUntil }) {
   if (!id) return notFound();
   const old = await env.DB.prepare('SELECT slug, status FROM posts WHERE id = ?').bind(id).first();
   const res = await env.DB.prepare('DELETE FROM posts WHERE id = ?').bind(id).run();
-  if (res.meta.changes && old?.status === 'published') notifyIndexNow({ env, waitUntil }, [postPath(old.slug), '/']);
+  if (res.meta.changes && old?.status === 'published') notifyIndexNow({ env, waitUntil }, [...postPaths(old.slug), '/']);
   return res.meta.changes ? json({ ok: true }) : notFound();
 }
