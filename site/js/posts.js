@@ -104,31 +104,46 @@
     return out;
   }
 
-  // Mỗi quốc gia một thẻ: tên, số bài và các thành phố đã đi (mới nhất trước, không lặp, tối đa 8).
+  // Mỗi quốc gia một thẻ: cờ, tên và số bài (bấm phần này để lọc theo nước), bên dưới là từng thành phố
+  // bấm được — bấm thành phố nào thì Nhật ký chỉ còn bài ở thành phố đó (không lặp, tối đa 8).
   var MAX_CITIES = 8;
+
+  function cityChips(countryKey, cities) {
+    var shown = cities.slice(0, MAX_CITIES);
+    var chips = shown.map(function (name) {
+      var chip = h('button', { class: 'city-chip', type: 'button', 'data-city': keyOf(name), text: name });
+      chip.addEventListener('click', function (e) { e.preventDefault(); selectCity(countryKey, name); });
+      return chip;
+    });
+    var more = cities.length - shown.length;
+    if (more > 0) chips.push(h('span', { class: 'city-chip city-chip--more', text: '+' + more }));
+    return h('span', { class: 'country__cities' }, chips);
+  }
+
   function atlas(posts) {
     var groups = {};
     posts.forEach(function (p) {
       if (!p.country) return;
-      var key = p.country.toLowerCase();
+      var key = keyOf(p.country);
       var g = groups[key] = groups[key] || { name: p.country, posts: [], cities: [] };
       g.posts.push(p);
       var c = (p.city || '').trim();
-      if (c && !g.cities.some(function (x) { return x.toLowerCase() === c.toLowerCase(); })) g.cities.push(c);
+      if (c && !g.cities.some(function (x) { return keyOf(x) === keyOf(c); })) g.cities.push(c);
     });
     return Object.keys(groups).map(function (k) {
       var g = groups[k], f = flagOf(g.name), n = g.posts.length;
-      var more = g.cities.length - MAX_CITIES;
-      var cities = g.cities.length
-        ? h('span', { class: 'country__cities', text: g.cities.slice(0, MAX_CITIES).join(', ') + (more > 0 ? ' +' + more : '') })
-        : null;
-      var card = h('a', { class: 'country', href: '#nhat-ky', 'data-country': k },
-        f ? h('span', { class: 'atlas-flag' }, flagEmoji(f[0])) : null,
-        h('span', {}, en(h('span', { class: 'country__name', text: g.name }), f && f[1]),
-          en(h('span', { class: 'country__count', text: n + ' bài viết' }), n + (n === 1 ? ' post' : ' posts')),
-          cities));
-      // Bấm vào một nước: chỉ hiện bài của nước đó ở mục Nhật ký bên dưới.
-      card.addEventListener('click', function (e) { e.preventDefault(); selectCountry(k); });
+      var card = h('div', { class: 'country country--city', 'data-country': k },
+        h('a', { class: 'country__link', href: '#nhat-ky' },
+          f ? h('span', { class: 'atlas-flag' }, flagEmoji(f[0])) : null,
+          h('span', {}, en(h('span', { class: 'country__name', text: g.name }), f && f[1]),
+            en(h('span', { class: 'country__count', text: n + ' bài viết' }), n + (n === 1 ? ' post' : ' posts')))),
+        g.cities.length ? cityChips(k, g.cities) : null);
+      // Bấm vào cờ/tên nước: chỉ hiện bài của nước đó. Bấm vào một thành phố thì hẹp hơn nữa.
+      card.addEventListener('click', function (e) {
+        if (e.target.closest && e.target.closest('.city-chip')) return;
+        e.preventDefault();
+        selectCountry(k);
+      });
       return card;
     });
   }
@@ -146,7 +161,12 @@
   // Cho js/slider.js dùng lại các hàm dựng cờ, tên nước và liên kết bài.
   M.kit = { link: link, flagOf: flagOf, flagEmoji: flagEmoji, countryEl: countryEl };
 
-  function replaceChildren(el, nodes) { while (el.firstChild) el.removeChild(el.firstChild); nodes.forEach(function (n) { el.appendChild(n); }); }
+  // Thay toàn bộ nội dung của một khung. Bỏ qua null/false trong danh sách: các chỗ gọi hay truyền
+  // "phần tử này có thì hiện, không thì thôi" và appendChild(null) sẽ ném lỗi giữa chừng.
+  function replaceChildren(el, nodes) {
+    while (el.firstChild) el.removeChild(el.firstChild);
+    nodes.forEach(function (n) { if (n) el.appendChild(n); });
+  }
 
   // Tên không lặp lại, giữ nguyên chữ hoa/thường của lần gặp đầu tiên (so khớp không phân biệt hoa thường).
   function distinctBy(posts, key) {
@@ -184,17 +204,26 @@
   // Bấm một thẻ trong mục Bản đồ thì danh sách bên dưới chỉ còn bài của nước đó; thanh
   // "Đang xem …" ở đầu mục Nhật ký hiện số bài và có nút Xem tất cả để bỏ lọc.
   var ALL = [];
-  var filterKey = null;
+  var filterKey = null;   // nước đang xem (null = tất cả)
+  var cityKey = null;     // thành phố đang xem, luôn nằm trong nước đó
 
-  function keyOf(country) { return String(country || '').trim().toLowerCase(); }
+  function keyOf(value) { return String(value || '').trim().toLowerCase(); }
 
   function visiblePosts() {
-    if (!filterKey) return ALL;
-    return ALL.filter(function (p) { return keyOf(p.country) === filterKey; });
+    return ALL.filter(function (p) {
+      if (filterKey && keyOf(p.country) !== filterKey) return false;
+      if (cityKey && keyOf(p.city) !== cityKey) return false;
+      return true;
+    });
   }
 
   function countryName(key) {
     for (var i = 0; i < ALL.length; i += 1) if (keyOf(ALL[i].country) === key) return ALL[i].country;
+    return key;
+  }
+
+  function cityName(key) {
+    for (var i = 0; i < ALL.length; i += 1) if (keyOf(ALL[i].city) === key) return (ALL[i].city || '').trim();
     return key;
   }
 
@@ -219,14 +248,18 @@
     replaceChildren(el, [
       en(h('span', { class: 'country-filter__label', text: 'Đang xem' }), 'Showing'),
       h('span', { class: 'country-filter__name' }, f ? flagEmoji(f[0]) : null, en(h('span', { text: name }), f && f[1])),
+      cityKey ? h('span', { class: 'country-filter__city', text: '· ' + cityName(cityKey) }) : null,
       en(h('span', { class: 'country-filter__count', text: n + ' bài viết' }), n + (n === 1 ? ' post' : ' posts')),
       reset,
     ]);
   }
 
   function singleNote() {
-    return en(h('p', { class: 'cards__empty', text: 'Nước này mới có một bài — bài đó đang ở khung nổi bật phía trên.' }),
-      'Only one post from this country so far — it is the featured story above.');
+    return cityKey
+      ? en(h('p', { class: 'cards__empty', text: 'Thành phố này mới có một bài — bài đó đang ở khung nổi bật phía trên.' }),
+        'Only one post from this city so far — it is the featured story above.')
+      : en(h('p', { class: 'cards__empty', text: 'Nước này mới có một bài — bài đó đang ở khung nổi bật phía trên.' }),
+        'Only one post from this country so far — it is the featured story above.');
   }
 
   // Nhật ký mở từng đợt 12 thẻ; còn bài chưa hiện thì cuối danh sách có nút "Xem thêm" mở đợt kế tiếp.
@@ -275,22 +308,41 @@
     var places = document.querySelector('#ban-do .atlas');
     if (places) Array.prototype.forEach.call(places.children, function (node) {
       var on = !!filterKey && node.getAttribute('data-country') === filterKey;
-      node.classList.toggle('is-active', on);
-      if (on) node.setAttribute('aria-current', 'true'); else node.removeAttribute('aria-current');
+      node.classList.toggle('is-active', on && !cityKey);
+      if (on && !cityKey) node.setAttribute('aria-current', 'true'); else node.removeAttribute('aria-current');
+      Array.prototype.forEach.call(node.querySelectorAll('.city-chip[data-city]'), function (chip) {
+        var current = !!cityKey && chip.getAttribute('data-city') === cityKey;
+        chip.classList.toggle('is-active', current);
+        chip.setAttribute('aria-pressed', String(current));
+      });
     });
 
     M.refresh();
   }
 
-  function selectCountry(key) {
-    filterKey = key;
-    shown = PAGE;   // đổi nước thì mở lại từ đợt đầu
-    render();
-    if (!key) return;
+  function scrollToJournal() {
     var section = document.getElementById('nhat-ky');
     if (!section) return;
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     section.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  // Bấm một nước: xem mọi bài của nước đó, bỏ lọc thành phố đang có.
+  function selectCountry(key) {
+    filterKey = key;
+    cityKey = null;
+    shown = PAGE;   // đổi bộ lọc thì mở lại từ đợt đầu
+    render();
+    if (key) scrollToJournal();
+  }
+
+  // Bấm một thành phố: chỉ xem bài ở thành phố đó, trong phạm vi nước của nó.
+  function selectCity(country, city) {
+    filterKey = country;
+    cityKey = keyOf(city);
+    shown = PAGE;
+    render();
+    scrollToJournal();
   }
 
   fetch('/api/posts?limit=50', { credentials: 'same-origin' })
