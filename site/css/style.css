@@ -23,9 +23,6 @@
   --violet: #8b5cff;        /* = --grape của Wanderlust */
   --violet-tint: #efe7ff;
   --danger: #b3261e;
-  --danger-tint: #fdeceb;
-  --ok: #17724d;
-  --ok-tint: #e3f5ec;
 
   --font: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display: "Bricolage Grotesque", var(--font);

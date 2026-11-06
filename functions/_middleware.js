@@ -1,5 +1,5 @@
 // Chạy trước mọi hàm: kiểm tra nguồn gửi, nạp người dùng đang đăng nhập, thêm tiêu đề bảo mật.
-import { getUser } from './_lib/auth.js';
+import { cleanup, getUser } from './_lib/auth.js';
 import { CSP, SECURITY_HEADERS, fail } from './_lib/http.js';
 import { ensureSchema } from './_lib/schema.js';
 import { siteUrl } from './_lib/site.js';
@@ -10,6 +10,8 @@ import { touchLastSeen, trackPageView } from './_lib/stats.js';
 // (minthichlamvlog.pages.dev) — bản xem trước theo nhánh (*.minthichlamvlog.pages.dev) vẫn hoạt
 // động bình thường để còn kiểm tra trước khi gộp vào main.
 const LEGACY_HOST = 'minthichlamvlog.pages.dev';
+// Lần dọn dẹp gần nhất của bản chạy này (xem khối cleanup bên dưới).
+let lastCleanup = 0;
 
 export async function onRequest(context) {
   const { request, env, data, waitUntil } = context;
@@ -21,6 +23,12 @@ export async function onRequest(context) {
     return new Response('Chưa cấu hình cơ sở dữ liệu (binding DB).', { status: 503, headers: { 'content-type': 'text/plain; charset=utf-8' } });
   }
   await ensureSchema(env); // bảng cũ thiếu cột/bảng mới thì tự thêm, để cập nhật mã không cần chạy SQL tay
+  // Dọn dẹp định kỳ: phiên hết hạn, bộ đếm giới hạn, mã đặt lại cũ và lượt xem cũ. Mỗi bản chạy của
+  // máy chủ làm tối đa một lần mỗi giờ, và chạy sau khi đã trả lời khách (waitUntil) nên không làm chậm trang.
+  if (Date.now() - lastCleanup > 60 * 60 * 1000) {
+    lastCleanup = Date.now();
+    waitUntil(cleanup(env).catch(() => { /* lỗi tạm thời: giờ sau thử lại */ }));
+  }
   // Chặn CSRF: mọi yêu cầu làm thay đổi dữ liệu phải đến từ chính trang này.
   if (!['GET', 'HEAD'].includes(request.method)) {
     if (request.headers.get('origin') !== url.origin) {

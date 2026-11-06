@@ -157,6 +157,9 @@ export async function cleanup(env) {
     env.DB.prepare('DELETE FROM rate_limits WHERE reset_at <= ?').bind(t),
     // Dọn mã đặt lại mật khẩu đã dùng hoặc quá hạn từ lâu (không đụng tới mã mời tạo tài khoản).
     env.DB.prepare(`DELETE FROM invites WHERE (role = 'reset' OR role LIKE 'reset:%') AND created_at <= ?`).bind(t - 7 * 24 * 3600),
+    // Mỗi lượt xem trang công khai thêm một dòng vào page_views (kể cả lượt của bot), nên chỉ giữ
+    // 400 ngày gần nhất để bảng không lớn mãi và con số tổng lượt xem không bị đội lên vô hạn.
+    env.DB.prepare('DELETE FROM page_views WHERE created_at <= ?').bind(t - 400 * 24 * 3600),
   ]);
 }
 

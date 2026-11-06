@@ -6,6 +6,10 @@ const INDEX_SECONDS = 60;   // giữ bản rút gọn của các bài trong bộ
 const MAX_RESULTS = 8;
 const MAX_QUERY = 80;
 const MAX_TERMS = 6;
+// Chặn trần cho bộ nhớ và CPU của một điểm công khai: không đọc quá ngần này bài, và mỗi bài chỉ giữ
+// phần đầu nội dung để tìm (bài dài nhất cũng bị cắt ở đây).
+const MAX_INDEX_ROWS = 500;
+const MAX_BODY_CHARS = 20000;
 
 // Bỏ dấu và đưa về chữ thường để gõ "da lat" vẫn khớp "Đà Lạt". Mỗi ký tự gốc đổi thành đúng một ký tự
 // (NFD tách dấu rồi xoá dấu, đ→d, cuối cùng là toLowerCase), nên vị trí tìm thấy trong bản đã bỏ dấu
@@ -37,11 +41,11 @@ async function loadIndex(env) {
   const { results } = await env.DB.prepare(
     `SELECT id, slug, title, title_en, excerpt, excerpt_en, body, body_en, country, city, trip_date, cover, published_at,
        (SELECT i.id FROM images i WHERE i.post_id = posts.id ORDER BY i.id LIMIT 1) AS image_id
-       FROM posts WHERE status = 'published'`,
-  ).all();
+       FROM posts WHERE status = 'published' ORDER BY COALESCE(published_at, 0) DESC LIMIT ?`,
+  ).bind(MAX_INDEX_ROWS).all();
   return (results || []).map((p) => {
-    const bodyVi = plain(p.body);
-    const bodyEn = plain(p.body_en);
+    const bodyVi = plain(p.body).slice(0, MAX_BODY_CHARS);
+    const bodyEn = plain(p.body_en).slice(0, MAX_BODY_CHARS);
     return {
       p,
       bodyVi,

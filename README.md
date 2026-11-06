@@ -172,6 +172,7 @@ Tab **Thống kê** trong `/quan-ly` cho chủ trang xem nhanh: tổng lượt x
 - **Lượt xem** đếm các trang công khai (GET, trả về HTML) — không tính lời gọi API, tệp XML, hay chính trang `/quan-ly`. Khách được gắn một mã ẩn danh trong cookie `vid` (không gắn với tài khoản nào, chỉ để đếm khách khác nhau) để không đếm trùng khi họ xem nhiều trang.
 - **Đang online** dựa trên cột `users.last_seen_at`, được cập nhật mỗi khi có yêu cầu kèm phiên đăng nhập hợp lệ.
 - **Cơ sở dữ liệu cũ tự được nâng cấp:** bảng `page_views` và cột `users.last_seen_at` được tự tạo/thêm ở lần truy cập đầu tiên (`functions/_lib/schema.js`), bạn không cần vào D1 Console chạy tay.
+- **Dữ liệu cũ tự được dọn:** `cleanup()` xoá phiên hết hạn, bộ đếm giới hạn đã hết hạn, mã đặt lại quá 7 ngày và lượt xem cũ hơn 400 ngày. Mỗi bản chạy của máy chủ gọi nó tối đa một lần mỗi giờ (`functions/_middleware.js`), chạy sau khi đã trả lời khách — nhờ vậy bảng `page_views` (mỗi lượt xem công khai thêm một dòng, kể cả lượt của bot) không phình mãi.
 - **Kiểm thử:** mục 9d của `dev/test-api.mjs`.
 
 ### Góc cộng đồng ở trang chủ
@@ -191,6 +192,7 @@ Tab **Thống kê** trong `/quan-ly` cho chủ trang xem nhanh: tổng lượt x
 - **Không cần gõ dấu, không phân biệt hoa/thường**: "da lat" khớp "Đà Lạt". Chuỗi được bỏ dấu bằng NFD trước khi so khớp; mỗi ký tự gốc đổi thành đúng một ký tự nên cắt được đoạn trích đúng vị trí trong bản gốc.
 - Nhiều từ khoá thì bài phải khớp **tất cả** các từ; khớp ở tiêu đề được xếp trước khớp trong nội dung.
 - `GET /api/search?q=…` trả `{ query, results: [{ slug, title, title_en, snippet, city, country, trip_date, … }] }`, tối đa 8 kết quả, chỉ chữ thuần (không HTML) nên giao diện dựng bằng DOM — không có đường chèn mã. Kết quả đệm 30 giây ở trình duyệt; danh sách bài để tìm giữ 60 giây trong bộ nhớ isolate (một lượt đọc D1 mỗi phút thay vì mỗi lần gõ).
+- Bộ nhớ đệm chỉ đọc tối đa 500 bài gần nhất và giữ 20.000 ký tự đầu nội dung mỗi bài, để một trang có rất nhiều bài vẫn không tốn CPU/bộ nhớ bất thường khi bị gọi liên tục.
 - `site/js/search.js` tự chèn ô tìm kiếm vào thanh đầu trang nên không phải chép HTML vào từng tệp; trang không có thanh đầu trang thì tệp này không làm gì. Dán `?q=…` vào địa chỉ trang là mở sẵn kết quả.
 
 ## Ảnh ở đầu trang chủ

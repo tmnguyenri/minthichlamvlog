@@ -1,1 +1,12 @@
 .gh-token
+
+# macOS và các tệp cục bộ không bao giờ đưa lên mạng
+.DS_Store
+
+# Cài đặt/gỡ hàng đợi của Node (dự án không dùng, nhưng đừng để lọt vào lịch sử)
+node_modules/
+
+# Khoá bí mật để ở máy, không commit
+.env
+.env.*
+.dev.vars
