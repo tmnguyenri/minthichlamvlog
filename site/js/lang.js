@@ -17,7 +17,7 @@
   'use strict';
 
   var KEY = 'mtlv-lang';
-  var ATTRS = ['aria-label', 'alt', 'title', 'content'];
+  var ATTRS = ['aria-label', 'alt', 'title', 'content', 'placeholder'];
   var root = document.documentElement;
 
   function valid(l) { return l === 'vi' || l === 'en'; }

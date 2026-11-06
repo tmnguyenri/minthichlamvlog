@@ -183,6 +183,16 @@ Tab **Thống kê** trong `/quan-ly` cho chủ trang xem nhanh: tổng lượt x
 - Không có JavaScript hoặc gọi API lỗi: giữ nguyên hai dòng thông báo trống có sẵn trong `site/index.html` ("Hiện chưa có ai online." / "Chưa có hoạt động nào.").
 - **Kiểm thử:** mục 9e của `dev/test-api.mjs` — xác nhận dữ liệu khớp với tab Thống kê và không lộ email/vai trò/ID.
 
+## Tìm kiếm bài viết
+
+Ô tìm kiếm nằm ngay trong thanh đầu trang. Gõ từ khoá, kết quả hiện ngay bên dưới: tiêu đề, đoạn trích đúng chỗ khớp (từ khoá được tô sáng), địa điểm và tháng. Bấm vào kết quả để mở bài, hoặc dùng phím ↓ ↑ rồi Enter; Esc để đóng.
+
+- Tìm trong **tiêu đề, tóm tắt, địa điểm và toàn bộ nội dung** của các bài **đã đăng** — bài nháp không bao giờ hiện ra, vì `/api/search` chỉ đọc `posts` với `status = 'published'`.
+- **Không cần gõ dấu, không phân biệt hoa/thường**: "da lat" khớp "Đà Lạt". Chuỗi được bỏ dấu bằng NFD trước khi so khớp; mỗi ký tự gốc đổi thành đúng một ký tự nên cắt được đoạn trích đúng vị trí trong bản gốc.
+- Nhiều từ khoá thì bài phải khớp **tất cả** các từ; khớp ở tiêu đề được xếp trước khớp trong nội dung.
+- `GET /api/search?q=…` trả `{ query, results: [{ slug, title, title_en, snippet, city, country, trip_date, … }] }`, tối đa 8 kết quả, chỉ chữ thuần (không HTML) nên giao diện dựng bằng DOM — không có đường chèn mã. Kết quả đệm 30 giây ở trình duyệt; danh sách bài để tìm giữ 60 giây trong bộ nhớ isolate (một lượt đọc D1 mỗi phút thay vì mỗi lần gõ).
+- `site/js/search.js` tự chèn ô tìm kiếm vào thanh đầu trang nên không phải chép HTML vào từng tệp; trang không có thanh đầu trang thì tệp này không làm gì. Dán `?q=…` vào địa chỉ trang là mở sẵn kết quả.
+
 ## Ảnh ở đầu trang chủ
 
 Ba tấm ảnh xếp chồng nghiêng ở đầu trang chủ (lớp CSS `.stack`) đổi được ngay từ tab **Trang chủ** trong `/quan-ly`, không cần sửa mã nguồn: chọn một ảnh mới cho từng vị trí (to nhất/bên trái, trên/bên phải, dưới/bên phải), hoặc bấm "Dùng ảnh mặc định" để quay lại ảnh có sẵn (`site/images/min.jpg`, `scene-dalat-wide.svg`, `scene-kyoto-wide.svg`). Ảnh tải lên được nén nhỏ lại ngay trên trình duyệt trước khi gửi, giống cách nén ảnh bìa bài viết.
