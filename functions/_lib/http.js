@@ -5,9 +5,10 @@ export const CSP = [
   "img-src 'self' https: data:",
   "style-src 'self' https://fonts.googleapis.com",
   "font-src https://fonts.gstatic.com",
-  "script-src 'self'",
+  // Beacon đo lường của Cloudflare được chèn vào HTML ở tầng biên, nên phải cho phép riêng.
+  "script-src 'self' https://static.cloudflareinsights.com",
   "frame-src https://www.youtube-nocookie.com",
-  "connect-src 'self'",
+  "connect-src 'self' https://cloudflareinsights.com",
   "base-uri 'none'",
   "form-action 'self'",
   "frame-ancestors 'none'",
