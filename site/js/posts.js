@@ -109,7 +109,8 @@
   // không cắt bớt, để thẻ Bản đồ nói hết nơi đã đi qua.
   function cityChips(countryKey, cities) {
     return h('span', { class: 'country__cities' }, cities.map(function (name) {
-      var chip = h('button', { class: 'city-chip', type: 'button', 'data-city': keyOf(name), text: name });
+      // title: hai cột nên tên dài bị cắt đuôi, rê chuột vẫn đọc được tên đầy đủ.
+      var chip = h('button', { class: 'city-chip', type: 'button', 'data-city': keyOf(name), text: name, title: name });
       chip.addEventListener('click', function (e) { e.preventDefault(); selectCity(countryKey, name); });
       return chip;
     }));
