@@ -737,10 +737,12 @@ details.help .field { margin-top: 1rem; }
 .country--city { flex-direction: column; align-items: stretch; gap: .6rem; }
 .country__link { display: flex; align-items: center; gap: .9rem; min-width: 0; color: inherit; text-decoration: none; }
 .country__link:hover .country__name { color: var(--pink-deep); }
-.country--city .country__cities { display: flex; flex-wrap: wrap; gap: .35rem; max-width: none; }
+/* Thành phố xếp thành hai cột để danh sách dài không kéo thẻ Bản đồ cao mãi; tên quá dài thì cắt đuôi. */
+.country--city .country__cities { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .35rem; max-width: none; }
 .city-chip {
-  padding: .22rem .62rem; border: 1px solid var(--line); border-radius: 999px; background: #fff;
+  padding: .22rem .5rem; border: 1px solid var(--line); border-radius: 999px; background: #fff;
   color: #4b3f60; font: 600 .78rem/1.4 var(--font); cursor: pointer;
+  min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   transition: color .2s, border-color .2s, background-color .2s, transform .2s var(--ease);
 }
 .city-chip:hover { border-color: rgba(18, 214, 168, .7); color: var(--ink); background: var(--bg-soft); transform: translateY(-1px); }
