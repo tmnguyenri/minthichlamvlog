@@ -117,7 +117,7 @@ export async function onRequestGet({ request, env }) {
         title_en: p.title_en || '',
         excerpt: p.excerpt || '',
         excerpt_en: p.excerpt_en || '',
-        snippet: snippet.slice(0, 240),
+        snippet: snippet.slice(0, 160),
         country: p.country || '',
         city: p.city || '',
         trip_date: p.trip_date || '',
