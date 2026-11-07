@@ -105,19 +105,14 @@
   }
 
   // Mỗi quốc gia một thẻ: cờ, tên và số bài (bấm phần này để lọc theo nước), bên dưới là từng thành phố
-  // bấm được — bấm thành phố nào thì Nhật ký chỉ còn bài ở thành phố đó (không lặp, tối đa 8).
-  var MAX_CITIES = 8;
-
+  // bấm được — bấm thành phố nào thì Nhật ký chỉ còn bài ở thành phố đó. Hiện đủ mọi thành phố của nước,
+  // không cắt bớt, để thẻ Bản đồ nói hết nơi đã đi qua.
   function cityChips(countryKey, cities) {
-    var shown = cities.slice(0, MAX_CITIES);
-    var chips = shown.map(function (name) {
+    return h('span', { class: 'country__cities' }, cities.map(function (name) {
       var chip = h('button', { class: 'city-chip', type: 'button', 'data-city': keyOf(name), text: name });
       chip.addEventListener('click', function (e) { e.preventDefault(); selectCity(countryKey, name); });
       return chip;
-    });
-    var more = cities.length - shown.length;
-    if (more > 0) chips.push(h('span', { class: 'city-chip city-chip--more', text: '+' + more }));
-    return h('span', { class: 'country__cities' }, chips);
+    }));
   }
 
   function atlas(posts) {

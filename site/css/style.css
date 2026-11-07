@@ -745,6 +745,4 @@ details.help .field { margin-top: 1rem; }
 }
 .city-chip:hover { border-color: rgba(18, 214, 168, .7); color: var(--ink); background: var(--bg-soft); transform: translateY(-1px); }
 .city-chip.is-active { border-color: transparent; background-image: var(--grad-cta); color: #fff; }
-.city-chip--more { cursor: default; border-style: dashed; background: none; color: var(--muted); }
-.city-chip--more:hover { border-color: var(--line); background: none; color: var(--muted); transform: none; }
 .country-filter__city { color: #4b3f60; font-weight: 700; }
