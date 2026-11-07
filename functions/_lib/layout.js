@@ -47,9 +47,9 @@ export function page({ title, titleEn = '', desc = '', descEn = '', ogType = 'we
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap">
-  <link rel="stylesheet" href="/css/style.css?v=7">
-  <script src="/js/lang.js?v=7"></script>
-  <script src="/js/session.js?v=7" defer></script>
+  <link rel="stylesheet" href="/css/style.css?v=8">
+  <script src="/js/lang.js?v=8"></script>
+  <script src="/js/session.js?v=8" defer></script>
 </head>
 <body>
   <a class="skip" href="#main" data-en="Skip to content">Chuyển đến nội dung</a>
@@ -88,7 +88,7 @@ ${main}
       </ul>
     </div>
   </footer>
-  <script src="/js/search.js?v=7" defer></script>
+  <script src="/js/search.js?v=8" defer></script>
 ${scripts.map((s) => `  <script src="${esc(s)}" defer></script>`).join('\n')}
 </body>
 </html>
