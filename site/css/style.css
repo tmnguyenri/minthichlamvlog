@@ -332,7 +332,8 @@ h1, h2, h3 { margin: 0; font-weight: 800; line-height: 1.12; letter-spacing: -.0
 .atlas-flag { display: grid; place-items: center; width: 2.9rem; height: 2.9rem; flex: none; border-radius: .9rem; background: linear-gradient(135deg, #fff3d6, #ffe3ec); border: 1px solid var(--line); overflow: hidden; }
 .atlas-flag .flag { font-size: 1.7rem; }
 /* Tên nước ở trên, số bài viết xuống dưới một dòng riêng — để hai thứ không dính vào nhau trong ô hẹp. */
-.country > span:not(.atlas-flag) { display: flex; flex-direction: column; align-items: flex-start; gap: .15rem; min-width: 0; }
+/* Khớp cả thẻ mẫu trong HTML lẫn thẻ do posts.js dựng (thẻ thật có thêm lớp .country__link ở giữa). */
+.country > span:not(.atlas-flag), .country__link > span:not(.atlas-flag) { display: flex; flex-direction: column; align-items: flex-start; gap: .15rem; min-width: 0; }
 .country__name { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; line-height: 1.15; letter-spacing: -.01em; }
 .country__count { color: var(--muted); font-size: .72rem; font-weight: 700; line-height: 1.2; letter-spacing: .08em; text-transform: uppercase; }
 .country__cities { flex-basis: 100%; max-width: 20rem; color: var(--muted); font-size: .85rem; line-height: 1.35; }
