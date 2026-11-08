@@ -93,20 +93,27 @@
   // Nút "Sao chép liên kết" ở cuối bài: chép địa chỉ trang rồi báo ngay bên dưới nút. Ưu tiên
   // clipboard chuẩn; trình duyệt cũ hoặc trang không phải https thì dùng cách chọn chữ và copy.
   function copyText(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
-    return new Promise(function (resolve, reject) {
-      var box = document.createElement('textarea');
-      box.value = text;
-      box.setAttribute('readonly', '');
-      box.style.position = 'fixed';
-      box.style.top = '-1000px';
-      document.body.appendChild(box);
-      box.select();
-      var ok = false;
-      try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
-      document.body.removeChild(box);
-      if (ok) resolve(); else reject(new Error('copy failed'));
-    });
+    function legacy() {
+      return new Promise(function (resolve, reject) {
+        var box = document.createElement('textarea');
+        box.value = text;
+        box.setAttribute('readonly', '');
+        box.style.position = 'fixed';
+        box.style.top = '-1000px';
+        document.body.appendChild(box);
+        box.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+        document.body.removeChild(box);
+        if (ok) resolve(); else reject(new Error('copy failed'));
+      });
+    }
+    // Trình duyệt có clipboard chuẩn nhưng chưa cho phép (hoặc trang không phải https) thì thử lại
+    // bằng cách chọn chữ, thay vì báo lỗi ngay.
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(legacy);
+    }
+    return legacy();
   }
 
   document.addEventListener('click', function (e) {
