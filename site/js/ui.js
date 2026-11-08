@@ -90,5 +90,39 @@
     });
   }
 
+  // Nút "Sao chép liên kết" ở cuối bài: chép địa chỉ trang rồi báo ngay bên dưới nút. Ưu tiên
+  // clipboard chuẩn; trình duyệt cũ hoặc trang không phải https thì dùng cách chọn chữ và copy.
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+    return new Promise(function (resolve, reject) {
+      var box = document.createElement('textarea');
+      box.value = text;
+      box.setAttribute('readonly', '');
+      box.style.position = 'fixed';
+      box.style.top = '-1000px';
+      document.body.appendChild(box);
+      box.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+      document.body.removeChild(box);
+      if (ok) resolve(); else reject(new Error('copy failed'));
+    });
+  }
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest('[data-copy]') : null;
+    if (!btn) return;
+    var section = btn.closest('.post-share');
+    var note = section ? section.querySelector('.post-share__msg') : null;
+    copyText(btn.getAttribute('data-copy') || window.location.href).then(function () {
+      if (note) { note.textContent = t('Đã sao chép liên kết.', 'Link copied.'); note.hidden = false; }
+    }).catch(function () {
+      if (note) {
+        note.textContent = t('Không sao chép được — hãy chép địa chỉ trên thanh trình duyệt.', 'Could not copy — please copy the address from the address bar.');
+        note.hidden = false;
+      }
+    });
+  });
+
   window.MTLV = { lang: lang, t: t, api: api, msgOf: msgOf, h: h, tx: tx, show: show, refresh: refresh, postImage: postImage, shortenName: shortenName };
 })();

@@ -83,6 +83,57 @@ export async function onRequestGet({ params, env, data }) {
         </form>`
     : `<p class="muted"><a href="/dang-nhap?next=${encodeURIComponent('/bai/' + post.slug)}" data-en="Log in">Đăng nhập</a> <span data-en="or">hoặc</span> <a href="/dang-ky" data-en="sign up">đăng ký</a> <span data-en="to leave a comment.">để bình luận.</span></p>`;
 
+  // Địa chỉ công khai của bài: dùng cho nút chia sẻ, thẻ og và dữ liệu có cấu trúc bên dưới.
+  const base = siteUrl(env);
+  const path = `/bai/${encodeURIComponent(post.slug)}`;
+  const shareUrl = base + path;
+
+  // Nút chia sẻ: Zalo và Facebook là hai đường lan truyền chính của khán giả Việt; nút thứ ba chép
+  // liên kết cho ai muốn dán vào chỗ khác (Messenger, nhóm chat, tin nhắn...).
+  const share = `<section class="post-share" aria-labelledby="share-title">
+          <h2 id="share-title" data-en="Share this post">Chia sẻ bài này</h2>
+          <div class="post-share__row">
+            <a class="share-btn share-btn--zalo" href="https://zalo.me/share/link?src=external&amp;url=${esc(encodeURIComponent(shareUrl))}" target="_blank" rel="noopener noreferrer">Zalo</a>
+            <a class="share-btn share-btn--fb" href="https://www.facebook.com/sharer/sharer.php?u=${esc(encodeURIComponent(shareUrl))}" target="_blank" rel="noopener noreferrer">Facebook</a>
+            <button class="share-btn share-btn--copy" type="button" data-copy="${esc(shareUrl)}" data-en="Copy link">Sao chép liên kết</button>
+          </div>
+          <p class="post-share__msg" role="status" hidden></p>
+        </section>`;
+
+  // Bài liên quan: ưu tiên cùng thành phố, rồi cùng nước, rồi bài mới nhất — để khách đọc tiếp thay
+  // vì rời trang sau một bài (mỗi khách đọc thêm một bài là thêm một lượt xem thật).
+  const { results: relatedRows } = await env.DB.prepare(
+    `SELECT slug, title, title_en, country, city, cover,
+       (SELECT i.id FROM images i WHERE i.post_id = posts.id ORDER BY i.id LIMIT 1) AS image_id
+       FROM posts
+      WHERE status = 'published' AND id != ?1
+      ORDER BY (city != '' AND lower(city) = lower(?2)) DESC,
+               (country != '' AND lower(country) = lower(?3)) DESC,
+               COALESCE(published_at, 0) DESC
+      LIMIT 3`,
+  ).bind(post.id, post.city || '', post.country || '').all();
+  const relatedCards = (relatedRows || []).map((r) => {
+    const img = r.image_id ? `/api/images/${r.image_id}` : (r.cover || '');
+    const where = [r.city, r.country].filter(Boolean).join(', ');
+    return `<li class="related__item">
+            <a class="related__link" href="/bai/${encodeURIComponent(r.slug)}">
+              ${img
+    ? `<img class="related__img" src="${esc(img)}" alt="" width="480" height="320" loading="lazy">`
+    : '<span class="related__img related__img--none" aria-hidden="true"></span>'}
+              <span class="related__body">
+                <span class="related__title"${en(r.title_en)}>${esc(r.title)}</span>
+                ${where ? `<span class="related__meta">${esc(where)}</span>` : ''}
+              </span>
+            </a>
+          </li>`;
+  }).join('');
+  const relatedBlock = relatedCards
+    ? `<section class="related" aria-labelledby="related-title">
+          <h2 id="related-title" data-en="Keep reading">Đọc tiếp</h2>
+          <ul class="related__list">${relatedCards}</ul>
+        </section>`
+    : '';
+
   const draft = post.status !== 'published'
     ? '<p class="notice notice--info wrap" data-en="Draft: only you can see this post.">Bản nháp: chỉ bạn nhìn thấy bài này.</p>' : '';
 
@@ -101,6 +152,8 @@ export async function onRequestGet({ params, env, data }) {
         ${video}
         ${prose}
         ${gallery}
+        ${share}
+        ${relatedBlock}
         <section class="comments" id="binh-luan" aria-labelledby="cm-title">
           <h2 id="cm-title" data-en="Comments">Bình luận</h2>
           ${list}
@@ -109,9 +162,8 @@ export async function onRequestGet({ params, env, data }) {
       </div>
     </article>`;
 
-  // Thẻ chia sẻ, địa chỉ chuẩn và dữ liệu có cấu trúc để công cụ tìm kiếm hiểu đây là một bài viết
-  const base = siteUrl(env);
-  const path = `/bai/${encodeURIComponent(post.slug)}`;
+  // Ảnh chia sẻ và dữ liệu có cấu trúc để công cụ tìm kiếm hiểu đây là một bài viết (base, path đã
+  // tính ở trên, dùng chung cho nút chia sẻ).
   const image = shareImage(base, randomPhoto ? cover : post.cover);
   const published = isoDate(post.published_at || post.created_at);
   const modified = isoDate(post.updated_at);

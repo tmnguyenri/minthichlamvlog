@@ -748,3 +748,46 @@ details.help .field { margin-top: 1rem; }
 .city-chip:hover { border-color: rgba(18, 214, 168, .7); color: var(--ink); background: var(--bg-soft); transform: translateY(-1px); }
 .city-chip.is-active { border-color: transparent; background-image: var(--grad-cta); color: #fff; }
 .country-filter__city { color: #4b3f60; font-weight: 700; }
+
+/* ---------- Chia sẻ bài viết + bài liên quan ---------- */
+.post-share { margin: 2.5rem 0 0; padding-top: 1.5rem; border-top: 1px dashed var(--line-2); }
+.post-share h2 {
+  margin: 0 0 .8rem; color: var(--muted);
+  font-size: .76rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+}
+.post-share__row { display: flex; flex-wrap: wrap; gap: .5rem; }
+.share-btn {
+  display: inline-flex; align-items: center; gap: .4rem; padding: .5rem .95rem;
+  border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink);
+  font: 700 .86rem/1 var(--font); text-decoration: none; cursor: pointer;
+  transition: transform .2s var(--ease), border-color .2s, background-color .2s, color .2s;
+}
+.share-btn:hover { transform: translateY(-2px); background: var(--bg-soft); }
+.share-btn--zalo:hover { border-color: #0068ff; color: #0068ff; }
+.share-btn--fb:hover { border-color: #1877f2; color: #1877f2; }
+.share-btn--copy:hover { border-color: rgba(18, 214, 168, .7); }
+.post-share__msg { margin: .7rem 0 0; color: var(--muted); font-size: .85rem; font-weight: 600; }
+
+.related { margin: 3rem 0 0; padding-top: 1.75rem; border-top: 1px dashed var(--line-2); }
+.related > h2 { margin: 0 0 1.1rem; font-size: clamp(1.3rem, 2.4vw, 1.65rem); }
+.related__list { display: grid; gap: .9rem; margin: 0; padding: 0; list-style: none; grid-template-columns: 1fr; }
+.related__link {
+  display: flex; gap: .85rem; align-items: center; height: 100%; padding: .6rem;
+  border: 1px solid var(--line); border-radius: 1rem; background: #fff; color: inherit; text-decoration: none;
+  transition: transform .25s var(--ease), border-color .25s;
+}
+.related__link:hover { transform: translateY(-3px); border-color: rgba(255, 77, 126, .4); }
+.related__img { flex: none; width: 5.5rem; height: 4.1rem; object-fit: cover; border-radius: .7rem; background: var(--paper); }
+.related__img--none { display: block; background: linear-gradient(135deg, #fff3d6, #ffe3ec); }
+.related__body { display: flex; flex-direction: column; gap: .25rem; min-width: 0; }
+.related__title {
+  font-weight: 700; font-size: .97rem; line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.related__meta { color: var(--muted); font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+
+@media (min-width: 48rem) {
+  .related__list { grid-template-columns: repeat(3, 1fr); }
+  .related__link { flex-direction: column; align-items: stretch; }
+  .related__img { width: 100%; height: 8.5rem; }
+}
