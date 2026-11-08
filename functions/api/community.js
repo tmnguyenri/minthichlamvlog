@@ -5,8 +5,8 @@
 import { json, memoize } from '../_lib/http.js';
 import { onlineMembers, topActiveMembers } from '../_lib/stats.js';
 
-// Ba truy vấn (trong đó có COUNT(*) trên cả bảng page_views) cho mỗi lần gọi là quá đắt cho một điểm
-// công khai: giữ kết quả 60 giây, vừa trong bộ nhớ isolate vừa ở trình duyệt.
+// Ba truy vấn cho mỗi lần gọi là quá đắt cho một điểm công khai: giữ kết quả 60 giây, vừa trong bộ
+// nhớ isolate vừa ở trình duyệt. Tổng lượt xem đọc từ stats_daily (mỗi ngày một dòng) nên luôn rẻ.
 const CACHE_SECONDS = 60;
 
 export async function onRequestGet({ env }) {
@@ -14,7 +14,7 @@ export async function onRequestGet({ env }) {
     const [online, topActive, views] = await Promise.all([
       onlineMembers(env),
       topActiveMembers(env, 5),
-      env.DB.prepare('SELECT COUNT(*) AS n FROM page_views').first(),
+      env.DB.prepare('SELECT COALESCE(SUM(views), 0) AS n FROM stats_daily').first(),
     ]);
     return {
       online: online.map((u) => ({ display_name: u.display_name })),

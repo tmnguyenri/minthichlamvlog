@@ -150,6 +150,28 @@ export async function allow(env, key, max, windowSeconds) {
   return row.count <= max;
 }
 
+const DAY = 86400;
+
+// Chuyển số liệu cũ (bảng page_views, mỗi lượt một dòng) sang stats_daily (mỗi ngày một dòng) đúng một
+// lần rồi xoá bảng cũ. Cờ nằm trong settings nên nhiều bản chạy cùng lúc cũng chỉ một bản chuyển.
+async function migrateViews(env, t) {
+  let claimed;
+  try {
+    claimed = await env.DB.prepare(
+      "INSERT OR IGNORE INTO settings (key, value, updated_at) VALUES ('stats_migrated', '1', ?)",
+    ).bind(t).run();
+  } catch { return; }
+  if (!claimed.meta || !claimed.meta.changes) return;
+  try {
+    await env.DB.prepare(
+      `INSERT INTO stats_daily (day, views, visitors)
+       SELECT created_at / 86400, COUNT(*), 0 FROM page_views WHERE true GROUP BY 1
+       ON CONFLICT(day) DO UPDATE SET views = views + excluded.views`,
+    ).run();
+    await env.DB.prepare('DELETE FROM page_views').run();
+  } catch { /* cài mới chưa từng có bảng cũ: không có gì để chuyển */ }
+}
+
 export async function cleanup(env) {
   const t = now();
   await env.DB.batch([
@@ -157,10 +179,10 @@ export async function cleanup(env) {
     env.DB.prepare('DELETE FROM rate_limits WHERE reset_at <= ?').bind(t),
     // Dọn mã đặt lại mật khẩu đã dùng hoặc quá hạn từ lâu (không đụng tới mã mời tạo tài khoản).
     env.DB.prepare(`DELETE FROM invites WHERE (role = 'reset' OR role LIKE 'reset:%') AND created_at <= ?`).bind(t - 7 * 24 * 3600),
-    // Mỗi lượt xem trang công khai thêm một dòng vào page_views (kể cả lượt của bot), nên chỉ giữ
-    // 400 ngày gần nhất để bảng không lớn mãi và con số tổng lượt xem không bị đội lên vô hạn.
-    env.DB.prepare('DELETE FROM page_views WHERE created_at <= ?').bind(t - 400 * 24 * 3600),
+    // Chỉ giữ 400 ngày số liệu gộp. Mỗi ngày một dòng nên bảng vẫn chỉ vài trăm dòng.
+    env.DB.prepare('DELETE FROM stats_daily WHERE day <= ?').bind(Math.floor((t - 400 * DAY) / DAY)),
   ]);
+  await migrateViews(env, t);
 }
 
 export const tooMany = () => fail(429, 'rate_limited',

@@ -12,6 +12,8 @@ const COLUMNS = [
 // tạo bằng CREATE TABLE/INDEX IF NOT EXISTS nên chạy lại vô hại, và chủ trang không phải tự vào D1
 // Console chạy tay (khớp với db/schema.sql, nơi bảng mới luôn có từ đầu).
 const TABLES = [
+  // Bảng cũ: mỗi lượt xem một dòng. Không ghi vào nữa (xem _lib/stats.js) nhưng vẫn tạo để bản cũ
+  // còn chạy được và để cleanup() chuyển dữ liệu cũ sang stats_daily đúng một lần.
   `CREATE TABLE IF NOT EXISTS page_views (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     path       TEXT NOT NULL,
@@ -20,6 +22,13 @@ const TABLES = [
   )`,
   'CREATE INDEX IF NOT EXISTS idx_page_views_created ON page_views(created_at)',
   'CREATE INDEX IF NOT EXISTS idx_page_views_visitor ON page_views(visitor_id)',
+  // Lượt xem gộp theo ngày: mỗi ngày đúng một dòng, nhờ vậy bảng nhỏ mãi (400 ngày ≈ 400 dòng) dù
+  // trang có hàng triệu lượt mỗi ngày. day = số nguyên, tính bằng Math.floor(giây / 86400).
+  `CREATE TABLE IF NOT EXISTS stats_daily (
+    day      INTEGER PRIMARY KEY,
+    views    INTEGER NOT NULL DEFAULT 0,
+    visitors INTEGER NOT NULL DEFAULT 0
+  )`,
   `CREATE TABLE IF NOT EXISTS settings (
     key        TEXT PRIMARY KEY,
     value      TEXT NOT NULL,

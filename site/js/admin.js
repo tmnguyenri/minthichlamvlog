@@ -451,7 +451,7 @@
     [
       tile(s.visits.total, 'Lượt xem', 'Page views'),
       tile(s.visits.today, 'Lượt xem hôm nay', 'Views today'),
-      tile(s.visits.unique_total, 'Khách khác nhau', 'Unique visitors'),
+      tile(s.visits.unique_total, 'Khách (30 ngày)', 'Visitors (30 days)'),
       tile(s.members.total, 'Thành viên', 'Members'),
       tile(s.online.count, 'Đang online', 'Online now'),
       tile(s.posts.total, 'Bài viết', 'Posts'),

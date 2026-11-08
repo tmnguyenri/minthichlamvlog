@@ -5,6 +5,18 @@ import { now, randomToken } from './auth.js';
 const VID_COOKIE = 'vid';
 const VID_RE = /^[A-Za-z0-9_-]{20,64}$/;
 const VID_MAX_AGE = 365 * 24 * 3600; // 1 năm
+// Cookie nhớ "hôm nay đã đếm khách này chưa" để sang ngày mới mới tính lại một lần.
+const DAY_COOKIE = 'vd';
+const DAY = 86400;
+
+// Lượt xem được gom trong bộ nhớ của bản chạy (isolate) này rồi ghi xuống D1 theo từng đợt. Mỗi bản chạy
+// phục vụ rất nhiều lượt trong 10 giây, nên thay vì một dòng cho mỗi lượt (bảng phình cả trăm MB mỗi
+// ngày khi đông khách) thì mỗi ngày chỉ còn đúng một dòng, cộng dồn. Đổi lại, lượt xem của khoảng 10
+// giây cuối trước khi bản chạy bị thu hồi có thể không kịp ghi — với số liệu tham khảo thì đánh đổi
+// này hợp lý, và nó không ảnh hưởng nội dung trang.
+const FLUSH_MS = 10 * 1000;
+const pending = new Map(); // day (số nguyên) -> { views, visitors }
+let lastFlush = 0;
 
 function readCookie(request, name) {
   const raw = request.headers.get('cookie') || '';
@@ -13,6 +25,20 @@ function readCookie(request, name) {
     if (i > 0 && part.slice(0, i).trim() === name) return part.slice(i + 1).trim();
   }
   return '';
+}
+
+// Ghi những gì đã gom được. Gọi ở cuối mỗi lượt (đủ 10 giây kể từ lần trước) và từ cleanup() để không
+// bỏ sót số liệu khi bản chạy sắp hết việc.
+export function flushStats(env, waitUntil) {
+  if (!env || !env.DB || !pending.size) return;
+  lastFlush = Date.now();
+  const rows = [...pending.entries()];
+  pending.clear();
+  const sql = `INSERT INTO stats_daily (day, views, visitors) VALUES (?1, ?2, ?3)
+    ON CONFLICT(day) DO UPDATE SET views = views + ?2, visitors = visitors + ?3`;
+  const run = env.DB.batch(rows.map(([day, b]) => env.DB.prepare(sql).bind(day, b.views, b.visitors)))
+    .catch(() => { /* bảng chưa kịp tạo hoặc D1 tạm lỗi: bỏ đợt này, lượt sau ghi lại */ });
+  if (waitUntil) waitUntil(run); else run;
 }
 
 // Ghi một lượt xem (nếu đáng tính) và, khi chưa có khách ẩn danh nào, gắn thêm cookie mới vào kết quả.
@@ -26,21 +52,31 @@ export function trackPageView(request, env, response, waitUntil) {
   if (response.status !== 200) return response;
   if (!(response.headers.get('content-type') || '').startsWith('text/html')) return response;
 
+  const day = Math.floor(now() / DAY);
+  const secure = url.protocol === 'https:' ? '; Secure' : '';
+  const cookies = [];
+
   let vid = readCookie(request, VID_COOKIE);
-  let out = response;
   if (!VID_RE.test(vid)) {
     vid = randomToken();
-    const secure = url.protocol === 'https:' ? '; Secure' : '';
-    out = new Response(response.body, response);
-    out.headers.append('set-cookie', `${VID_COOKIE}=${vid}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${VID_MAX_AGE}${secure}`);
+    cookies.push(`${VID_COOKIE}=${vid}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${VID_MAX_AGE}${secure}`);
   }
-  if (env.DB) {
-    const t = now();
-    waitUntil(
-      env.DB.prepare('INSERT INTO page_views (path, visitor_id, created_at) VALUES (?, ?, ?)')
-        .bind(path.slice(0, 200), vid, t).run().catch(() => { /* bảng chưa kịp tạo lần đầu: bỏ qua, lần sau sẽ có */ }),
-    );
+
+  const countedToday = readCookie(request, DAY_COOKIE) === String(day);
+  if (!countedToday) {
+    cookies.push(`${DAY_COOKIE}=${day}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${DAY}${secure}`);
   }
+
+  const bucket = pending.get(day) || { views: 0, visitors: 0 };
+  bucket.views += 1;
+  if (!countedToday) bucket.visitors += 1;
+  pending.set(day, bucket);
+
+  if (Date.now() - lastFlush >= FLUSH_MS) flushStats(env, waitUntil);
+
+  if (!cookies.length) return response;
+  const out = new Response(response.body, response);
+  for (const cookie of cookies) out.headers.append('set-cookie', cookie);
   return out;
 }
 

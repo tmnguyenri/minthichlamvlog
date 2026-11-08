@@ -91,6 +91,15 @@ CREATE TABLE IF NOT EXISTS page_views (
 CREATE INDEX IF NOT EXISTS idx_page_views_created ON page_views(created_at);
 CREATE INDEX IF NOT EXISTS idx_page_views_visitor ON page_views(visitor_id);
 
+-- Lượt xem gộp theo ngày (từ bản có tab Thống kê): mỗi ngày đúng một dòng, cộng dồn lượt xem và số
+-- khách. Nhờ vậy bảng nhỏ mãi dù trang có hàng triệu lượt mỗi ngày; page_views phía trên là bảng cũ,
+-- được chuyển sang đây một lần rồi không ghi vào nữa. day = Math.floor(giây / 86400).
+CREATE TABLE IF NOT EXISTS stats_daily (
+  day      INTEGER PRIMARY KEY,
+  views    INTEGER NOT NULL DEFAULT 0,
+  visitors INTEGER NOT NULL DEFAULT 0
+);
+
 -- Vài thiết lập chỉnh được ngay từ khu quản lý mà không cần sửa mã nguồn (ví dụ ảnh ở đầu trang
 -- chủ, tab "Trang chủ"). Dạng khóa/giá trị để sau này thêm thiết lập mới không cần đổi cấu trúc
 -- bảng. Thiếu một khóa nghĩa là dùng giá trị mặc định có sẵn trong HTML.
